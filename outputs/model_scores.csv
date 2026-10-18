@@ -1,0 +1,5 @@
+model_id,rows,emotion_accuracy,emotion_macro_f1,cue_accuracy,cue_macro_f1
+m1_hindi_text,347,0.585,0.594,0.6369,0.5782
+m2_hinglish_text,393,0.6285,0.6301,0.6667,0.6295
+m3_cremad_speech,1558,0.7317,0.7374,0.7574,0.7477
+m4_msp_speech,1558,,,0.4114,0.2872

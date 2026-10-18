@@ -1,0 +1,335 @@
+{
+  "model_id": "m1_hindi_text",
+  "base_model": "xlm-roberta-base",
+  "train_rows": 18810,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.3941,
+      "dev_macro_f1": 0.5544,
+      "seconds": 236
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.8644,
+      "dev_macro_f1": 0.561,
+      "seconds": 244
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.6085,
+      "dev_macro_f1": 0.5691,
+      "seconds": 270
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.4276,
+      "dev_macro_f1": 0.596,
+      "seconds": 221
+    }
+  ],
+  "test_emotion": {
+    "n": 347,
+    "accuracy": 0.585,
+    "macro_f1": 0.594,
+    "per_class": {
+      "Anger": {
+        "precision": 0.38461538461538464,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.4878048780487805,
+        "support": 30.0
+      },
+      "Devotion": {
+        "precision": 0.7837837837837838,
+        "recall": 0.8787878787878788,
+        "f1-score": 0.8285714285714286,
+        "support": 33.0
+      },
+      "Fear": {
+        "precision": 0.8787878787878788,
+        "recall": 0.3670886075949367,
+        "f1-score": 0.5178571428571429,
+        "support": 79.0
+      },
+      "Joy": {
+        "precision": 0.46511627906976744,
+        "recall": 0.5263157894736842,
+        "f1-score": 0.49382716049382713,
+        "support": 38.0
+      },
+      "Love": {
+        "precision": 0.6666666666666666,
+        "recall": 0.5454545454545454,
+        "f1-score": 0.6,
+        "support": 33.0
+      },
+      "Neutral": {
+        "precision": 0.32,
+        "recall": 0.64,
+        "f1-score": 0.4266666666666667,
+        "support": 25.0
+      },
+      "Nostalgia": {
+        "precision": 0.8285714285714286,
+        "recall": 0.8285714285714286,
+        "f1-score": 0.8285714285714286,
+        "support": 35.0
+      },
+      "Sadness": {
+        "precision": 0.5652173913043478,
+        "recall": 0.9629629629629629,
+        "f1-score": 0.7123287671232876,
+        "support": 27.0
+      },
+      "Surprise": {
+        "precision": 0.6666666666666666,
+        "recall": 0.3404255319148936,
+        "f1-score": 0.4507042253521127,
+        "support": 47.0
+      },
+      "accuracy": 0.5850144092219021,
+      "macro avg": {
+        "precision": 0.6177139421628806,
+        "recall": 0.6395859346029996,
+        "f1-score": 0.5940368552982972,
+        "support": 347.0
+      },
+      "weighted avg": {
+        "precision": 0.6631014130569761,
+        "recall": 0.5850144092219021,
+        "f1-score": 0.5807947891623777,
+        "support": 347.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "Anger",
+        "Devotion",
+        "Fear",
+        "Joy",
+        "Love",
+        "Neutral",
+        "Nostalgia",
+        "Sadness",
+        "Surprise"
+      ],
+      "rows_true_cols_pred": [
+        [
+          20,
+          1,
+          0,
+          1,
+          0,
+          6,
+          0,
+          2,
+          0
+        ],
+        [
+          0,
+          29,
+          0,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          16,
+          3,
+          29,
+          1,
+          2,
+          10,
+          1,
+          10,
+          7
+        ],
+        [
+          2,
+          0,
+          2,
+          20,
+          3,
+          10,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          3,
+          0,
+          7,
+          18,
+          2,
+          1,
+          2,
+          0
+        ],
+        [
+          3,
+          0,
+          0,
+          3,
+          1,
+          16,
+          1,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          2,
+          1,
+          1,
+          29,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          26,
+          0
+        ],
+        [
+          11,
+          1,
+          2,
+          8,
+          1,
+          3,
+          2,
+          3,
+          16
+        ]
+      ]
+    }
+  },
+  "test_cue": {
+    "n": 347,
+    "accuracy": 0.6369,
+    "macro_f1": 0.5782,
+    "per_class": {
+      "angry": {
+        "precision": 0.38461538461538464,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.4878048780487805,
+        "support": 30.0
+      },
+      "anxious": {
+        "precision": 0.8787878787878788,
+        "recall": 0.3670886075949367,
+        "f1-score": 0.5178571428571429,
+        "support": 79.0
+      },
+      "low_mood": {
+        "precision": 0.7037037037037037,
+        "recall": 0.9193548387096774,
+        "f1-score": 0.7972027972027972,
+        "support": 62.0
+      },
+      "neutral": {
+        "precision": 0.32653061224489793,
+        "recall": 0.64,
+        "f1-score": 0.43243243243243246,
+        "support": 25.0
+      },
+      "positive": {
+        "precision": 0.7685185185185185,
+        "recall": 0.7980769230769231,
+        "f1-score": 0.7830188679245284,
+        "support": 104.0
+      },
+      "surprised": {
+        "precision": 0.6666666666666666,
+        "recall": 0.3404255319148936,
+        "f1-score": 0.4507042253521127,
+        "support": 47.0
+      },
+      "accuracy": 0.6368876080691642,
+      "macro avg": {
+        "precision": 0.6214704607561751,
+        "recall": 0.6219354279938496,
+        "f1-score": 0.5781700573029657,
+        "support": 347.0
+      },
+      "weighted avg": {
+        "precision": 0.7032128477167588,
+        "recall": 0.6368876080691642,
+        "f1-score": 0.6293928118739545,
+        "support": 347.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "angry",
+        "anxious",
+        "low_mood",
+        "neutral",
+        "positive",
+        "surprised"
+      ],
+      "rows_true_cols_pred": [
+        [
+          20,
+          0,
+          2,
+          6,
+          2,
+          0
+        ],
+        [
+          16,
+          29,
+          11,
+          10,
+          6,
+          7
+        ],
+        [
+          0,
+          0,
+          57,
+          2,
+          3,
+          0
+        ],
+        [
+          3,
+          0,
+          1,
+          16,
+          4,
+          1
+        ],
+        [
+          2,
+          2,
+          5,
+          12,
+          83,
+          0
+        ],
+        [
+          11,
+          2,
+          5,
+          3,
+          10,
+          16
+        ]
+      ]
+    }
+  }
+}

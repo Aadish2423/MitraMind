@@ -1,0 +1,26 @@
+train 5152 clips / 63 actors, val 732 / 9, test 1558 / 19
+[transformers] [1mWavLMForSequenceClassification LOAD REPORT[0m from: microsoft/wavlm-base-plus
+Key               | Status  | 
+------------------+---------+-
+{'epoch': 1, 'train_loss': 1.6086, 'val_macro_f1': 0.3027, 'seconds': 268}
+{'epoch': 2, 'train_loss': 1.2569, 'val_macro_f1': 0.5196, 'seconds': 250}
+{'epoch': 3, 'train_loss': 0.9083, 'val_macro_f1': 0.6371, 'seconds': 248}
+{'epoch': 4, 'train_loss': 0.6614, 'val_macro_f1': 0.681, 'seconds': 250}
+{'epoch': 5, 'train_loss': 0.5189, 'val_macro_f1': 0.6606, 'seconds': 250}
+{'epoch': 6, 'train_loss': 0.4254, 'val_macro_f1': 0.7357, 'seconds': 247}
+{'epoch': 7, 'train_loss': 0.3493, 'val_macro_f1': 0.7151, 'seconds': 246}
+{'epoch': 8, 'train_loss': 0.283, 'val_macro_f1': 0.7221, 'seconds': 249}
+wrote outputs/m3_cremad_speech_cues.csv
+wrote outputs/m3_cremad_speech_metrics.json
+{
+  "test_emotion": {
+    "n": 1558,
+    "accuracy": 0.7317,
+    "macro_f1": 0.7374
+  },
+  "test_cue": {
+    "n": 1558,
+    "accuracy": 0.7574,
+    "macro_f1": 0.7477
+  }
+}

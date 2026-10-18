@@ -1,0 +1,166 @@
+{
+  "model_id": "m4_msp_speech",
+  "repos": {
+    "categorical": "3loi/SER-Odyssey-Baseline-WavLM-Categorical",
+    "dimensional": "3loi/SER-Odyssey-Baseline-WavLM-Multi-Attributes"
+  },
+  "eval_clips": 1558,
+  "note": "Cross-corpus: label sets differ, so 'correct' compares MitraMind cues.",
+  "test_cue": {
+    "n": 1558,
+    "accuracy": 0.4114,
+    "macro_f1": 0.2872,
+    "per_class": {
+      "angry": {
+        "precision": 0.6497326203208557,
+        "recall": 0.4567669172932331,
+        "f1-score": 0.5364238410596026,
+        "support": 532.0
+      },
+      "anxious": {
+        "precision": 0.37142857142857144,
+        "recall": 0.04887218045112782,
+        "f1-score": 0.08637873754152824,
+        "support": 266.0
+      },
+      "low_mood": {
+        "precision": 0.38786764705882354,
+        "recall": 0.793233082706767,
+        "f1-score": 0.5209876543209877,
+        "support": 266.0
+      },
+      "neutral": {
+        "precision": 0.35891647855530473,
+        "recall": 0.6973684210526315,
+        "f1-score": 0.47391952309985097,
+        "support": 228.0
+      },
+      "positive": {
+        "precision": 0.7894736842105263,
+        "recall": 0.05639097744360902,
+        "f1-score": 0.10526315789473684,
+        "support": 266.0
+      },
+      "surprised": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.41142490372272145,
+      "macro avg": {
+        "precision": 0.42623650026234694,
+        "recall": 0.34210526315789475,
+        "f1-score": 0.287162152319451,
+        "support": 1558.0
+      },
+      "weighted avg": {
+        "precision": 0.5388084115782746,
+        "recall": 0.41142490372272145,
+        "f1-score": 0.3741916527252271,
+        "support": 1558.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "angry",
+        "anxious",
+        "low_mood",
+        "neutral",
+        "positive",
+        "surprised"
+      ],
+      "rows_true_cols_pred": [
+        [
+          243,
+          6,
+          122,
+          114,
+          3,
+          44
+        ],
+        [
+          57,
+          13,
+          130,
+          38,
+          1,
+          27
+        ],
+        [
+          3,
+          1,
+          211,
+          49,
+          0,
+          2
+        ],
+        [
+          15,
+          0,
+          54,
+          159,
+          0,
+          0
+        ],
+        [
+          56,
+          15,
+          27,
+          83,
+          15,
+          70
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "predicted_label_counts": {
+    "Sad": 554,
+    "Neutral": 465,
+    "Angry": 312,
+    "Surprise": 161,
+    "Fear": 44,
+    "Happy": 20,
+    "Disgust": 2
+  },
+  "mean_dimensions_by_true_emotion": {
+    "ANG": {
+      "arousal": 0.663,
+      "valence": 0.342,
+      "dominance": 0.686
+    },
+    "DIS": {
+      "arousal": 0.34,
+      "valence": 0.37,
+      "dominance": 0.389
+    },
+    "FEA": {
+      "arousal": 0.414,
+      "valence": 0.37,
+      "dominance": 0.442
+    },
+    "HAP": {
+      "arousal": 0.481,
+      "valence": 0.451,
+      "dominance": 0.506
+    },
+    "NEU": {
+      "arousal": 0.291,
+      "valence": 0.381,
+      "dominance": 0.353
+    },
+    "SAD": {
+      "arousal": 0.206,
+      "valence": 0.347,
+      "dominance": 0.256
+    }
+  }
+}

@@ -1,0 +1,22 @@
+m2_hinglish_text: train 20068 ({'English': 10461, 'Hinglish': 9607}), dev 393, test 393
+[transformers] [1mXLMRobertaForSequenceClassification LOAD REPORT[0m from: xlm-roberta-base
+Key                         | Status     | 
+----------------------------+------------+-
+{'epoch': 1, 'train_loss': 1.4551, 'dev_macro_f1': 0.5797, 'seconds': 284}
+{'epoch': 2, 'train_loss': 0.9194, 'dev_macro_f1': 0.5611, 'seconds': 304}
+{'epoch': 3, 'train_loss': 0.6574, 'dev_macro_f1': 0.6418, 'seconds': 213}
+{'epoch': 4, 'train_loss': 0.4784, 'dev_macro_f1': 0.6402, 'seconds': 279}
+wrote outputs/m2_hinglish_text_cues.csv
+wrote outputs/m2_hinglish_text_metrics.json
+{
+  "test_emotion": {
+    "n": 393,
+    "accuracy": 0.6285,
+    "macro_f1": 0.6301
+  },
+  "test_cue": {
+    "n": 393,
+    "accuracy": 0.6667,
+    "macro_f1": 0.6295
+  }
+}

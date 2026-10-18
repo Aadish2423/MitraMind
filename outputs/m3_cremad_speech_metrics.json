@@ -1,0 +1,289 @@
+{
+  "model_id": "m3_cremad_speech",
+  "base_model": "microsoft/wavlm-base-plus",
+  "train_clips": 5152,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.6086,
+      "val_macro_f1": 0.3027,
+      "seconds": 268
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.2569,
+      "val_macro_f1": 0.5196,
+      "seconds": 250
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.9083,
+      "val_macro_f1": 0.6371,
+      "seconds": 248
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.6614,
+      "val_macro_f1": 0.681,
+      "seconds": 250
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.5189,
+      "val_macro_f1": 0.6606,
+      "seconds": 250
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.4254,
+      "val_macro_f1": 0.7357,
+      "seconds": 247
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.3493,
+      "val_macro_f1": 0.7151,
+      "seconds": 246
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.283,
+      "val_macro_f1": 0.7221,
+      "seconds": 249
+    }
+  ],
+  "test_actors": [
+    1007,
+    1010,
+    1011,
+    1015,
+    1017,
+    1022,
+    1023,
+    1034,
+    1037,
+    1044,
+    1048,
+    1050,
+    1053,
+    1056,
+    1058,
+    1069,
+    1072,
+    1084,
+    1091
+  ],
+  "test_emotion": {
+    "n": 1558,
+    "accuracy": 0.7317,
+    "macro_f1": 0.7374,
+    "per_class": {
+      "ANG": {
+        "precision": 0.8047945205479452,
+        "recall": 0.8834586466165414,
+        "f1-score": 0.8422939068100358,
+        "support": 266.0
+      },
+      "DIS": {
+        "precision": 0.6245847176079734,
+        "recall": 0.706766917293233,
+        "f1-score": 0.6631393298059964,
+        "support": 266.0
+      },
+      "FEA": {
+        "precision": 0.6360544217687075,
+        "recall": 0.7030075187969925,
+        "f1-score": 0.6678571428571428,
+        "support": 266.0
+      },
+      "HAP": {
+        "precision": 0.9378531073446328,
+        "recall": 0.6240601503759399,
+        "f1-score": 0.7494356659142212,
+        "support": 266.0
+      },
+      "NEU": {
+        "precision": 0.9347826086956522,
+        "recall": 0.7543859649122807,
+        "f1-score": 0.8349514563106796,
+        "support": 228.0
+      },
+      "SAD": {
+        "precision": 0.6193548387096774,
+        "recall": 0.7218045112781954,
+        "f1-score": 0.6666666666666666,
+        "support": 266.0
+      },
+      "accuracy": 0.7317073170731707,
+      "macro avg": {
+        "precision": 0.7595707024457647,
+        "recall": 0.7322472848788638,
+        "f1-score": 0.737390694727457,
+        "support": 1558.0
+      },
+      "weighted avg": {
+        "precision": 0.7552972413177188,
+        "recall": 0.7317073170731707,
+        "f1-score": 0.7350111639571345,
+        "support": 1558.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "ANG",
+        "DIS",
+        "FEA",
+        "HAP",
+        "NEU",
+        "SAD"
+      ],
+      "rows_true_cols_pred": [
+        [
+          235,
+          18,
+          8,
+          1,
+          1,
+          3
+        ],
+        [
+          23,
+          188,
+          19,
+          1,
+          1,
+          34
+        ],
+        [
+          14,
+          17,
+          187,
+          3,
+          1,
+          44
+        ],
+        [
+          15,
+          31,
+          42,
+          166,
+          6,
+          6
+        ],
+        [
+          3,
+          9,
+          7,
+          6,
+          172,
+          31
+        ],
+        [
+          2,
+          38,
+          31,
+          0,
+          3,
+          192
+        ]
+      ]
+    }
+  },
+  "test_cue": {
+    "n": 1558,
+    "accuracy": 0.7574,
+    "macro_f1": 0.7477,
+    "per_class": {
+      "angry": {
+        "precision": 0.7779632721202003,
+        "recall": 0.8759398496240601,
+        "f1-score": 0.8240495137046862,
+        "support": 532.0
+      },
+      "anxious": {
+        "precision": 0.6391752577319587,
+        "recall": 0.6992481203007519,
+        "f1-score": 0.6678635547576302,
+        "support": 266.0
+      },
+      "low_mood": {
+        "precision": 0.6213592233009708,
+        "recall": 0.7218045112781954,
+        "f1-score": 0.6678260869565218,
+        "support": 266.0
+      },
+      "neutral": {
+        "precision": 0.9347826086956522,
+        "recall": 0.7543859649122807,
+        "f1-score": 0.8349514563106796,
+        "support": 228.0
+      },
+      "positive": {
+        "precision": 0.9371428571428572,
+        "recall": 0.6165413533834586,
+        "f1-score": 0.7437641723356009,
+        "support": 266.0
+      },
+      "accuracy": 0.7573812580231065,
+      "macro avg": {
+        "precision": 0.7820846437983279,
+        "recall": 0.7335839598997494,
+        "f1-score": 0.7476909568130237,
+        "support": 1558.0
+      },
+      "weighted avg": {
+        "precision": 0.7776566543679811,
+        "recall": 0.7573812580231065,
+        "f1-score": 0.7585994787336087,
+        "support": 1558.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "angry",
+        "anxious",
+        "low_mood",
+        "neutral",
+        "positive"
+      ],
+      "rows_true_cols_pred": [
+        [
+          466,
+          25,
+          37,
+          2,
+          2
+        ],
+        [
+          32,
+          186,
+          44,
+          1,
+          3
+        ],
+        [
+          40,
+          31,
+          192,
+          3,
+          0
+        ],
+        [
+          13,
+          7,
+          30,
+          172,
+          6
+        ],
+        [
+          48,
+          42,
+          6,
+          6,
+          164
+        ]
+      ]
+    }
+  },
+  "test_accuracy_high_intensity_clips": 0.6842
+}

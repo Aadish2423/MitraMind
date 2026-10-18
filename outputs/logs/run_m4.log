@@ -1,0 +1,16 @@
+running on 1558 CREMA-D test clips
+wrote outputs/m4_msp_speech_cues.csv
+wrote outputs/m4_msp_speech_metrics.json
+{
+  "n": 1558,
+  "accuracy": 0.4114,
+  "macro_f1": 0.2872
+}
+         arousal  valence  dominance
+emotion                             
+ANG        0.663    0.342      0.686
+DIS        0.340    0.370      0.389
+FEA        0.414    0.370      0.442
+HAP        0.481    0.451      0.506
+NEU        0.291    0.381      0.353
+SAD        0.206    0.347      0.256
