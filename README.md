@@ -134,3 +134,8 @@ The `outputs/*_cues.csv` files reproduce HinEmo-9 test comments (PII-masked by i
 - MSP-Podcast baselines: L. Goncalves et al., *Odyssey 2024 – Speech Emotion Recognition Challenge: Dataset, Baseline Framework, and Results*, Odyssey 2024. Models: `3loi/SER-Odyssey-Baseline-WavLM-Categorical`, `3loi/SER-Odyssey-Baseline-WavLM-Multi-Attributes` (MIT).
 - EmoInHindi: G. V. Singh, P. Priya, M. Firdaus, A. Ekbal, P. Bhattacharyya, *EmoInHindi*, LREC 2022.
 - Base models: XLM-RoBERTa (`xlm-roberta-base`), WavLM (`microsoft/wavlm-base-plus`, `microsoft/wavlm-large`).
+
+## Licence
+
+The code is released under the [MIT licence](LICENSE). Data reproduced in `outputs/` keeps its source licence:
+HinEmo-9 comment text is CC BY 4.0, and CREMA-D-derived files follow ODbL / DbCL.
