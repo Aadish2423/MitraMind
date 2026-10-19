@@ -1,0 +1,269 @@
+{
+ "period": {
+  "start": "2026-09-26 22:00:00+05:30",
+  "end": "2026-10-16 01:15:00+05:30",
+  "days": 20,
+  "weeks": 3,
+  "n_checkins": 7
+ },
+ "questionnaires": {
+  "PHQ-9": {
+   "history": [
+    {
+     "date": "2026-09-25",
+     "total": 8,
+     "severity": "mild"
+    },
+    {
+     "date": "2026-10-05",
+     "total": 12,
+     "severity": "moderate"
+    },
+    {
+     "date": "2026-10-15",
+     "total": 17,
+     "severity": "moderately severe"
+    }
+   ],
+   "change": 9,
+   "direction": "worsened"
+  },
+  "GAD-7": {
+   "history": [
+    {
+     "date": "2026-09-25",
+     "total": 9,
+     "severity": "mild"
+    },
+    {
+     "date": "2026-10-15",
+     "total": 15,
+     "severity": "severe"
+    }
+   ],
+   "change": 6,
+   "direction": "worsened"
+  }
+ },
+ "reported_in_checkins": {
+  "phq9_domains": {
+   "tiredness": 1,
+   "sleep problems": 1,
+   "loss of interest": 1,
+   "low mood": 1
+  },
+  "gad7_domains": {
+   "irritability": 1
+  },
+  "sleep": {
+   "checkins_with_sleep_problems": 1,
+   "types_reported": {
+    "trouble falling/staying asleep": 1,
+    "awake at 1-4 am": 1
+   }
+  },
+  "stressor_domains": {
+   "work": {
+    "label": "work",
+    "checkins": 1,
+    "words_used": [
+     "boss",
+     "deadline",
+     "kaam ka pressure",
+     "office"
+    ]
+   },
+   "relationships": {
+    "label": "relationships",
+    "checkins": 1,
+    "words_used": [
+     "wife"
+    ]
+   },
+   "domestic": {
+    "label": "conflict at home",
+    "checkins": 1,
+    "words_used": [
+     "fight",
+     "fight ho gayi"
+    ]
+   },
+   "substance_use": {
+    "label": "alcohol / substances",
+    "checkins": 1,
+    "words_used": [
+     "drinking"
+    ]
+   },
+   "economic": {
+    "label": "money / housing costs",
+    "checkins": 1,
+    "words_used": [
+     "emi",
+     "salary"
+    ]
+   }
+  },
+  "coping_reported_helpful": {},
+  "coping_mentioned": {},
+  "coping_unhelpful_or_not_working": {
+   "alcohol or substances to cope": 1,
+   "breathing exercises": 1
+  }
+ },
+ "mood_signals": {
+  "emotion_model_distress_0_to_1": 0.967,
+  "distress_trend": "stable",
+  "top_emotion_cue_share": {
+   "low_mood": 0.714,
+   "anxious": 0.286
+  }
+ },
+ "weekly": [
+  {
+   "week_of": "2026-09-21",
+   "checkins": 1,
+   "domains": [
+    "work"
+   ]
+  },
+  {
+   "week_of": "2026-09-28",
+   "checkins": 2,
+   "domains": [
+    "conflict at home",
+    "relationships",
+    "sleep problems",
+    "tiredness"
+   ]
+  },
+  {
+   "week_of": "2026-10-05",
+   "checkins": 2,
+   "domains": [
+    "alcohol / substances",
+    "loss of interest",
+    "money / housing costs"
+   ]
+  },
+  {
+   "week_of": "2026-10-12",
+   "checkins": 2,
+   "domains": [
+    "low mood"
+   ]
+  }
+ ],
+ "checkins": [
+  {
+   "entry_id": "p01",
+   "date": "2026-09-26",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "work"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {}
+  },
+  {
+   "entry_id": "p02",
+   "date": "2026-09-30",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [
+    "fatigue",
+    "sleep"
+   ],
+   "gad7": [],
+   "sleep": [
+    "insomnia",
+    "small_hours"
+   ],
+   "stressors": [],
+   "top_emotion": "anxious",
+   "coping": {}
+  },
+  {
+   "entry_id": "p03",
+   "date": "2026-10-03",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "relationships",
+    "domestic"
+   ],
+   "top_emotion": "anxious",
+   "coping": {},
+   "shared_text": "Weekend pe bhi laptop khol ke baitha tha. Wife se fight ho gayi kyunki main ghar pe time nahi deta."
+  },
+  {
+   "entry_id": "p04",
+   "date": "2026-10-07",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [
+    "anhedonia"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "substance_use"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {
+    "substance_coping": "not_helpful"
+   }
+  },
+  {
+   "entry_id": "p05",
+   "date": "2026-10-10",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [
+    "irritable"
+   ],
+   "sleep": [],
+   "stressors": [
+    "economic"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {}
+  },
+  {
+   "entry_id": "p06",
+   "date": "2026-10-13",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [
+    "depressed_mood"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [],
+   "top_emotion": "low_mood",
+   "coping": {
+    "breathing": "not_helpful"
+   }
+  },
+  {
+   "entry_id": "p07",
+   "date": "2026-10-16",
+   "language": "hinglish",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [],
+   "top_emotion": "low_mood",
+   "coping": {}
+  }
+ ]
+}

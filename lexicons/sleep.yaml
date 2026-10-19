@@ -1,0 +1,53 @@
+# Sleep cues from text alone (no timestamps). Developer-authored, needs clinician review.
+family: sleep
+description: sleep disturbance mentioned about oneself
+source: developer-authored seeds (MitraMind), anchored to PHQ-9 item 3
+license: proprietary to MitraMind (own work)
+defaults: {requires_first_person: true, negatable: true}
+items:
+  insomnia:
+    label: "Trouble falling or staying asleep"
+    terms:
+      - insomnia
+      - insomniac
+      - "{can|could} not {sleep|fall asleep|stay asleep|get to sleep|get any sleep}"
+      - "{trouble|difficulty|hard|struggle|struggling} {sleeping|to sleep|falling asleep|staying asleep}"
+      - "{have not|did not|barely|hardly} {slept|sleep}"
+      - "{no|zero|little|barely any} sleep"
+      - "{up|awake|lying awake} all night"
+      - lying awake
+      - "{wake|woke|waking} up {at|every|in the middle|multiple times|several times}"
+      - "re:\\bslept (?:for )?(?:only )?(?:[0-4]|one|two|three|four) hours?\\b"
+      - sleepless
+      - "{sleep|sleeping} {is|has been} {terrible|awful|horrible|bad|shit}"
+      - "{bad|terrible|awful|poor|no} sleep"
+  hypersomnia:
+    label: "Sleeping too much"
+    terms:
+      - "{sleeping|slept|sleep} {all day|too much|so much|the whole day|14 hours|12 hours|all the time}"
+      - oversleep*
+      - hypersomnia
+      - "{can|could} not stay awake"
+      - "{nap|napping|naps} all day"
+      - "{stay|stayed|staying} in bed all day"
+  small_hours:
+    label: "Awake in the small hours (1-4 am)"
+    negatable: false
+    terms:
+      - "re:\\b(?:[1-4]|1[:.]\\d\\d|2[:.]\\d\\d|3[:.]\\d\\d|4[:.]\\d\\d)\\s?(?:am|a\\.m\\.)\\b"
+      - middle of the night
+      - "{at|it is} {1|2|3|4} in the morning"
+  nightmares:
+    label: "Nightmares and disturbing dreams"
+    terms:
+      - nightmare*
+      - night terrors
+      - "{bad|disturbing|vivid} dreams"
+      - night sweats
+  sleep_aid:
+    label: "Sleep medication or aids"
+    negatable: false
+    terms:
+      - sleeping {pills|tablets|meds}
+      - melatonin
+      - "{zolpidem|ambien|trazodone|zopiclone|quetiapine|seroquel}"

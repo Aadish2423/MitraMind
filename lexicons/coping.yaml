@@ -1,0 +1,55 @@
+# Coping strategies the writer mentions, for the pre-visit summary ("breathing exercises
+# helped"). Whether a strategy helped is judged by the orchestrator from the same sentence
+# (src/phase1/orchestrator.py), not here. Developer-authored seeds; clinician review pending.
+family: cope
+description: coping strategies mentioned
+source: developer-authored seeds (MitraMind)
+license: proprietary to MitraMind (own work)
+defaults: {requires_first_person: false, negatable: false}
+items:
+  breathing:
+    label: "Breathing exercises / Mind Pause"
+    terms:
+      - "{breathing|breath} {exercise|exercises|technique|techniques|work}"
+      - "{deep|slow|box} {breathing|breaths|breath}"
+      - mind pause
+      - pranayam*
+  mindfulness:
+    label: "Meditation, mindfulness, grounding, prayer"
+    terms:
+      - "{meditation|meditate|meditated|meditating|mindfulness|mindful|grounding|yoga|prayer|prayed|praying}"
+  physical_activity:
+    label: "Exercise, walking, sport"
+    terms:
+      - "re:(?<!breathing )(?<!breath )\\bexercis(?:e|ed|es|ing)\\b"   # not "breathing exercise"
+      - "{workout|gym|walk|walked|walking|run|ran|running|jog|jogging|cycling|swim|swimming|sports|cricket|football}"
+  social_support:
+    label: "Talking to someone"
+    terms:
+      - "{talked|talking|spoke|speaking|opened up|vented|venting} to {my|a|someone|friend|friends|mom|mum|dad|parents|sister|brother|partner}"
+      - "{called|texted|met} {my|a} {friend|friends|mom|mum|dad|sister|brother|partner}"
+      - reflection share
+  journaling:
+    label: "Writing, journaling"
+    terms:
+      - "{journal|journaling|journalling|diary|wrote down|writing down|write down}"
+  creative_music:
+    label: "Music, art, hobbies"
+    terms:
+      - "{music|song|songs|singing|guitar|drawing|painting|reading|hobby|hobbies}"
+  routine_selfcare:
+    label: "Sleep routine, rest, self-care"
+    terms:
+      - "{sleep routine|sleep schedule|screen time|bedtime|nap|napped|rest|rested|self care|self-care|healthy food|cooked}"
+  professional_help:
+    label: "Therapy, doctor, medication as prescribed, helplines"
+    terms:
+      - "{therapy|therapist|counsellor|counselor|counselling|counseling|psychiatrist|psychologist|doctor|helpline|tele-manas|tele manas|my medication|my meds}"
+  substance_coping:
+    label: "Coping by alcohol, smoking or drugs (unhelpful)"
+    terms:
+      - "{drank|drinking|drink|drunk|smoked|smoking|weed|got high|pills to cope}"
+  avoidance:
+    label: "Avoidance, withdrawal (unhelpful)"
+    terms:
+      - "{avoided|avoiding|skipped class|skipped classes|skipped work|stayed in bed|isolated myself|cancelled plans|ignored everyone}"

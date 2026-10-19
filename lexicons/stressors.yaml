@@ -1,0 +1,73 @@
+# Stressor / trigger domains. A hit means the domain is MENTIONED, not that it is the
+# cause of distress. economic, isolation, substance_use, domestic and covid19 keep the
+# Low et al. 2020 lexicons (danielmlow/reddit, Apache-2.0) with whole-word matching
+# (fixes "rent" in "parent") and the "ignoring me" "ugly" concatenation bug fixed.
+# work, school_exam, family, relationships and health follow the SAD stressor
+# categories (Mauriello et al. 2021); their terms are developer-authored.
+family: str
+description: stressor domains mentioned
+source: Low et al. 2020 lexicons (Apache-2.0) + SAD categories + developer-authored seeds
+license: Apache-2.0 portions retain attribution (see NOTICE); rest MitraMind own work
+defaults: {requires_first_person: false, negatable: false}
+items:
+  economic:
+    label: "Money, debt, housing cost (Low et al. economic_stress + extras)"
+    terms:
+      - "{unemploy*|employ*|economy|rent|rents|mortgage|evict*|owe|debt|debts|afford|salary|wage|wages|income|job|jobs|eviction}"   # Low et al.
+      - "{enough money|more money|pay the bills|make ends meet|save enough}"   # Low et al.
+      - "{bills|loan|loans|emi|broke|bankrupt*|financial*|finances|money problems|paycheck|fees|tuition}"
+  work:
+    label: "Work and career (SAD: Work)"
+    terms:
+      - "{boss|bosses|coworker|coworkers|co-worker|co-workers|colleague|colleagues|manager}"
+      - "{at work|my job|my work|workplace|office|workload|overtime|deadline|deadlines}"
+      - "{fired|laid off|layoff|layoffs|got sacked|quit my job|lost my job}"
+      - "{career|promotion|performance review|internship|shift|shifts|clients}"
+  school_exam:
+    label: "Study and exams (SAD: School) incl. Indian exam terms"
+    terms:
+      - "{exam|exams|board exams|boards|entrance exam|finals|midterm|midterms|test results|my test}"
+      - "{jee|neet|upsc|gate exam|cat exam|cet}"
+      - "{marks|grades|gpa|cgpa|percentile|rank|ranking|results}"
+      - "{assignment|assignments|homework|thesis|dissertation|syllabus|backlog|backlogs|placements}"
+      - "{school|college|university|uni|semester|professor|professors|teacher|teachers|class|classes|coaching}"
+      - "{study|studying|studies}"
+  family:
+    label: "Family (SAD: Family Issues)"
+    terms:
+      - "{parents|parent|mom|mum|mother|dad|father|sister|brother|sibling|siblings|family}"
+      - "{in-laws|in laws|mother-in-law|father-in-law|relatives|grandma|grandpa|grandmother|grandfather}"
+      - "{my son|my daughter|my kids|my children|my child}"
+  relationships:
+    label: "Romantic and social relationships (SAD: Social Relationships)"
+    terms:
+      - "{boyfriend|girlfriend|bf|gf|partner|husband|wife|spouse|fiance|fiancee|ex}"
+      - "{breakup|break up|broke up|broken up|dumped|cheated|cheating|divorce|separated}"
+      - "{dating|relationship|relationships|marriage|crush|friendship|friends|best friend}"
+  health:
+    label: "Physical health, illness, pain (SAD: Health, Fatigue & Physical Pain)"
+    terms:
+      - "{pain|chronic pain|sick|illness|ill|disease|diagnosis|diagnosed|symptom|symptoms|surgery|injury|injured}"
+      - "{doctor|doctors|hospital|er|clinic|medication|meds|prescription|treatment}"   # therapy is care, see coping
+      - "{migraine|migraines|cancer|diabetes|blood pressure|heart attack|infection|fever}"
+  isolation:
+    label: "Loneliness and isolation (Low et al. isolation + extras)"
+    terms:
+      - "{alone|lonely|loneliness|trapped|rejected|avoid|isolation|self-isolation|quarantine|lockdown}"   # Low et al.
+      - "{no one cares about me|no one cares|can not see anyone|can not see my|i miss my|i want to see my}"   # Low et al.
+      - "{i am in a cage|feel ignored|ignoring me|ugly|avoiding me|lack of social|am single|been single}"   # Low et al.
+      - "{no friends|nobody to talk to|no one to talk to|left out|isolated|by myself|outcast}"
+  substance_use:
+    label: "Alcohol, tobacco and drugs (Low et al. substance_use + extras)"
+    terms:
+      - "{smoke|cigarette|tobacco|wine|drink|beer|alcohol|drug|opioid|cocaine|snort|vodka|whiskey|whisky|tequila|meth}"   # Low et al.
+      - "{smoking|cigarettes|drinking|drunk|drugs|weed|marijuana|cannabis|heroin|xanax|benzos|relapse|relapsed|sober|sobriety|vape|vaping}"
+  domestic:
+    label: "Domestic conflict and abuse (Low et al. domestic_stress)"
+    terms:
+      - "{divorce|domestic violence|abuse|yelling|fighting with my|we are fighting|single mom|single dad|single parent|hit me|slapped me|fighting|fight}"   # Low et al.
+      - "{abusive|abuser|abused|beat me|beats me|screaming at me|yelled at me|threatened me}"
+  covid19:
+    label: "COVID-19 (Low et al. covid19)"
+    terms:
+      - "{corona|coronavirus|virus|viral|covid|covid19|covid-19|sars|influenza|pandemic|epidemic|quarantine|lockdown|distancing|national emergency|flatten|infect*|ventilator|mask|masks|symptomatic|epidemiolog*|immun*|incubation|transmission|vaccine*}"   # Low et al.

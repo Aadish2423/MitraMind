@@ -1,0 +1,130 @@
+{
+ "period": {
+  "start": "2026-10-02 22:00:00+05:30",
+  "end": "2026-10-08 02:10:00+05:30",
+  "days": 6,
+  "weeks": 1,
+  "n_checkins": 3
+ },
+ "questionnaires": {
+  "PHQ-9": {
+   "history": [
+    {
+     "date": "2026-10-01",
+     "total": 18,
+     "severity": "moderately severe"
+    }
+   ],
+   "change": 0,
+   "direction": "baseline_only"
+  }
+ },
+ "reported_in_checkins": {
+  "phq9_domains": {
+   "low mood": 1,
+   "thoughts of self-harm": 1
+  },
+  "gad7_domains": {},
+  "sleep": {
+   "checkins_with_sleep_problems": 0,
+   "types_reported": {}
+  },
+  "stressor_domains": {
+   "relationships": {
+    "label": "relationships",
+    "checkins": 1,
+    "words_used": [
+     "breakup"
+    ]
+   },
+   "health": {
+    "label": "physical health",
+    "checkins": 1,
+    "words_used": [
+     "pain"
+    ]
+   }
+  },
+  "coping_reported_helpful": {},
+  "coping_mentioned": {
+   "talking to someone": 1,
+   "therapy / professional help": 1
+  },
+  "coping_unhelpful_or_not_working": {}
+ },
+ "mood_signals": {
+  "emotion_model_distress_0_to_1": 0.957,
+  "distress_trend": "insufficient_data",
+  "top_emotion_cue_share": {
+   "low_mood": 0.667,
+   "anxious": 0.333
+  }
+ },
+ "weekly": [
+  {
+   "week_of": "2026-09-28",
+   "checkins": 1,
+   "domains": [
+    "low mood",
+    "relationships"
+   ]
+  },
+  {
+   "week_of": "2026-10-05",
+   "checkins": 2,
+   "domains": [
+    "physical health",
+    "thoughts of self-harm"
+   ]
+  }
+ ],
+ "checkins": [
+  {
+   "entry_id": "u01",
+   "date": "2026-10-02",
+   "language": "en",
+   "modality": "text",
+   "phq9": [
+    "depressed_mood"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "relationships"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {}
+  },
+  {
+   "entry_id": "u02",
+   "date": "2026-10-05",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "health"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {
+    "social_support": "mentioned",
+    "professional_help": "mentioned"
+   }
+  },
+  {
+   "entry_id": "u03",
+   "date": "2026-10-08",
+   "language": "en",
+   "modality": "text",
+   "phq9": [
+    "self_harm_thoughts"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [],
+   "top_emotion": "anxious",
+   "coping": {}
+  }
+ ]
+}

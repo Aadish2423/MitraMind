@@ -1,0 +1,180 @@
+{
+ "period": {
+  "start": "2026-09-29 19:00:00+05:30",
+  "end": "2026-10-12 18:45:00+05:30",
+  "days": 13,
+  "weeks": 2,
+  "n_checkins": 4
+ },
+ "questionnaires": {
+  "PHQ-9": {
+   "history": [
+    {
+     "date": "2026-09-28",
+     "total": 5,
+     "severity": "mild"
+    },
+    {
+     "date": "2026-10-14",
+     "total": 4,
+     "severity": "minimal"
+    }
+   ],
+   "change": -1,
+   "direction": "stable"
+  },
+  "GAD-7": {
+   "history": [
+    {
+     "date": "2026-10-14",
+     "total": 4,
+     "severity": "minimal"
+    }
+   ],
+   "change": 0,
+   "direction": "baseline_only"
+  }
+ },
+ "reported_in_checkins": {
+  "phq9_domains": {
+   "tiredness": 1
+  },
+  "gad7_domains": {
+   "nervousness": 1
+  },
+  "sleep": {
+   "checkins_with_sleep_problems": 0,
+   "types_reported": {}
+  },
+  "stressor_domains": {
+   "family": {
+    "label": "family",
+    "checkins": 3,
+    "words_used": [
+     "बहन",
+     "माँ"
+    ]
+   },
+   "health": {
+    "label": "physical health",
+    "checkins": 3,
+    "words_used": [
+     "अस्पताल",
+     "डॉक्टर",
+     "तबीयत",
+     "रिपोर्ट"
+    ]
+   }
+  },
+  "coping_reported_helpful": {
+   "rest / self-care": 1,
+   "meditation / yoga / prayer": 1
+  },
+  "coping_mentioned": {},
+  "coping_unhelpful_or_not_working": {}
+ },
+ "mood_signals": {
+  "emotion_model_distress_0_to_1": 0.554,
+  "distress_trend": "stable",
+  "top_emotion_cue_share": {
+   "positive": 0.5,
+   "low_mood": 0.25,
+   "anxious": 0.25
+  }
+ },
+ "weekly": [
+  {
+   "week_of": "2026-09-28",
+   "checkins": 2,
+   "domains": [
+    "family",
+    "physical health",
+    "tiredness"
+   ]
+  },
+  {
+   "week_of": "2026-10-05",
+   "checkins": 1,
+   "domains": [
+    "physical health"
+   ]
+  },
+  {
+   "week_of": "2026-10-12",
+   "checkins": 1,
+   "domains": [
+    "family",
+    "physical health"
+   ]
+  }
+ ],
+ "checkins": [
+  {
+   "entry_id": "c01",
+   "date": "2026-09-29",
+   "language": "hi",
+   "modality": "text",
+   "phq9": [
+    "fatigue"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "family",
+    "health"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {}
+  },
+  {
+   "entry_id": "c02",
+   "date": "2026-10-03",
+   "language": "hi",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "family"
+   ],
+   "top_emotion": "positive",
+   "coping": {
+    "routine_selfcare": "helpful"
+   }
+  },
+  {
+   "entry_id": "c03",
+   "date": "2026-10-08",
+   "language": "hi",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [
+    "nervous"
+   ],
+   "sleep": [],
+   "stressors": [
+    "health"
+   ],
+   "top_emotion": "anxious",
+   "coping": {}
+  },
+  {
+   "entry_id": "c04",
+   "date": "2026-10-12",
+   "language": "hi",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "family",
+    "health"
+   ],
+   "top_emotion": "positive",
+   "coping": {
+    "mindfulness": "helpful"
+   },
+   "shared_text": "सुबह योग किया, मन शांत रहा। माँ की रिपोर्ट भी ठीक आई।"
+  }
+ ]
+}

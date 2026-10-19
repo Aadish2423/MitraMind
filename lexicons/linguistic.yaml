@@ -1,0 +1,52 @@
+# Function-word cues. Counted as plain token rates: no negation or scoping.
+# Pronoun categories follow the LIWC construct (i / we / you / shehe+they) using our own
+# open word lists. Absolutist words: the 19-word dictionary of Al-Mosaiwi & Johnstone
+# (2018, Clinical Psychological Science, CC BY 4.0). The list below is the commonly cited
+# version and has NOT yet been checked against their Supplemental Table S2.
+family: self
+description: pronoun focus
+source: open word lists (LIWC-style construct)
+license: MitraMind own work
+defaults: {requires_first_person: false, negatable: false}
+item_rates: true
+items:
+  fps:
+    label: "First-person singular (I-talk)"
+    terms: ["{i|me|my|mine|myself|im}"]
+  fpp:
+    label: "First-person plural"
+    terms: ["{we|us|our|ours|ourselves}"]
+  second:
+    label: "Second person"
+    terms: ["{you|your|yours|yourself|yourselves|u|ur}"]
+  third:
+    label: "Third person"
+    terms: ["{he|him|his|himself|she|her|hers|herself|they|them|their|theirs|themselves}"]
+---
+family: ling
+description: negation, certainty, tentativeness, absolutist words, time orientation
+source: open word lists; absolutist list after Al-Mosaiwi & Johnstone 2018 (unverified)
+license: MitraMind own work (absolutist construct CC BY 4.0, cite)
+defaults: {requires_first_person: false, negatable: false}
+item_rates: true
+items:
+  negation:
+    terms: ["{not|no|never|nothing|nobody|none|nowhere|neither|nor|without}"]
+  absolutist:
+    terms: ["{absolutely|all|always|complete|completely|constant|constantly|definitely|entire|ever|every|everyone|everything|full|must|never|nothing|totally|whole}"]
+  certainty:
+    terms:
+      - "{certain|certainly|definitely|definite|surely|sure|undoubtedly|obviously|obvious|clearly|of course|for sure|guaranteed|no doubt}"
+      - "{always|never|forever|totally|completely|absolutely|entirely|exactly|truly|true|fact|indeed|must|every|everything|nothing}"
+  tentative:
+    terms:
+      - "{maybe|perhaps|possibly|possible|probably|guess|might|may|unsure|unclear|somewhat|kind of|sort of|kinda|sorta|seems|seem|seemed}"
+      - "{if|or|any|some|something|someone|somehow|sometimes|almost|apparently|hopefully|hope|wonder|doubt|depends|mostly|fairly|question}"
+  past_focus:
+    terms:
+      - "{was|were|had|did|used to|yesterday|ago|back then|remember|remembered}"
+      - "last {night|week|month|year|time}"
+  future_focus:
+    terms:
+      - "{will|going to|tomorrow|soon|someday|eventually|plan to|planning to|hope to}"
+      - "next {week|month|year|time}"

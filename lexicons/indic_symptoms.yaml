@@ -1,0 +1,98 @@
+# Hindi (Devanagari) and Hinglish (romanized) cue phrases, mapped onto the same domains as the
+# English lexicons (PHQ-9, GAD-7, sleep, stressors, coping). Regexes on lowercased raw text,
+# applied by src/phase1/indic.py. Negation is built into the phrases ("neend nahi aati").
+#
+# DEVELOPER-AUTHORED, NOT VALIDATED: needs review by native speakers and the clinical champion.
+# Romanized spellings vary a lot; the Phase 2 pilot data should drive additions.
+license: proprietary to MitraMind (own work)
+phq:
+  anhedonia:
+    - "(kuch|kisi cheez me(i)?n|kahin) (bhi )?(accha|achha|acha) nahi(n)? lag(ta|ti|ega)"
+    - "(mann|man) nahi(n)? lag(ta|ti)"
+    - "(koi )?interest nahi(n)?"
+    - "कुछ (भी )?अच्छा नहीं लग"
+    - "(मन|दिल) नहीं लग"
+  depressed_mood:
+    - "\\budaas\\b|\\budas\\b"
+    - "(mann|man|dil) (bahut |bohot )?bhaa?ri"
+    - "rona (aa|aata|aati)"
+    - "\\bdukhi\\b"
+    - "उदास|दुखी|रोना आ"
+    - "(मन|दिल) (बहुत )?भारी"
+  fatigue:
+    - "thak(a|i) (hua|hui|gaya|gayi|lagta|lagti)"
+    - "thaka?a?n\\b"
+    - "energy nahi(n)?"
+    - "थकान|थका हुआ|थकी हुई|थक गया|थक गई"
+  appetite:
+    - "bhookh? nahi(n)?"
+    - "khana (nahi|nhi|nahin) (kha|khaya|khati|khata)"
+    - "भूख नहीं|खाना नहीं खा"
+  worthlessness_guilt:
+    - "(main|mai) (bilkul )?(bekaar|bekar|nikamma|nikammi)"
+    - "meri (hi )?galti"
+    - "मैं (बिल्कुल )?(बेकार|निकम्मा|निकम्मी)"
+    - "मेरी (ही )?गलती"
+  concentration:
+    - "dhyan nahi(n)? lag"
+    - "focus nahi(n)? (ho|kar)"
+    - "ध्यान नहीं लग"
+gad:
+  nervous:
+    - "ghabra(hat|ta|ti|ya)"
+    - "\\btension\\b"
+    - "dar lag(ta|ti|a|raha|rahi)"
+    - "घबरा|टेंशन|डर लग"
+  excessive_worry:
+    - "\\bchinta\\b|\\bfi(k|q)a?r\\b"
+    - "soch(ta|ti) reh(ta|ti)"
+    - "चिंता|फ़िक्र|फिक्र|सोचता रहता|सोचती रहती"
+  irritable:
+    - "\\bgussa\\b|chid ?chid"
+    - "गुस्सा|चिड़चिड़"
+  panic_somatic:
+    - "dil (zor se |tez )?dhadak"
+    - "saans (nahi|phool|ruk)"
+    - "दिल (ज़ोर से |तेज़ )?धड़क|सांस (नहीं|फूल)"
+sleep:
+  insomnia:
+    - "(neend|nind) (nahi|nhi|nahin)( aati| aa rahi| aayi| aai)?"
+    - "so nahi(n)? (pa|paa)"
+    - "raat (bhar|ko) jaag"
+    - "jaag(ta|ti) reh(ta|ti)"
+    - "नींद नहीं|सो नहीं पा|रात भर जाग"
+stressors:
+  work:
+    - "\\boffice\\b|\\bboss\\b|kaam ka (pressure|bojh|tension)|\\bnaukri\\b"
+    - "ऑफिस|नौकरी|काम का"
+  school_exam:
+    - "\\bpadhai\\b|\\bimtihaan\\b|\\bpariksha\\b|\\bexams?\\b"
+    - "पढ़ाई|परीक्षा|इम्तिहान"
+  family:
+    - "\\b(maa|mummy|mumma|papa|pita|bhai|behen|bahen|sasural|gharwale|ghar wale)\\b"
+    - "माँ|मां|पापा|पिता|भाई|बहन|ससुराल|घर वाले"
+  relationships:
+    - "\\b(wife|biwi|pati|husband|boyfriend|girlfriend|shaadi)\\b"
+    - "पत्नी|पति|शादी"
+  health:
+    - "\\b(tabiyat|tabiyat|tabeeyat|bimar|beemar|aspatal|hospital|doctor|report)\\b"
+    - "तबीयत|बीमार|अस्पताल|डॉक्टर|रिपोर्ट"
+  economic:
+    - "\\b(paisa|paise|emi|karz|karza|loan|salary|udhaar|udhar)\\b"
+    - "पैसे|पैसा|कर्ज़|कर्ज|उधार"
+  isolation:
+    - "\\b(akela|akeli|akelapan)\\b"
+    - "अकेला|अकेली|अकेलापन"
+  domestic:
+    - "\\b(jhagda|jhagde|jhagra|ladai)\\b|fight ho gayi"
+    - "झगड़ा|लड़ाई"
+coping:
+  mindfulness:
+    - "\\byoga\\b|dhyan kiya|\\bpuja\\b|prarthana"
+    - "योग|ध्यान किया|पूजा|प्रार्थना"
+  routine_selfcare:
+    - "aa?ra?am kiya"
+    - "आराम किया"
+  social_support:
+    - "baat (ki|kiya|karke|kari)"
+    - "बात (की|करके)"

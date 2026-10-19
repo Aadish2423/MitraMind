@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0",
+  "patient_ref": "demo_crisis_04",
+  "generated_at": "2026-10-19T17:41:06.177808Z",
+  "questionnaires": {
+    "PHQ-9": {
+      "instrument": "PHQ-9",
+      "n_administrations": 1,
+      "first_total": 18,
+      "latest_total": 18,
+      "change": 0,
+      "direction": "baseline_only",
+      "clinically_meaningful_change": false,
+      "latest_severity": "moderately severe",
+      "history": [
+        {
+          "instrument": "PHQ-9",
+          "date": "2026-10-01",
+          "total": 18,
+          "severity": "moderately severe",
+          "item9": 1
+        }
+      ]
+    }
+  },
+  "risk": {
+    "level": "urgent",
+    "escalate": true,
+    "reasons": [
+      "3 check-in(s) with crisis language; highest 'urgent' (crisis phrases at behaviour/attempt tier)",
+      "PHQ-9 item 9 = 1 (thoughts of self-harm on several days)"
+    ],
+    "recommended_action": "Possible suicidal behaviour or plan. Call the patient now; share Tele-MANAS 14416; follow the hospital's emergency protocol.",
+    "helplines": [
+      "Tele-MANAS (24x7, Govt. of India): 14416 or 1-800-891-4416",
+      "Emergency: 112"
+    ],
+    "flagged_entries": [
+      {
+        "entry_id": "u01",
+        "level": "watch",
+        "lexicon_tier": 1,
+        "lexicon_terms": [
+          "indicator:i hate my life",
+          "indicator:can not do this anymore"
+        ],
+        "indic_terms": [],
+        "classifier_prob": 0.5193,
+        "reasons": [
+          "hopelessness / burden phrases",
+          "classifier p=0.52 >= watch threshold, negative tone"
+        ]
+      },
+      {
+        "entry_id": "u02",
+        "level": "watch",
+        "lexicon_tier": 0,
+        "lexicon_terms": [],
+        "indic_terms": [],
+        "classifier_prob": 0.5396,
+        "reasons": [
+          "classifier p=0.54 >= watch threshold, negative tone"
+        ]
+      },
+      {
+        "entry_id": "u03",
+        "level": "urgent",
+        "lexicon_tier": 3,
+        "lexicon_terms": [
+          "indicator:everyone would be better off without me",
+          "behavior:saving up pills"
+        ],
+        "indic_terms": [],
+        "classifier_prob": 0.8809,
+        "reasons": [
+          "crisis phrases at behaviour/attempt tier"
+        ]
+      }
+    ],
+    "phq9_item9_latest": 1
+  },
+  "cues": {
+    "n_entries": 3,
+    "period_start": "2026-10-02T22:00:00+05:30",
+    "period_end": "2026-10-08T02:10:00+05:30",
+    "modalities": {
+      "text": 3
+    },
+    "languages": {
+      "en": 3
+    },
+    "models_used": [
+      "m2_hinglish_text",
+      "m5_lexicon_text"
+    ],
+    "models_unavailable": {},
+    "mean_distress": 0.957,
+    "distress_trend": "insufficient_data",
+    "emotion_cue_share": {
+      "low_mood": 0.667,
+      "anxious": 0.333
+    },
+    "sentiment_mean": -0.215,
+    "phq_domains": {
+      "depressed_mood": 1,
+      "self_harm_thoughts": 1
+    },
+    "gad_domains": {},
+    "sleep": {},
+    "stressors": {
+      "relationships": 1,
+      "health": 1
+    },
+    "stressor_terms": {
+      "relationships": [
+        "breakup"
+      ],
+      "health": [
+        "pain"
+      ]
+    },
+    "coping_helpful": {},
+    "coping_mentioned": {
+      "social_support": 1,
+      "professional_help": 1
+    },
+    "coping_unhelpful": {}
+  },
+  "narrative": {
+    "clinician_summary": "The patient reported low mood in 3 of 3 check-ins and thoughts of self-harm in 1 of 3 check-ins. Stressors included relationships (breakup) and physical health (pain). The patient mentioned talking to someone and seeking professional help as coping strategies. PHQ-9 severity remained at baseline only with a total score of 18.",
+    "main_themes": [
+      "low mood",
+      "relationships",
+      "physical health"
+    ],
+    "stressors": [
+      {
+        "domain": "relationships",
+        "detail": "breakup"
+      },
+      {
+        "domain": "health",
+        "detail": "pain"
+      }
+    ],
+    "coping_that_helped": [],
+    "coping_concerns": [],
+    "sleep_note": "No sleep problems reported.",
+    "discussion_points": [
+      "Explore the impact of the relationship stressor on daily functioning.",
+      "Discuss management strategies for physical pain.",
+      "Review coping mechanisms when low mood or anxiety arises."
+    ],
+    "evidence": [
+      {
+        "statement": "reported low mood",
+        "entry_ids": [
+          "u01",
+          "u02",
+          "u03"
+        ]
+      },
+      {
+        "statement": "reported thoughts of self-harm",
+        "entry_ids": [
+          "u03"
+        ]
+      },
+      {
+        "statement": "mentioned breakup as a stressor",
+        "entry_ids": [
+          "u01"
+        ]
+      },
+      {
+        "statement": "mentioned pain as a stressor",
+        "entry_ids": [
+          "u02"
+        ]
+      },
+      {
+        "statement": "mentioned talking to someone",
+        "entry_ids": [
+          "u02"
+        ]
+      },
+      {
+        "statement": "mentioned therapy / professional help",
+        "entry_ids": [
+          "u02"
+        ]
+      }
+    ],
+    "data_confidence": "low"
+  },
+  "narrative_source": "llm",
+  "llm_model": "ollama:qwen3.5(think=False)",
+  "llm_attempts": 2,
+  "guardrail_notes": [
+    "attempt 1: '2 of 3 check-ins' does not match the data (3 check-ins; per-domain counts [0, 1, 3])"
+  ],
+  "disclaimer": "Wellness-support summary from patient check-ins. Not a diagnosis. Validated questionnaires are the measure of symptom severity; risk flags need clinical review."
+}

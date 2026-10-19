@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.0",
+  "patient_ref": "demo_student_01",
+  "generated_at": "2026-10-19T17:42:02.185909Z",
+  "questionnaires": {
+    "PHQ-9": {
+      "instrument": "PHQ-9",
+      "n_administrations": 3,
+      "first_total": 14,
+      "latest_total": 9,
+      "change": -5,
+      "direction": "improved",
+      "clinically_meaningful_change": true,
+      "latest_severity": "mild",
+      "history": [
+        {
+          "instrument": "PHQ-9",
+          "date": "2026-09-26",
+          "total": 14,
+          "severity": "moderate",
+          "item9": 0
+        },
+        {
+          "instrument": "PHQ-9",
+          "date": "2026-10-06",
+          "total": 11,
+          "severity": "moderate",
+          "item9": 0
+        },
+        {
+          "instrument": "PHQ-9",
+          "date": "2026-10-16",
+          "total": 9,
+          "severity": "mild",
+          "item9": 0
+        }
+      ]
+    },
+    "GAD-7": {
+      "instrument": "GAD-7",
+      "n_administrations": 2,
+      "first_total": 12,
+      "latest_total": 8,
+      "change": -4,
+      "direction": "improved",
+      "clinically_meaningful_change": true,
+      "latest_severity": "mild",
+      "history": [
+        {
+          "instrument": "GAD-7",
+          "date": "2026-09-26",
+          "total": 12,
+          "severity": "moderate",
+          "item9": null
+        },
+        {
+          "instrument": "GAD-7",
+          "date": "2026-10-16",
+          "total": 8,
+          "severity": "mild",
+          "item9": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "level": "none",
+    "escalate": false,
+    "reasons": [
+      "no crisis signal"
+    ],
+    "recommended_action": "No crisis signal. Continue routine check-ins.",
+    "helplines": [],
+    "flagged_entries": [],
+    "phq9_item9_latest": 0
+  },
+  "cues": {
+    "n_entries": 8,
+    "period_start": "2026-09-27T23:40:00+05:30",
+    "period_end": "2026-10-16T21:00:00+05:30",
+    "modalities": {
+      "text": 8
+    },
+    "languages": {
+      "en": 8
+    },
+    "models_used": [
+      "m2_hinglish_text",
+      "m5_lexicon_text"
+    ],
+    "models_unavailable": {},
+    "mean_distress": 0.827,
+    "distress_trend": "stable",
+    "emotion_cue_share": {
+      "anxious": 0.625,
+      "low_mood": 0.25,
+      "positive": 0.125
+    },
+    "sentiment_mean": 0.011,
+    "phq_domains": {
+      "sleep": 2,
+      "worthlessness_guilt": 1,
+      "fatigue": 1,
+      "concentration": 1
+    },
+    "gad_domains": {
+      "uncontrollable_worry": 1,
+      "panic_somatic": 1,
+      "nervous": 1
+    },
+    "sleep": {
+      "insomnia": 2,
+      "small_hours": 2
+    },
+    "stressors": {
+      "school_exam": 6,
+      "family": 2
+    },
+    "stressor_terms": {
+      "school_exam": [
+        "boards",
+        "class",
+        "coaching",
+        "exams",
+        "jee",
+        "results",
+        "studying"
+      ],
+      "family": [
+        "parents",
+        "sister"
+      ]
+    },
+    "coping_helpful": {
+      "breathing": 2,
+      "social_support": 1
+    },
+    "coping_mentioned": {
+      "creative_music": 1,
+      "physical_activity": 1
+    },
+    "coping_unhelpful": {}
+  },
+  "narrative": {
+    "clinician_summary": "Over the past three weeks, PHQ-9 scores improved from 14 to 9 and GAD-7 scores from 12 to 8. The patient reported sleep difficulties in 2 of 8 check-ins, primarily trouble falling/staying asleep and waking between 1-4 am. Stressors included studies/exams (6 check-ins) and family issues (2 check-ins). Helpful coping strategies included breathing exercises and talking to someone.",
+    "main_themes": [
+      "sleep problems",
+      "studies / exams"
+    ],
+    "stressors": [
+      {
+        "domain": "school_exam",
+        "detail": "Patient mentioned boards, class, coaching, exams, JEE, results, and studying."
+      },
+      {
+        "domain": "family",
+        "detail": "Patient mentioned parents and sister."
+      }
+    ],
+    "coping_that_helped": [
+      "breathing exercises",
+      "talking to someone"
+    ],
+    "coping_concerns": [],
+    "sleep_note": "Patient reported trouble falling/staying asleep in 2 of 8 check-ins and waking at 1-4 am in 2 of 8 check-ins.",
+    "discussion_points": [
+      "Continue reinforcing breathing exercises as a helpful strategy for anxiety.",
+      "Explore ways to manage family comparisons regarding academic performance.",
+      "Discuss sleep hygiene strategies to address insomnia."
+    ],
+    "evidence": [
+      {
+        "statement": "Patient reported trouble falling/staying asleep in 2 of 8 check-ins.",
+        "entry_ids": [
+          "s01",
+          "s06"
+        ]
+      },
+      {
+        "statement": "Patient mentioned waking at 1-4 am in 2 of 8 check-ins.",
+        "entry_ids": [
+          "s01",
+          "s06"
+        ]
+      },
+      {
+        "statement": "Patient reported feeling like a failure due to bad JEE mock results and parental comparisons.",
+        "entry_ids": [
+          "s01"
+        ]
+      },
+      {
+        "statement": "Patient mentioned breathing exercises helped calm them down.",
+        "entry_ids": [
+          "s03",
+          "s06"
+        ]
+      },
+      {
+        "statement": "Patient reported talking to someone was helpful.",
+        "entry_ids": [
+          "s05"
+        ]
+      }
+    ],
+    "data_confidence": "high"
+  },
+  "narrative_source": "llm",
+  "llm_model": "ollama:qwen3.5(think=False)",
+  "llm_attempts": 1,
+  "guardrail_notes": [],
+  "disclaimer": "Wellness-support summary from patient check-ins. Not a diagnosis. Validated questionnaires are the measure of symptom severity; risk flags need clinical review."
+}
