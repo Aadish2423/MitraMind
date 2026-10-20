@@ -2,7 +2,7 @@
 
     uvicorn api:app --app-dir src --port 8080
     MITRAMIND_LLM=ollama:qwen3.5          # State Card narrator: or openai:<model>@<base_url>, or none
-    MITRAMIND_CHAT_LLM=ollama:qwen3.5     # companion replies (defaults to MITRAMIND_LLM)
+    MITRAMIND_CHAT_LLM=ollama:gemma4:e4b  # companion replies (default; red-team winner)
     MITRAMIND_DB=var/mitramind.db         # SQLite file for patients, messages, alerts, audit log
 
 Patient app and clinician routes: src/care/routes.py (see /docs). Pages: / (patient app),
@@ -36,8 +36,8 @@ from phase1.render import card_to_markdown
 from phase1.schema import Entry, EntryRisk, PatientBundle, QuestionnaireResponse, UserStateCard
 
 
-def _backend(var: str = "MITRAMIND_LLM"):
-    spec = os.environ.get(var) or os.environ.get("MITRAMIND_LLM", "ollama:qwen3.5")
+def _backend(var: str = "MITRAMIND_LLM", default: str = "ollama:qwen3.5"):
+    spec = os.environ.get(var, default)
     kind, _, rest = spec.partition(":")
     if kind == "none":
         return None
@@ -49,7 +49,9 @@ def _backend(var: str = "MITRAMIND_LLM"):
 
 app = FastAPI(title="MitraMind Care", version="1.1")
 orch = Phase1Orchestrator(backend=_backend(), enable_neural=os.environ.get("MITRAMIND_NEURAL", "1") == "1")
-svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM"), make_stt())
+# Companion default: Gemma 4 E4B passed 19/19 red-team cases at 7.8 s/reply (Qwen3.5 9B: 18/19, 11.1 s),
+# see outputs/redteam/companion_redteam.md.
+svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM", "ollama:gemma4:e4b"), make_stt())
 app.include_router(build_router(svc))
 WEB = Path(__file__).resolve().parent / "web"
 DEMO = Path(__file__).resolve().parents[1] / "examples" / "patients"

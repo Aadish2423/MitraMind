@@ -76,7 +76,7 @@ before changing a prompt or model.
 | Variable | Default | Meaning |
 |---|---|---|
 | `MITRAMIND_LLM` | `ollama:qwen3.5` | State Card narrator (`openai:<model>@<url>` or `none`) |
-| `MITRAMIND_CHAT_LLM` | = `MITRAMIND_LLM` | companion replies |
+| `MITRAMIND_CHAT_LLM` | `ollama:gemma4:e4b` | companion replies (19/19 red-team cases, 7.8 s per reply) |
 | `MITRAMIND_NEURAL` | `1` | load m1-m4 |
 | `MITRAMIND_DB` | `var/mitramind.db` | SQLite file |
 | `MITRAMIND_STT`, `MITRAMIND_STT_MODEL` | `whisper`, `openai/whisper-small` | speech-to-text |
