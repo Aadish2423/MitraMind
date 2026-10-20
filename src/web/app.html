@@ -3,229 +3,453 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MitraMind Companion</title>
-<link rel="stylesheet" href="/static/common.css">
-<style>
-  main { max-width: 620px; margin: 0 auto; padding: 16px 16px 40px; }
-  header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
-  nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px; overflow-x: auto; }
-  nav.tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
-  nav.tabs button.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
-  .view { display: none; } .view.on { display: block; }
-  #msgs { display: flex; flex-direction: column; gap: 10px; min-height: 280px; max-height: 58vh; overflow-y: auto; padding: 4px 2px 8px; }
-  .bubble { max-width: 85%; padding: 9px 12px; border-radius: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .me { align-self: flex-end; background: var(--bubble-me); color: var(--bubble-me-text); border-bottom-right-radius: 4px; }
-  .ai { align-self: flex-start; background: var(--bubble-ai); border-bottom-left-radius: 4px; }
-  .meta { font-size: 12px; opacity: .85; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .me .meta button { background: transparent; color: inherit; border-color: rgba(255,255,255,.5); padding: 1px 8px; font-size: 12px; }
-  .ai .meta button { padding: 1px 8px; font-size: 12px; }
-  .composer { margin-top: 10px; }
-  .composer textarea { min-height: 64px; }
-  .rec { background: var(--urgent) !important; color: #fff !important; border-color: var(--urgent) !important; }
-  .item { padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-top: 6px; }
-  .opts label { border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 13px; cursor: pointer; }
-  .opts input { margin-right: 6px; }
-  .player { text-align: center; padding: 24px 8px; }
-  .player .step { font-size: 22px; min-height: 66px; margin: 12px 0; }
-  .player .count { font-size: 40px; font-weight: 700; color: var(--accent); }
-  .exlist { display: grid; gap: 8px; }
-  .consent { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .consent input { margin-top: 4px; }
-  .stack { display: grid; gap: 10px; }
-</style>
+<title>MitraMind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/static/patient.css">
 </head>
 <body>
-<main>
-  <header>
-    <h1>MitraMind</h1>
-    <div class="small muted" id="who"></div>
+
+<!-- Lotus mark, reused by the logo, the bot avatar and the login art -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lotus" viewBox="0 0 48 48">
+    <path d="M24 7c4.3 5 6.4 10.2 6.4 15.4 0 5.1-2.4 9.4-6.4 12.6-4-3.2-6.4-7.5-6.4-12.6C17.6 17.2 19.7 12 24 7Z" fill="#8cbca0"/>
+    <path d="M7 17.5c6.3 0 11.5 3.1 14.6 8.2 1.9 3.1 2.4 6.6 2.4 9.3-5.3 0-10.3-2.1-13.4-6.1C8 25.4 7.2 21.3 7 17.5Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M41 17.5c-.2 3.8-1 7.9-3.6 11.4-3.1 4-8.1 6.1-13.4 6.1 0-2.7.5-6.2 2.4-9.3 3.1-5.1 8.3-8.2 14.6-8.2Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M9.5 39c4.4 1.9 9.3 2.8 14.5 2.8s10.1-.9 14.5-2.8" stroke="#457560" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  </symbol>
+</svg>
+
+<!-- ============================================================ login / sign up -->
+<section class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-form">
+      <div class="brand">
+        <svg class="logo"><use href="#lotus"/></svg>
+        <span class="name">MitraMind</span>
+        <span class="tag">Your calm companion<br>between visits</span>
+      </div>
+      <div>
+        <h1 id="auth-title">Welcome back</h1>
+        <p class="sub" id="auth-sub">Take a slow breath. We're glad you're here.</p>
+      </div>
+      <div class="seg" role="tablist">
+        <button type="button" data-mode="login" class="on">Log in</button>
+        <button type="button" data-mode="signup">Sign up</button>
+      </div>
+
+      <form class="stack" id="login-form" novalidate>
+        <label class="field"><span class="lead" data-icon="mail"></span>
+          <input type="email" id="li-email" placeholder="Email address" autocomplete="email" required></label>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="li-pass" placeholder="Password" autocomplete="current-password" required>
+          <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
+        <div class="err" id="li-err" role="alert"></div>
+        <button class="btn-primary" id="li-btn">Log in</button>
+        <p class="small muted" style="margin:0">New to MitraMind? <button type="button" class="linkish" data-mode="signup">Create an account</button></p>
+      </form>
+
+      <form class="stack" id="signup-form" novalidate hidden>
+        <label class="field"><span class="lead" data-icon="mail"></span>
+          <input type="email" id="su-email" placeholder="Email address" autocomplete="email" required></label>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="su-pass" placeholder="Create a password" autocomplete="new-password" minlength="8" required>
+          <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
+        <div class="hint">At least 8 characters.</div>
+        <div class="grid2" style="grid-template-columns:1fr 1fr; gap:10px">
+          <label class="field"><span class="lead" data-icon="globe"></span>
+            <select id="su-lang" aria-label="Language">
+              <option value="auto">Any language</option><option value="en">English</option>
+              <option value="hinglish">Hinglish</option><option value="hi">हिन्दी</option>
+            </select></label>
+          <label class="field"><span class="lead" data-icon="hash"></span>
+            <input type="text" id="su-code" placeholder="Care-team code (optional)" autocomplete="off"></label>
+        </div>
+        <div class="consents" id="su-consents"></div>
+        <div class="err" id="su-err" role="alert"></div>
+        <button class="btn-primary" id="su-btn">Create account</button>
+        <p class="small muted" style="margin:0">We use your email only to sign you in. Your chats stay private unless you choose to share them.</p>
+      </form>
+
+      <div class="auth-foot"><span data-icon="phone" data-size="16"></span>
+        In a crisis, call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</div>
+    </div>
+
+    <div class="auth-art" aria-hidden="true">
+      <svg class="waves" viewBox="0 0 600 640" preserveAspectRatio="xMidYMid slice">
+        <path d="M600 0v190c-70 40-130-30-210-6-80 24-120-60-90-184z" fill="#ece6f6"/>
+        <path d="M0 0h170c20 60-30 100-90 110C40 117 10 90 0 70z" fill="#d6e8de" opacity=".8"/>
+        <path d="M0 400c110-50 200 70 330 30 130-40 190-110 270-80v290H0z" fill="#ebe5f5" opacity=".85"/>
+        <path d="M0 470c140-40 250 70 380 30 100-30 160-60 220-40v180H0z" fill="#c9e0d3"/>
+        <path d="M0 550c160-30 260 60 420 25 80-17 140-30 180-25v90H0z" fill="#a8cbb6"/>
+        <g fill="#fff" opacity=".7"><circle cx="110" cy="220" r="3"/><circle cx="480" cy="300" r="2.5"/>
+          <circle cx="520" cy="120" r="2"/><circle cx="160" cy="330" r="2"/><circle cx="420" cy="230" r="1.8"/></g>
+      </svg>
+      <svg class="leaf" style="left:8%; top:12%; width:70px; --r:-24deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <svg class="leaf l2" style="right:10%; top:40%; width:56px; --r:30deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <svg class="leaf l3" style="left:14%; bottom:30%; width:48px; --r:12deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <div class="orb-wrap">
+        <div class="orb"><svg class="logo"><use href="#lotus"/></svg></div>
+        <div class="breath"><span>Breathe in…</span><span>…and breathe out</span></div>
+      </div>
+      <div class="art-quote"><b>Thodi si saans, thoda sa sukoon.</b>A little breath, a little peace.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ dashboard -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo"><use href="#lotus"/></svg>
+      <span class="name">MitraMind</span>
+      <span class="tag" id="who"></span>
+    </div>
+    <div class="top-right">
+      <a class="help-pill" href="tel:14416"><span data-icon="phone" data-size="16"></span><span class="long">Need help?</span> 14416</a>
+      <button class="icon-btn" id="logout-top" title="Log out" aria-label="Log out" data-icon="logout"></button>
+    </div>
   </header>
 
-  <section id="enroll" class="panel stack" style="display:none">
-    <h2>Welcome</h2>
-    <p class="muted small" style="margin:0">Your hospital care team gave you MitraMind for the time between visits.
-      Use a code, not your real name or phone number.</p>
-    <div class="row"><input type="text" id="pid" placeholder="Patient code, e.g. pilot_017" style="flex:1">
-      <select id="plang"><option value="auto">Language: auto</option><option value="en">English</option>
-        <option value="hinglish">Hinglish</option><option value="hi">हिन्दी</option></select></div>
-    <div id="consents-new"></div>
-    <div class="row"><button class="primary" id="start">Start</button>
-      <button id="resume">I already have a code</button></div>
-    <div id="enroll-err" class="err"></div>
-  </section>
+  <div class="greet"><h2 id="greet-h">Hello</h2><p>How are you feeling today?</p></div>
 
-  <section id="app" style="display:none">
-    <nav class="tabs">
-      <button data-tab="chat" class="on">Chat</button><button data-tab="checkin">Check-in</button>
-      <button data-tab="pause">Mind Pause</button><button data-tab="privacy">Privacy</button>
-    </nav>
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="chat" class="on"><span data-icon="chat"></span>Chat</button>
+    <button data-tab="checkin"><span data-icon="clipboard"></span>Check-in</button>
+    <button data-tab="pause"><span data-icon="wind"></span>Mind Pause</button>
+    <button data-tab="privacy"><span data-icon="shield"></span>Privacy</button>
+  </nav>
 
-    <div class="view on" id="v-chat">
-      <div id="crisis" class="crisis" style="display:none"></div>
-      <div id="msgs"></div>
-      <div class="composer panel">
-        <textarea id="text" placeholder="How are you feeling today? You can write in English, Hinglish or हिन्दी"></textarea>
-        <div class="row" style="margin-top:8px; justify-content:space-between">
-          <div class="row">
-            <label class="small"><input type="checkbox" id="share"> Share with my care team</label>
-            <label class="small"><input type="checkbox" id="speak"> Read replies aloud</label>
-          </div>
-          <div class="row">
-            <button id="mic" title="Record a voice message">Voice</button>
-            <button class="primary" id="send">Send</button>
-          </div>
+  <!-- chat -->
+  <section class="view on" id="v-chat">
+    <div class="chat">
+      <div id="crisis" class="crisis" hidden></div>
+      <div id="msgs" aria-live="polite"></div>
+      <div class="composer">
+        <div class="preview" id="preview" hidden>
+          <img id="preview-img" alt="Photo to send">
+          <span class="pname" id="preview-name"></span>
+          <button class="ib" id="preview-x" aria-label="Remove photo" data-icon="x" data-size="18"></button>
         </div>
-        <div class="small muted" id="status"></div>
-      </div>
-    </div>
-
-    <div class="view" id="v-checkin">
-      <div class="panel">
-        <div class="row"><select id="instrument"><option>PHQ-9</option><option>GAD-7</option></select>
-          <span class="small muted">Takes about 2 minutes</span></div>
-        <p class="small muted" id="stem"></p>
-        <div id="items"></div>
-        <div class="row" style="margin-top:12px"><button class="primary" id="submit-q">Submit</button></div>
-        <div id="q-out" style="margin-top:12px"></div>
-      </div>
-    </div>
-
-    <div class="view" id="v-pause">
-      <div class="panel" id="pause-list"><h2>Mind Pause</h2><div class="exlist" id="exlist"></div></div>
-      <div class="panel player" id="player" style="display:none">
-        <h3 id="p-title"></h3>
-        <div class="count" id="p-count"></div>
-        <div class="step" id="p-step"></div>
-        <div class="small muted" id="p-progress"></div>
-        <div class="row" style="justify-content:center; margin-top:12px"><button id="p-stop">Stop</button></div>
-      </div>
-    </div>
-
-    <div class="view" id="v-privacy">
-      <div class="panel">
-        <h2>Your privacy</h2>
-        <p class="small muted">Your chats are private. Your care team sees how often you use MitraMind, your
-          questionnaire scores, and only the messages you choose to share. If something you write suggests you may be
-          in danger, your care team is alerted so they can help.</p>
-        <div id="consents-edit"></div>
-        <div class="row" style="margin-top:12px"><button id="logout">Switch patient</button></div>
+        <div class="inputbar">
+          <button class="ib" id="attach" title="Share a photo" aria-label="Share a photo" data-icon="paperclip"></button>
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden>
+          <textarea id="text" rows="1" placeholder="Write how you feel… English, Hinglish या हिन्दी"></textarea>
+          <button class="ib mic" id="mic" title="Record a voice message" aria-label="Record a voice message" data-icon="mic"></button>
+          <button class="ib send" id="send" title="Send" aria-label="Send" data-icon="send" disabled></button>
+        </div>
+        <div class="opts-row">
+          <label class="switch"><input type="checkbox" id="share"> Share with my care team</label>
+          <label class="switch"><input type="checkbox" id="speak"> Read replies aloud</label>
+        </div>
+        <div class="status" id="status" role="status"></div>
       </div>
     </div>
   </section>
 
-  <p class="small muted" style="margin-top:16px">MitraMind is a support tool, not a doctor and not for emergencies.
+  <!-- check-in -->
+  <section class="view" id="v-checkin">
+    <div class="card">
+      <h3>Your check-in</h3>
+      <p class="small muted" style="margin:0 0 12px">A few quick questions about the last 2 weeks. It takes about 2 minutes.</p>
+      <div class="seg seg-sm" id="instrument">
+        <button type="button" data-ins="PHQ-9" class="on">Mood (PHQ-9)</button>
+        <button type="button" data-ins="GAD-7">Worry (GAD-7)</button>
+      </div>
+      <div class="progress"><div id="q-progress"></div></div>
+      <p class="small muted" id="stem" style="margin:4px 0 0"></p>
+      <div id="items"></div>
+      <button class="btn-primary" id="submit-q" style="width:100%; margin-top:12px">Submit check-in</button>
+      <div id="q-out"></div>
+    </div>
+  </section>
+
+  <!-- Mind Pause -->
+  <section class="view" id="v-pause">
+    <div class="card" id="pause-list">
+      <h3>Mind Pause</h3>
+      <p class="small muted" style="margin:0">Short guided exercises. Find a comfortable spot and pick one.</p>
+      <div class="ex-grid" id="exlist"></div>
+    </div>
+    <div class="card player" id="player" hidden>
+      <h3 id="p-title"></h3>
+      <div class="p-orb calm" id="p-orb"><div class="p-count" id="p-count"></div></div>
+      <div class="p-step" id="p-step"></div>
+      <div class="small muted" id="p-progress"></div>
+      <button class="btn-ghost" id="p-stop">End exercise</button>
+    </div>
+  </section>
+
+  <!-- privacy -->
+  <section class="view" id="v-privacy">
+    <div class="grid2">
+      <div class="card">
+        <h3>Your privacy</h3>
+        <p class="small muted" style="margin:0">Your chats are private. Your care team sees how often you use MitraMind, your
+          check-in scores, and only the messages you choose to share. If something you write suggests you may be in danger,
+          your care team is alerted so they can help.</p>
+        <div class="rows" id="consents-edit"></div>
+      </div>
+      <div class="card">
+        <h3>Your account</h3>
+        <div class="acct"><div class="avatar"><svg class="logo"><use href="#lotus"/></svg></div>
+          <div><b id="acct-email"></b><div class="small muted" id="acct-code"></div></div></div>
+        <button class="btn-ghost" id="logout" style="margin-top:14px; width:100%">Log out</button>
+        <div class="crisis" style="margin:16px 0 0"><span data-icon="heart"></span>
+          <span>Need to talk to someone now? <a href="tel:14416">Tele-MANAS 14416</a> is free, 24x7. In an emergency call <a href="tel:112">112</a>.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot-note">MitraMind is a support tool, not a doctor and not for emergencies.
     In a crisis call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</p>
-</main>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const store = {
+const enc = encodeURIComponent;
+const ls = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
 };
-let PID = store.get("mm_pid"), PURPOSES = {};
+let TOKEN = ls.get("mm_token"), PID = null, PURPOSES = {}, PHOTO = null, BUSY = false;
+
+// ------------------------------------------------------------------ icons (Lucide shapes, MIT)
+const ICONS = {
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="m2 2 20 20"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  hash: '<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  clipboard: '<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  paperclip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  stop: '<rect width="12" height="12" x="6" y="6" rx="2"/>',
+  send: '<path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.64l-19 6.5a.5.5 0 0 0-.03.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/>',
+};
+const svg = (name, size = 20) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
+  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+const lotus = (cls = "logo") => `<svg class="${cls}"><use href="#lotus"/></svg>`;
+function paintIcons(root = document) {
+  root.querySelectorAll("[data-icon]").forEach((el) => { el.innerHTML = svg(el.dataset.icon, +el.dataset.size || 20); });
+}
+
+// ------------------------------------------------------------------ API
+function friendly(detail) {
+  if (typeof detail === "string") return detail.charAt(0).toUpperCase() + detail.slice(1);
+  if (Array.isArray(detail) && detail[0]) {
+    const loc = (detail[0].loc || []).join(".");
+    if (loc.includes("email")) return "Please enter a valid email address.";
+    if (loc.includes("patient_code")) return "The care-team code can only use letters, numbers, - and _.";
+    return detail[0].msg || "Something went wrong. Please try again.";
+  }
+  return "Something went wrong. Please try again.";
+}
 
 async function api(path, body, method) {
-  const opt = body === undefined ? {method: method || "GET"} :
-    {method: method || "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)};
-  const r = await fetch(path, opt);
+  const headers = {};
+  if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
+  const opt = {method: method || (body === undefined ? "GET" : "POST"), headers};
+  if (body !== undefined) { headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  let r;
+  try { r = await fetch(path, opt); } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data));
+  if (r.status === 401 && TOKEN && !path.startsWith("/v1/auth/")) signOut(true);
+  if (!r.ok) throw new Error(friendly(data.detail));
   return data;
 }
 
-// ------------------------------------------------------------------ enrolment and consent
-function consentBoxes(el, current, onChange) {
-  el.innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
-    <label class="consent"><input type="checkbox" data-purpose="${k}" ${current[k] ? "checked" : ""}>
-      <span class="small">${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span></label>`).join("");
-  if (onChange) el.querySelectorAll("input").forEach((i) => i.onchange = () => onChange(i.dataset.purpose, i.checked));
+// ------------------------------------------------------------------ login / sign up
+function setMode(mode) {
+  document.querySelectorAll(".seg [data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
+  $("login-form").hidden = mode !== "login";
+  $("signup-form").hidden = mode !== "signup";
+  $("auth-title").textContent = mode === "login" ? "Welcome back" : "Create your account";
+  $("auth-sub").textContent = mode === "login" ? "Take a slow breath. We're glad you're here."
+                                               : "A private, calm space for the days between your visits.";
+  $("li-err").textContent = $("su-err").textContent = "";
+  (mode === "login" ? $("li-email") : $("su-email")).focus();
+}
+document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+
+document.querySelectorAll(".pw-eye").forEach((b) => b.onclick = () => {
+  const input = b.parentElement.querySelector("input");
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  b.innerHTML = svg(show ? "eyeoff" : "eye");
+  b.setAttribute("aria-label", show ? "Hide password" : "Show password");
+});
+
+function renderSignupConsents() {
+  $("su-consents").innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
+    <label class="check"><input type="checkbox" data-purpose="${k}" ${k === "companion" || k === "care_team" ? "checked" : ""}>
+      <span>${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span></label>`).join("");
 }
 
-async function boot() {
-  PURPOSES = (await api("/v1/consent-purposes")).purposes;
-  if (PID) {
-    try { return showApp(await api(`/v1/patients/${encodeURIComponent(PID)}`)); }
-    catch { PID = null; store.set("mm_pid", null); }
-  }
-  $("enroll").style.display = "grid";
-  consentBoxes($("consents-new"), {companion: true, care_team: true});
+async function withButton(btn, label, fn) {
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = label;
+  try { await fn(); } finally { btn.disabled = false; btn.textContent = old; }
 }
 
-$("start").onclick = async () => {
-  const consents = {};
-  $("consents-new").querySelectorAll("input").forEach((i) => consents[i.dataset.purpose] = i.checked);
-  try {
-    const p = await api("/v1/patients", {id: $("pid").value.trim(), preferred_language: $("plang").value, consents});
-    showApp(p);
-  } catch (e) { $("enroll-err").textContent = e.message; }
-};
-$("resume").onclick = async () => {
-  try { showApp(await api(`/v1/patients/${encodeURIComponent($("pid").value.trim())}`)); }
-  catch (e) { $("enroll-err").textContent = e.message; }
-};
-$("logout").onclick = () => { store.set("mm_pid", null); location.reload(); };
-
-function showApp(p) {
-  PID = p.id; store.set("mm_pid", PID);
-  $("enroll").style.display = "none"; $("app").style.display = "block";
-  $("who").textContent = `Patient code: ${p.id}`;
-  consentBoxes($("consents-edit"), p.consents, async (purpose, granted) => {
-    await api(`/v1/patients/${encodeURIComponent(PID)}/consents`, {purpose, granted});
+$("login-form").onsubmit = (e) => {
+  e.preventDefault();
+  const email = $("li-email").value.trim(), password = $("li-pass").value;
+  if (!email || !password) { $("li-err").textContent = "Please enter your email and password."; return; }
+  withButton($("li-btn"), "Logging in…", async () => {
+    try { startSession(await api("/v1/auth/login", {email, password})); }
+    catch (err) { $("li-err").textContent = err.message; }
   });
+};
+
+$("signup-form").onsubmit = (e) => {
+  e.preventDefault();
+  const email = $("su-email").value.trim(), password = $("su-pass").value, consents = {};
+  $("su-consents").querySelectorAll("input").forEach((i) => consents[i.dataset.purpose] = i.checked);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("su-err").textContent = "Please enter a valid email address."; return; }
+  if (password.length < 8) { $("su-err").textContent = "The password needs at least 8 characters."; return; }
+  if (!consents.companion) { $("su-err").textContent = "Please allow the companion (first box) so you can chat."; return; }
+  withButton($("su-btn"), "Creating your space…", async () => {
+    try {
+      startSession(await api("/v1/auth/signup", {email, password, consents, preferred_language: $("su-lang").value,
+                                                  patient_code: $("su-code").value.trim() || null}));
+    } catch (err) { $("su-err").textContent = err.message; }
+  });
+};
+
+function startSession(s) {
+  TOKEN = s.token; ls.set("mm_token", TOKEN);
+  $("li-pass").value = $("su-pass").value = "";
+  showApp(s);
+}
+
+function showAuth(mode = "login") {
+  $("app").hidden = true; $("auth").hidden = false;
+  setMode(mode);
+}
+
+function signOut(expired = false) {
+  if (!expired && TOKEN) fetch("/v1/auth/logout", {method: "POST", headers: {Authorization: `Bearer ${TOKEN}`}}).catch(() => {});
+  if (playing) stopExercise(false);
+  TOKEN = null; PID = null; ls.set("mm_token", null);
+  clearPhoto(); $("msgs").innerHTML = ""; $("crisis").hidden = true;
+  showAuth("login");
+  if (expired) $("li-err").textContent = "Your session ended. Please log in again.";
+}
+$("logout").onclick = $("logout-top").onclick = () => signOut();
+
+// ------------------------------------------------------------------ dashboard
+function showApp(me) {
+  PID = me.profile.id;
+  $("auth").hidden = true; $("app").hidden = false;
+  const h = new Date().getHours();
+  $("greet-h").textContent = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  $("who").textContent = me.email;
+  $("acct-email").textContent = me.email;
+  $("acct-code").textContent = `Patient code: ${me.profile.id}`;
+  renderConsents(me.profile.consents);
+  openTab("chat");
   loadHistory(); loadForm(); loadExercises();
 }
 
-document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => {
-  document.querySelectorAll("nav.tabs button").forEach((x) => x.classList.toggle("on", x === b));
-  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${b.dataset.tab}`));
-});
+function openTab(name) {
+  document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x.dataset.tab === name));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${name}`));
+  if (name === "chat") { $("msgs").scrollTop = $("msgs").scrollHeight; $("text").focus(); }
+}
+document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => openTab(b.dataset.tab));
 
 // ------------------------------------------------------------------ chat
-function bubble(m) {
-  const div = document.createElement("div");
-  div.className = `bubble ${m.role === "user" ? "me" : "ai"}`;
-  div.innerHTML = `<div>${esc(m.text)}</div>`;
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  if (m.role === "user") {
-    if (m.modality === "voice") meta.insertAdjacentHTML("beforeend", "<span>voice</span>");
-    const b = document.createElement("button");
-    const draw = () => b.textContent = m.shared ? "Shared with care team" : "Private";
-    draw();
-    b.title = "Tap to change who can read this message";
-    b.onclick = async () => {
-      m.shared = !m.shared; draw();
-      await api(`/v1/patients/${encodeURIComponent(PID)}/messages/${m.id}/share`, {shared: m.shared});
-    };
-    meta.appendChild(b);
-  } else if (m.mind_pause && m.mind_pause !== "none") {
-    const b = document.createElement("button");
-    b.textContent = "Start a Mind Pause";
-    b.onclick = () => { document.querySelector('[data-tab="pause"]').click(); startExercise(m.mind_pause); };
-    meta.appendChild(b);
+function scrollDown() { $("msgs").scrollTo({top: $("msgs").scrollHeight, behavior: "smooth"}); }
+
+function addMsg(m) {
+  const mine = m.role === "user";
+  const row = document.createElement("div");
+  row.className = `msg ${mine ? "me" : "ai"}`;
+  row.innerHTML = `${mine ? "" : `<div class="avatar">${lotus()}</div>`}<div class="col"><div class="bubble"></div><div class="chips"></div></div>`;
+  const bubble = row.querySelector(".bubble");
+  if (m.photoUrl || m.has_image) {
+    const img = document.createElement("img");
+    img.alt = "Photo you shared";
+    if (m.photoUrl) img.src = m.photoUrl; else loadPhoto(img, m.id);
+    bubble.appendChild(img);
   }
-  if (meta.childElementCount) div.appendChild(meta);
-  $("msgs").appendChild(div);
-  $("msgs").scrollTop = $("msgs").scrollHeight;
-  return div;
+  if (m.text) bubble.insertAdjacentHTML("beforeend", `<div class="txt">${esc(m.text)}</div>`);
+  if (mine && m.id) addPrivacyChip(row, m);
+  if (mine && m.modality === "voice") row.querySelector(".chips").insertAdjacentHTML("afterbegin", `<span class="chip">${svg("mic", 13)} voice</span>`);
+  if (!mine && m.mind_pause && m.mind_pause !== "none") {
+    const b = document.createElement("button");
+    b.className = "chip go"; b.innerHTML = `${svg("wind", 13)} Try a Mind Pause`;
+    b.onclick = () => { openTab("pause"); startExercise(m.mind_pause); };
+    row.querySelector(".chips").appendChild(b);
+  }
+  $("msgs").appendChild(row);
+  scrollDown();
+  return row;
+}
+
+function addPrivacyChip(row, m) {
+  const b = document.createElement("button");
+  b.title = "Tap to change who can read this message";
+  const draw = () => {
+    b.className = `chip${m.shared ? " shared" : ""}`;
+    b.innerHTML = m.shared ? `${svg("users", 13)} Shared with care team` : `${svg("lock", 13)} Private`;
+  };
+  draw();
+  b.onclick = async () => {
+    m.shared = !m.shared; draw();
+    try { await api(`/v1/patients/${enc(PID)}/messages/${m.id}/share`, {shared: m.shared}); }
+    catch (e) { m.shared = !m.shared; draw(); setStatus(e.message, true); }
+  };
+  row.querySelector(".chips").appendChild(b);
+}
+
+async function loadPhoto(img, mid) {
+  try {
+    const r = await fetch(`/v1/patients/${enc(PID)}/messages/${mid}/photo`, {headers: {Authorization: `Bearer ${TOKEN}`}});
+    if (r.ok) img.src = URL.createObjectURL(await r.blob());
+  } catch {}
 }
 
 async function loadHistory() {
   $("msgs").innerHTML = "";
-  const hist = await api(`/v1/patients/${encodeURIComponent(PID)}/messages?limit=60`);
-  if (!hist.length) bubble({role: "assistant", text: "Hi, I'm MitraMind. How are you feeling today? / आज आप कैसा महसूस कर रहे हैं?"});
-  hist.forEach((m) => bubble({...m, shared: !!m.shared}));
+  const hist = await api(`/v1/patients/${enc(PID)}/messages?limit=60`);
+  if (!hist.length) addMsg({role: "assistant", text: "Hi, I'm MitraMind. How are you feeling today?\nआज आप कैसा महसूस कर रहे हैं?"});
+  hist.forEach((m) => addMsg({...m, shared: !!m.shared}));
+}
+
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "msg ai typing";
+  row.innerHTML = `<div class="avatar">${lotus()}</div><div class="bubble" aria-label="MitraMind is typing">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wait"></span></div>`;
+  $("msgs").appendChild(row);
+  scrollDown();
+  row.timer = setTimeout(() => { row.querySelector(".wait").textContent = "taking a moment to reply…"; }, 9000);
+  row.done = () => { clearTimeout(row.timer); row.remove(); };
+  return row;
 }
 
 function showCrisis(res) {
-  if (!res.escalate) { $("crisis").style.display = "none"; return; }
-  $("crisis").style.display = "block";
-  $("crisis").innerHTML = `<b>You don't have to face this alone.</b><br>
+  if (!res.escalate) { $("crisis").hidden = true; return; }
+  $("crisis").hidden = false;
+  $("crisis").innerHTML = `${svg("heart")}<span><b>You don't have to face this alone.</b><br>
     Call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a> in an emergency.
-    Your care team has been told and will contact you.`;
+    Your care team has been told and will contact you.</span>`;
 }
 
 function speak(text, language) {
@@ -237,30 +461,69 @@ function speak(text, language) {
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 
-function afterReply(res, userText, modality) {
-  bubble({id: res.message_id, role: "user", text: userText, shared: $("share").checked, modality});
-  bubble({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
-  showCrisis(res);
-  speak(res.reply, res.language);
+function setStatus(msg, isErr = false) { $("status").innerHTML = isErr ? `<span class="err">${esc(msg)}</span>` : esc(msg); }
+function updateSend() { $("send").disabled = BUSY || (!$("text").value.trim() && !PHOTO); }
+function setBusy(b) { BUSY = b; $("mic").disabled = $("attach").disabled = b; updateSend(); }
+
+const grow = () => { const t = $("text"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 150) + "px"; };
+$("text").addEventListener("input", () => { grow(); updateSend(); });
+$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+$("send").onclick = () => send();
+
+async function send() {
+  const text = $("text").value.trim(), photo = PHOTO, share = $("share").checked;
+  if (BUSY || (!text && !photo)) return;
+  $("text").value = ""; grow(); clearPhoto(); setStatus("");
+  const msg = {role: "user", text, shared: share, photoUrl: photo?.dataUrl};
+  const row = addMsg(msg);
+  const typing = showTyping();
+  setBusy(true);
+  try {
+    const res = await api(`/v1/patients/${enc(PID)}/chat`, {text, share, photo_base64: photo?.b64 || null});
+    typing.done();
+    msg.id = res.message_id; addPrivacyChip(row, msg);
+    addMsg({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
+    showCrisis(res);
+    speak(res.reply, res.language);
+  } catch (e) {
+    typing.done();
+    row.classList.add("failed");
+    if (!$("text").value) { $("text").value = text; grow(); }
+    if (photo && !PHOTO) setPhoto(photo, "photo");
+    setStatus(`Not sent: ${e.message}`, true);
+  } finally { setBusy(false); }
 }
 
-async function withBusy(label, fn) {
-  $("send").disabled = $("mic").disabled = true; $("status").textContent = label;
-  try { await fn(); $("status").textContent = ""; }
-  catch (e) { $("status").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
-  finally { $("send").disabled = $("mic").disabled = false; }
-}
-
-$("send").onclick = () => {
-  const text = $("text").value.trim();
-  if (!text) return;
-  withBusy("MitraMind is replying…", async () => {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/chat`, {text, share: $("share").checked});
-    $("text").value = "";
-    afterReply(res, text, "text");
-  });
+// photos: re-encoded in the browser (max 1280 px JPEG), which also drops EXIF data such as location
+$("attach").onclick = () => $("file").click();
+$("file").onchange = async () => {
+  const f = $("file").files[0];
+  $("file").value = "";
+  if (!f) return;
+  if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { setStatus("Please choose a JPEG, PNG or WebP photo.", true); return; }
+  try { setPhoto(await shrink(f), f.name); setStatus(""); }
+  catch { setStatus("That photo could not be opened. Please try another.", true); }
 };
-$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("send").click(); } });
+$("preview-x").onclick = () => clearPhoto();
+
+async function shrink(file, max = 1280) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const dataUrl = c.toDataURL("image/jpeg", 0.85);
+    return {dataUrl, b64: dataUrl.split(",")[1]};
+  } finally { URL.revokeObjectURL(url); }
+}
+function setPhoto(p, name) {
+  PHOTO = p; $("preview-img").src = p.dataUrl; $("preview-name").textContent = name; $("preview").hidden = false; updateSend();
+}
+function clearPhoto() { PHOTO = null; $("preview").hidden = true; $("preview-img").removeAttribute("src"); updateSend(); }
 
 // ------------------------------------------------------------------ voice: record 16 kHz mono WAV in the browser
 let rec = null;
@@ -275,9 +538,13 @@ $("mic").onclick = async () => {
     proc.onaudioprocess = (e) => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     src.connect(proc); proc.connect(ctx.destination);
     rec = {stream, ctx, proc, chunks, t0: Date.now()};
-    $("mic").classList.add("rec"); $("mic").textContent = "Stop";
-    rec.timer = setInterval(() => $("status").textContent = `Recording… ${Math.round((Date.now() - rec.t0) / 1000)} s (tap Stop to send)`, 300);
-  } catch (e) { $("status").innerHTML = `<span class="err">Microphone not available: ${esc(e.message)}</span>`; }
+    $("mic").classList.add("rec"); $("mic").innerHTML = svg("stop"); $("mic").setAttribute("aria-label", "Stop and send");
+    $("send").disabled = true;
+    rec.timer = setInterval(() => {
+      const s = Math.round((Date.now() - rec.t0) / 1000);
+      setStatus(`Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} · tap the square to send`);
+    }, 300);
+  } catch (e) { setStatus(`Microphone not available: ${e.message}`, true); }
 };
 
 function toWav(chunks, rate) {
@@ -293,7 +560,6 @@ function toWav(chunks, rate) {
   v.setUint32(40, pcm.length * 2, true); new Int16Array(buf, 44).set(pcm);
   return new Uint8Array(buf);
 }
-
 function b64(bytes) {
   let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(s);
@@ -303,78 +569,131 @@ async function stopRecording() {
   const r = rec; rec = null; clearInterval(r.timer);
   r.proc.disconnect(); r.stream.getTracks().forEach((t) => t.stop());
   const wav = toWav(r.chunks, r.ctx.sampleRate); r.ctx.close();
-  $("mic").classList.remove("rec"); $("mic").textContent = "Voice";
-  withBusy("Listening to your voice message…", async () => {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/voice`,
-                          {audio_base64: b64(wav), mime: "audio/wav", share: $("share").checked});
-    afterReply(res, res.transcript, "voice");
-  });
+  $("mic").classList.remove("rec"); $("mic").innerHTML = svg("mic"); $("mic").setAttribute("aria-label", "Record a voice message");
+  setStatus("");
+  const typing = showTyping();
+  setBusy(true);
+  try {
+    const res = await api(`/v1/patients/${enc(PID)}/voice`, {audio_base64: b64(wav), mime: "audio/wav", share: $("share").checked});
+    typing.done();
+    addMsg({id: res.message_id, role: "user", text: res.transcript, shared: $("share").checked, modality: "voice"});
+    addMsg({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
+    showCrisis(res); speak(res.reply, res.language);
+  } catch (e) { typing.done(); setStatus(`Voice message not sent: ${e.message}`, true); }
+  finally { setBusy(false); }
 }
 
-// ------------------------------------------------------------------ questionnaires
+// ------------------------------------------------------------------ check-in
+let INSTRUMENT = "PHQ-9";
+document.querySelectorAll("#instrument button").forEach((b) => b.onclick = () => {
+  INSTRUMENT = b.dataset.ins;
+  document.querySelectorAll("#instrument button").forEach((x) => x.classList.toggle("on", x === b));
+  loadForm();
+});
 async function loadForm() {
-  const f = await api(`/v1/questionnaires/${$("instrument").value}/form`);
+  const f = await api(`/v1/questionnaires/${INSTRUMENT}/form`);
   $("stem").textContent = f.stem;
-  $("items").innerHTML = f.items.map((q, i) => `<div class="item"><div>${i + 1}. ${esc(q)}</div><div class="opts">
-    ${f.options.map((o) => `<label><input type="radio" name="q${i}" value="${o.value}">${esc(o.label)}</label>`).join("")}
+  $("items").innerHTML = f.items.map((q, i) => `<div class="q"><div class="qt">${i + 1}. ${esc(q)}</div><div class="qopts">
+    ${f.options.map((o) => `<label><input type="radio" name="q${i}" value="${o.value}"><span>${esc(o.label)}</span></label>`).join("")}
     </div></div>`).join("");
-  $("q-out").innerHTML = "";
+  $("items").querySelectorAll("input").forEach((i) => i.onchange = drawProgress);
+  $("q-out").innerHTML = ""; drawProgress();
 }
-$("instrument").onchange = loadForm;
+function drawProgress() {
+  const n = $("items").querySelectorAll(".q").length, done = $("items").querySelectorAll("input:checked").length;
+  $("q-progress").style.width = n ? `${(100 * done) / n}%` : "0";
+}
 $("submit-q").onclick = async () => {
-  const n = $("items").querySelectorAll(".item").length, items = [];
-  for (let i = 0; i < n; i++) {
-    const c = document.querySelector(`input[name=q${i}]:checked`);
-    if (!c) { $("q-out").innerHTML = `<p class="err">Please answer question ${i + 1}.</p>`; return; }
+  const qs = $("items").querySelectorAll(".q"), items = [];
+  for (let i = 0; i < qs.length; i++) {
+    const c = qs[i].querySelector("input:checked");
+    if (!c) { $("q-out").innerHTML = `<p class="err">Please answer question ${i + 1}.</p>`; qs[i].scrollIntoView({behavior: "smooth", block: "center"}); return; }
     items.push(+c.value);
   }
   try {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/questionnaires`, {instrument: $("instrument").value, items});
+    const res = await api(`/v1/patients/${enc(PID)}/questionnaires`, {instrument: INSTRUMENT, items});
     const t = res.trend;
-    $("q-out").innerHTML = `<p>Thank you. Your ${esc(res.score.instrument)} score is <b>${res.score.total}</b>
-      (${esc(res.score.severity)} range)${t.n_administrations > 1 ? `, ${t.change > 0 ? "up" : t.change < 0 ? "down" : "no change"}
-      from ${t.first_total} at your first check-in` : ""}. Your care team can see this.</p>
-      ${res.helplines.length ? `<div class="crisis">Some of your answers suggest you may be going through a very hard time.
-      Your care team has been told. You can call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) any time, or
-      <a href="tel:112">112</a> in an emergency.</div>` : ""}`;
+    $("q-out").innerHTML = `<div class="result"><b>Thank you for checking in.</b><br>Your ${esc(res.score.instrument)} score is
+      <b>${res.score.total}</b> (${esc(res.score.severity)} range)${t.n_administrations > 1 ? `, ${t.change > 0 ? "up" : t.change < 0 ? "down" : "no change"}
+      from ${t.first_total} at your first check-in` : ""}. Your care team can see this.</div>
+      ${res.helplines.length ? `<div class="crisis" style="margin:12px 0 0">${svg("heart")}<span>Some of your answers suggest you may be going
+      through a very hard time. Your care team has been told. You can call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) any time,
+      or <a href="tel:112">112</a> in an emergency.</span></div>` : ""}`;
+    $("q-out").scrollIntoView({behavior: "smooth", block: "nearest"});
   } catch (e) { $("q-out").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 };
 
 // ------------------------------------------------------------------ Mind Pause
+const EX_LOOK = {box_breathing: ["wind", "#e6f0e9", "#457560"], grounding_54321: ["leaf", "#f0ebf8", "#5b4a86"],
+                 body_scan: ["moon", "#fbf3e2", "#7a5a17"]};
 let EXS = {}, playing = null;
 async function loadExercises() {
   const list = await api("/v1/mind-pause");
   EXS = Object.fromEntries(list.map((e) => [e.id, e]));
-  $("exlist").innerHTML = list.map((e) => `<button data-ex="${e.id}" style="text-align:left">
-    <b>${esc(e.title)}</b><br><span class="small muted">For when you feel ${esc(e.for)}</span></button>`).join("");
+  $("exlist").innerHTML = list.map((e) => {
+    const [ic, bg, fg] = EX_LOOK[e.id] || ["sparkle", "#e6f0e9", "#457560"];
+    return `<button class="ex-card" data-ex="${e.id}"><span class="ico" style="background:${bg}; color:${fg}">${svg(ic, 24)}</span>
+      <b>${esc(e.title)}</b><span class="small">For when you feel ${esc(e.for)}</span></button>`;
+  }).join("");
   $("exlist").querySelectorAll("button").forEach((b) => b.onclick = () => startExercise(b.dataset.ex));
 }
-
+function phase(text, seconds) {
+  const orb = $("p-orb");
+  orb.classList.remove("in", "out", "calm");
+  orb.style.transitionDuration = `${seconds}s`;
+  if (/breathe in|inhale|साँस अंदर/i.test(text)) orb.classList.add("in");
+  else if (/breathe out|exhale|बाहर/i.test(text)) orb.classList.add("out");
+  else if (!/hold|रोक|रुक/i.test(text)) orb.classList.add("calm");
+}
 function startExercise(id) {
   const ex = EXS[id]; if (!ex) return;
   stopExercise(false);
-  $("pause-list").style.display = "none"; $("player").style.display = "block"; $("p-title").textContent = ex.title;
+  $("pause-list").hidden = true; $("player").hidden = false; $("p-title").textContent = ex.title;
   let i = 0, left = ex.steps[0].seconds;
   const draw = () => { $("p-step").textContent = ex.steps[i].text; $("p-count").textContent = left;
                        $("p-progress").textContent = `Step ${i + 1} of ${ex.steps.length}`; };
-  draw(); speakStep(ex.steps[0].text);
+  draw(); phase(ex.steps[0].text, ex.steps[0].seconds); speakStep(ex.steps[0].text);
   playing = {id, timer: setInterval(() => {
     if (--left > 0) return draw();
     if (++i >= ex.steps.length) return stopExercise(true);
-    left = ex.steps[i].seconds; draw(); speakStep(ex.steps[i].text);
+    left = ex.steps[i].seconds; draw(); phase(ex.steps[i].text, ex.steps[i].seconds); speakStep(ex.steps[i].text);
   }, 1000)};
 }
 function speakStep(t) { if ($("speak").checked) speak(t, "en"); }
 function stopExercise(completed) {
   if (!playing) return;
   clearInterval(playing.timer);
-  api(`/v1/patients/${encodeURIComponent(PID)}/mind-pause`, {exercise: playing.id, completed}).catch(() => {});
+  api(`/v1/patients/${enc(PID)}/mind-pause`, {exercise: playing.id, completed}).catch(() => {});
   playing = null;
-  $("player").style.display = "none"; $("pause-list").style.display = "block";
+  $("player").hidden = true; $("pause-list").hidden = false;
+  if (completed) $("p-step").textContent = "";
 }
 $("p-stop").onclick = () => stopExercise(false);
 
-boot().catch((e) => { document.querySelector("main").insertAdjacentHTML("afterbegin", `<p class="err">${esc(e.message)}</p>`); });
+// ------------------------------------------------------------------ privacy
+function renderConsents(current) {
+  $("consents-edit").innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
+    <label class="row-switch"><span>${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span>
+      <span class="switch"><input type="checkbox" data-purpose="${k}" ${current[k] ? "checked" : ""} aria-label="${esc(text)}"></span></label>`).join("");
+  $("consents-edit").querySelectorAll("input").forEach((i) => i.onchange = async () => {
+    try { await api(`/v1/patients/${enc(PID)}/consents`, {purpose: i.dataset.purpose, granted: i.checked}); }
+    catch (e) { i.checked = !i.checked; alert(e.message); }
+  });
+}
+
+// ------------------------------------------------------------------ start
+async function boot() {
+  paintIcons();
+  if (matchMedia("(max-width: 480px)").matches) $("text").placeholder = "Write how you feel…";
+  PURPOSES = (await api("/v1/consent-purposes")).purposes;
+  renderSignupConsents();
+  if (TOKEN) {
+    try { return showApp(await api("/v1/auth/me")); }
+    catch { TOKEN = null; ls.set("mm_token", null); }
+  }
+  showAuth("login");
+}
+boot().catch((e) => { document.body.insertAdjacentHTML("afterbegin", `<p class="err" style="padding:16px">${esc(e.message)}</p>`); });
 </script>
 </body>
 </html>

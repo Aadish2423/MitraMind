@@ -1,7 +1,9 @@
 """HTTP routes for the patient app (companion, questionnaires, consent) and the clinician dashboard.
 
-No authentication yet: this is a pilot prototype. Before any real patient uses it, put these behind
-hospital SSO / OTP login with patient and clinician roles (see task.md, "Remaining").
+Patients sign up and log in with email + password (/v1/auth/*) and send the session token as
+`Authorization: Bearer <token>`. Every /v1/patients/{pid}/... route checks that token when that patient has an
+account; code-only patients (demo data, tests, WhatsApp) keep the old open behaviour. The clinician side still has
+no login: before any real use, put it behind hospital SSO with a clinician role (see task.md, "Remaining").
 """
 from __future__ import annotations
 
@@ -9,15 +11,18 @@ import base64
 import binascii
 import json
 import os
+import time
+from collections import defaultdict, deque
 from datetime import date as Date
 from typing import Literal
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from . import fhir, instruments, mind_pause
-from .service import CareService, ConsentRequired, NotFound
+from .photos import MAX_BYTES as MAX_PHOTO_BYTES
+from .service import AuthError, CareService, ConsentRequired, NotFound, normalise_email
 from .store import CONSENT_PURPOSES, CONSENT_VERSION
 from .whatsapp import WhatsAppChannel, verify_signature
 
@@ -36,9 +41,24 @@ class ConsentChange(BaseModel):
     granted: bool
 
 
+class SignupIn(BaseModel):
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=200)
+    preferred_language: Literal["auto", "en", "hinglish", "hi"] = "auto"
+    consents: dict[str, bool] = {}
+    patient_code: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{2,40}$",
+                                     description="code from the care team, if they gave one")
+
+
+class LoginIn(BaseModel):
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=200)
+
+
 class ChatIn(BaseModel):
-    text: str = Field(min_length=1, max_length=4000)
+    text: str = Field("", max_length=4000)
     share: bool = Field(False, description="Reflection Share: let the care team read this message")
+    photo_base64: str | None = Field(None, description="optional JPEG / PNG / WebP photo, base64-encoded (max 5 MB)")
 
 
 class VoiceIn(BaseModel):
@@ -86,12 +106,68 @@ def _call(fn, *args, **kwargs):
         raise HTTPException(404, str(e)) from e
     except ConsentRequired as e:
         raise HTTPException(403, str(e)) from e
+    except AuthError as e:
+        raise HTTPException(401, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
 
 
+def _bearer(request: Request) -> str | None:
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    return token.strip() if scheme.lower() == "bearer" and token.strip() else None
+
+
+LOGIN_WINDOW_S, LOGIN_MAX_FAILURES = 15 * 60, 5
+
+
 def build_router(svc: CareService) -> APIRouter:
     r = APIRouter()
+    failures: dict[str, deque] = defaultdict(deque)  # email -> times of recent failed logins (per process)
+
+    def guard(request: Request, pid: str) -> None:
+        """A patient with an account can only be read or changed with that patient's own session token."""
+        if svc.store.account_for_patient(pid) is None:
+            return
+        acc = svc.account(_bearer(request))
+        if acc is None:
+            raise HTTPException(401, "please log in again")
+        if acc["patient_id"] != pid:
+            raise HTTPException(403, "this is not your account")
+
+    # ---------------------------------------------------------------- patient accounts
+    @r.post("/v1/auth/signup", tags=["auth"])
+    def signup(body: SignupIn):
+        return _call(svc.signup, body.email, body.password, consents=body.consents,
+                     preferred_language=body.preferred_language, patient_code=body.patient_code)
+
+    @r.post("/v1/auth/login", tags=["auth"])
+    def login(body: LoginIn):
+        email, t = normalise_email(body.email), time.monotonic()
+        recent = failures[email]
+        while recent and t - recent[0] > LOGIN_WINDOW_S:
+            recent.popleft()
+        if len(recent) >= LOGIN_MAX_FAILURES:
+            raise HTTPException(429, "too many attempts; please wait 15 minutes and try again")
+        try:
+            out = svc.login(email, body.password)
+        except AuthError as e:
+            recent.append(t)
+            raise HTTPException(401, str(e)) from e
+        failures.pop(email, None)
+        return out
+
+    @r.post("/v1/auth/logout", tags=["auth"])
+    def logout(request: Request):
+        if token := _bearer(request):
+            svc.logout(token)
+        return {"ok": True}
+
+    @r.get("/v1/auth/me", tags=["auth"])
+    def me(request: Request):
+        acc = svc.account(_bearer(request))
+        if acc is None:
+            raise HTTPException(401, "please log in again")
+        return {"email": acc["email"], "profile": _call(svc.profile, acc["patient_id"])}
 
     # ---------------------------------------------------------------- patient app
     @r.get("/v1/consent-purposes", tags=["patient"])
@@ -104,21 +180,38 @@ def build_router(svc: CareService) -> APIRouter:
                      phone=body.phone, consents=body.consents)
 
     @r.get("/v1/patients/{pid}", tags=["patient"])
-    def profile(pid: str):
+    def profile(pid: str, request: Request):
+        guard(request, pid)
         return _call(svc.profile, pid)
 
     @r.post("/v1/patients/{pid}/consents", tags=["patient"])
-    def change_consent(pid: str, body: ConsentChange):
+    def change_consent(pid: str, body: ConsentChange, request: Request):
+        guard(request, pid)
         _call(svc.profile, pid)
         _call(svc.store.record_consent, pid, body.purpose, body.granted)
         return _call(svc.profile, pid)
 
     @r.post("/v1/patients/{pid}/chat", tags=["patient"])
-    def chat(pid: str, body: ChatIn):
-        return _call(svc.chat, pid, body.text, share=body.share)
+    def chat(pid: str, body: ChatIn, request: Request):
+        guard(request, pid)
+        photo = None
+        if body.photo_base64:
+            try:
+                photo = base64.b64decode(body.photo_base64, validate=True)
+            except binascii.Error as e:
+                raise HTTPException(422, "photo_base64 is not valid base64") from e
+            if len(photo) > MAX_PHOTO_BYTES:
+                raise HTTPException(413, "photos can be at most 5 MB")
+        return _call(svc.chat, pid, body.text, share=body.share, photo=photo)
+
+    @r.get("/v1/patients/{pid}/messages/{mid}/photo", tags=["patient"])
+    def message_photo(pid: str, mid: int, request: Request):
+        guard(request, pid)
+        return FileResponse(_call(svc.photo, pid, mid), headers={"Cache-Control": "private, max-age=3600"})
 
     @r.post("/v1/patients/{pid}/voice", tags=["patient"])
-    def voice(pid: str, body: VoiceIn):
+    def voice(pid: str, body: VoiceIn, request: Request):
+        guard(request, pid)
         try:
             audio = base64.b64decode(body.audio_base64, validate=True)
         except binascii.Error as e:
@@ -128,11 +221,13 @@ def build_router(svc: CareService) -> APIRouter:
         return _call(svc.voice, pid, audio, body.mime, share=body.share, language=body.language)
 
     @r.get("/v1/patients/{pid}/messages", tags=["patient"])
-    def messages(pid: str, limit: int = 50):
+    def messages(pid: str, request: Request, limit: int = 50):
+        guard(request, pid)
         return _call(svc.history, pid, limit)
 
     @r.post("/v1/patients/{pid}/messages/{mid}/share", tags=["patient"])
-    def share(pid: str, mid: int, body: ShareIn):
+    def share(pid: str, mid: int, body: ShareIn, request: Request):
+        guard(request, pid)
         if not svc.share(pid, mid, body.shared):
             raise HTTPException(404, "no such patient message")
         return {"message_id": mid, "shared": body.shared}
@@ -142,7 +237,8 @@ def build_router(svc: CareService) -> APIRouter:
         return mind_pause.catalogue(language)
 
     @r.post("/v1/patients/{pid}/mind-pause", tags=["patient"])
-    def mind_pause_log(pid: str, body: MindPauseIn):
+    def mind_pause_log(pid: str, body: MindPauseIn, request: Request):
+        guard(request, pid)
         if body.exercise not in mind_pause.EXERCISES:
             raise HTTPException(422, f"unknown exercise {body.exercise}")
         return {"id": _call(svc.mind_pause_done, pid, body.exercise, body.completed)}
@@ -152,7 +248,8 @@ def build_router(svc: CareService) -> APIRouter:
         return instruments.form(instrument)
 
     @r.post("/v1/patients/{pid}/questionnaires", tags=["patient"])
-    def submit_questionnaire(pid: str, body: QuestionnaireIn):
+    def submit_questionnaire(pid: str, body: QuestionnaireIn, request: Request):
+        guard(request, pid)
         return _call(svc.submit_questionnaire, pid, body.instrument, body.items, body.date)
 
     # ---------------------------------------------------------------- clinician dashboard

@@ -13,5 +13,6 @@ empath==0.89           # MIT; only analyze() is used (create_category() calls a 
 textstat>=0.7.13       # MIT
 fastapi>=0.110         # src/api.py
 uvicorn>=0.29
+httpx>=0.27            # tests: FastAPI TestClient
 # LLM: Ollama >= 0.5 (https://ollama.com) with e.g. `ollama pull qwen3.5`, or any OpenAI-compatible
 # server (vLLM, llama.cpp server, SGLang) that supports response_format json_schema.

@@ -25,6 +25,13 @@ class CompanionReply(BaseModel):
         description="offer a Mind Pause exercise only if the patient sounds anxious, overwhelmed or unable to sleep")
 
 
+class CompanionPhotoReply(CompanionReply):
+    """Used only when the patient attached a photo, so text-only replies keep their tested schema."""
+    image_concern: bool = Field(
+        False, description="true only if the photo shows an injury, self-harm, a weapon, a large amount of medicine "
+                           "or anything else suggesting the patient may be in danger")
+
+
 SYSTEM_PROMPT = """You are MitraMind, a warm and calm companion app. The patient's hospital care team prescribed you \
 for the time between clinic visits. You are not a therapist or a doctor and never say you are.
 
@@ -94,6 +101,13 @@ _HELPLINE = re.compile(r"14416")
 WATCH_NOTE = ("Safety note: the patient's latest message contains hopelessness or burden phrases. Respond with extra "
               "care, gently ask how they are coping right now, and mention that Tele-MANAS 14416 is free and "
               "available any time if things feel too heavy.")
+PHOTO_NOTE = ("Photo: the patient attached a photo to their latest message (you can see it). Say something warm and "
+              "specific about what it shows and how it might comfort or support them; if its meaning is unclear, "
+              "gently ask what it means to them. Do not comment on their body, weight or looks, and do not guess who "
+              "people in it are. Set image_concern to true only if the photo shows an injury, self-harm, a weapon, a "
+              "large amount of medicine or anything else suggesting they may be in danger, and then also mention "
+              "Tele-MANAS 14416 (free, 24x7) and 112.")
+PHOTO_ONLY = "[shared a photo]"
 
 
 def crisis_reply(level: str, language: str) -> str:
@@ -122,11 +136,12 @@ def reply_issues(r: CompanionReply) -> list[str]:
     return issues
 
 
-def build_prompt(history: list[dict], message: str, language: str, analysis: dict) -> str:
+def build_prompt(history: list[dict], message: str, language: str, analysis: dict, photo: bool = False) -> str:
     lines = ["Recent conversation (oldest first):"]
     for m in history[-HISTORY_TURNS:]:
-        lines.append(f"{'Patient' if m['role'] == 'user' else 'MitraMind'}: {m['text']}")
-    lines.append(f"Patient (latest): {message}")
+        text = m["text"] or (PHOTO_ONLY if m.get("image_path") else "")
+        lines.append(f"{'Patient' if m['role'] == 'user' else 'MitraMind'}: {text}")
+    lines.append(f"Patient (latest): {message or PHOTO_ONLY}")
     hints = [f"language: {language}"]
     if analysis.get("emotion"):
         hints.append(f"emotion cue: {analysis['emotion']['top_cue']}")
@@ -140,6 +155,8 @@ def build_prompt(history: list[dict], message: str, language: str, analysis: dic
         lines.append("\n" + WATCH_NOTE)
     if THIRD_PARTY.search(message):
         lines.append("\n" + THIRD_PARTY_NOTE)
+    if photo:
+        lines.append("\n" + PHOTO_NOTE)
     return "\n".join(lines)
 
 
@@ -158,27 +175,37 @@ class Companion:
     def __init__(self, backend=None):
         self.backend = backend
         self.schema = inline_schema(CompanionReply)
+        self.photo_schema = inline_schema(CompanionPhotoReply)
 
-    def respond(self, history: list[dict], message: str, analysis: dict) -> dict:
-        """Returns {"reply", "mind_pause", "source", "model", "attempts", "log", "prompt"}."""
+    def respond(self, history: list[dict], message: str, analysis: dict,
+                images: list[tuple[str, str]] | None = None) -> dict:
+        """Returns {"reply", "mind_pause", "image_concern", "source", "model", "attempts", "log", "prompt"}.
+
+        `images`: (mime, base64) photos attached to this message. The text safety layer still runs first; the
+        LLM's image_concern flag is an extra, weaker signal for photos, never a replacement for it.
+        """
         risk, language = analysis["risk"], analysis["language"]
         if risk.level in ("high", "urgent"):
-            return {"reply": crisis_reply(risk.level, language), "mind_pause": "none", "source": "crisis_protocol",
-                    "model": None, "attempts": 0, "log": [], "prompt": message}
-        prompt = build_prompt(history, message, language, analysis)
+            return {"reply": crisis_reply(risk.level, language), "mind_pause": "none", "image_concern": False,
+                    "source": "crisis_protocol", "model": None, "attempts": 0, "log": [], "prompt": message}
+        prompt = build_prompt(history, message, language, analysis, photo=bool(images))
         out, log = None, []
         if self.backend is not None:
             ok, why = self.backend.available()
             if ok:
-                out, log = generate(self.backend, SYSTEM_PROMPT, prompt, CompanionReply, reply_issues, schema=self.schema)
+                model, schema = (CompanionPhotoReply, self.photo_schema) if images else (CompanionReply, self.schema)
+                out, log = generate(self.backend, SYSTEM_PROMPT, prompt, model, reply_issues, schema=schema,
+                                    images=images)
             else:
                 log = [{"error": why}]
-        helpline = needs_helpline(message, analysis)
+        image_concern = bool(getattr(out, "image_concern", False))
+        helpline = needs_helpline(message, analysis) or image_concern
         if out is None:
             reply = fallback_reply(language)
             return {"reply": with_helpline(reply, language) if helpline else reply, "mind_pause": "box_breathing",
-                    "source": "fallback", "model": getattr(self.backend, "name", None), "attempts": len(log),
-                    "log": log, "prompt": prompt}
+                    "image_concern": False, "source": "fallback", "model": getattr(self.backend, "name", None),
+                    "attempts": len(log), "log": log, "prompt": prompt}
         reply = out.reply.strip()
         return {"reply": with_helpline(reply, language) if helpline else reply, "mind_pause": out.mind_pause,
-                "source": "llm", "model": self.backend.name, "attempts": len(log), "log": log, "prompt": prompt}
+                "image_concern": image_concern, "source": "llm", "model": self.backend.name, "attempts": len(log),
+                "log": log, "prompt": prompt}

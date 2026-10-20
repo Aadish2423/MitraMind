@@ -8,15 +8,21 @@ Privacy rules enforced here, not in the UI:
   (`messages.shared = 1`); see `messages(..., for_clinician=True)`.
 - consent is append-only: the latest row per (patient, purpose) is the current state, and
   withdrawals are kept for the audit trail (DPDP Act 2023).
+- a patient's login email lives only in `accounts`; it is never copied into messages, prompts, alerts or
+  exports, which all key on the pseudonymous patient id. Passwords are stored as scrypt hashes and
+  session tokens as SHA-256 hashes, so a copied database file cannot be used to log in.
 """
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
+import secrets
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -72,6 +78,12 @@ CREATE TABLE IF NOT EXISTS questionnaire_sessions (
     channel TEXT NOT NULL, updated_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS inbound_events (
     event_id TEXT PRIMARY KEY, channel TEXT NOT NULL, received_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
+    patient_id TEXT NOT NULL UNIQUE REFERENCES patients(id), created_at TEXT NOT NULL, last_login_at TEXT);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY, account_id INTEGER NOT NULL REFERENCES accounts(id),
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_messages_patient ON messages(patient_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 """
@@ -79,9 +91,12 @@ CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 # Columns added after the first release; applied to existing databases on startup.
 MIGRATIONS = [
     ("alerts", "outcome TEXT"),  # clinician's label when resolving: confirmed_risk / false_alarm / unclear
+    ("messages", "image_path TEXT"),  # photo the patient attached to a chat message
 ]
 ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
 LEVEL_ORDER = {"none": 0, "watch": 1, "high": 2, "urgent": 3}
+SESSION_DAYS = 30
+_SCRYPT = {"n": 2 ** 14, "r": 8, "p": 1}
 
 
 def now() -> str:
@@ -90,6 +105,27 @@ def now() -> str:
 
 def sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode("utf-8"), salt=salt, dklen=32, **_SCRYPT)
+    return f"scrypt${_SCRYPT['n']}${_SCRYPT['r']}${_SCRYPT['p']}${salt.hex()}${digest.hex()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        _, n, r, p, salt, digest = stored.split("$")
+        got = hashlib.scrypt(password.encode("utf-8"), salt=bytes.fromhex(salt), n=int(n), r=int(r), p=int(p),
+                             dklen=len(digest) // 2)
+    except (ValueError, TypeError):
+        return False
+    return hmac.compare_digest(got.hex(), digest)
+
+
+@lru_cache(maxsize=1)
+def _dummy_hash() -> str:
+    return hash_password(secrets.token_hex(8))
 
 
 class Store:
@@ -156,17 +192,59 @@ class Store:
     def has_consent(self, patient_id: str, purpose: str) -> bool:
         return self.consents(patient_id).get(purpose, False)
 
+    # ------------------------------------------------------------------ patient accounts (email + password)
+    def create_account(self, email: str, password: str, patient_id: str) -> dict:
+        self._exec("INSERT INTO accounts (email, password_hash, patient_id, created_at) VALUES (?, ?, ?, ?)",
+                   (email, hash_password(password), patient_id, now()))
+        return self.account_by_email(email)
+
+    def account_by_email(self, email: str) -> dict | None:
+        return self._one("SELECT * FROM accounts WHERE email = ?", (email,))
+
+    def account_for_patient(self, patient_id: str) -> dict | None:
+        return self._one("SELECT * FROM accounts WHERE patient_id = ?", (patient_id,))
+
+    def check_login(self, email: str, password: str) -> dict | None:
+        acc = self.account_by_email(email)
+        if acc is None:
+            verify_password(password, _dummy_hash())  # same work as a real check, so timing does not reveal accounts
+            return None
+        if not verify_password(password, acc["password_hash"]):
+            return None
+        self._exec("UPDATE accounts SET last_login_at = ? WHERE id = ?", (now(), acc["id"]))
+        return acc
+
+    def new_session(self, account_id: int, days: int = SESSION_DAYS) -> str:
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO sessions (token_hash, account_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                   (sha256(token), account_id, now(), expires))
+        return token
+
+    def session_account(self, token: str) -> dict | None:
+        return self._one("SELECT a.* FROM sessions s JOIN accounts a ON a.id = s.account_id "
+                         "WHERE s.token_hash = ? AND s.expires_at > ?", (sha256(token), now()))
+
+    def end_session(self, token: str) -> None:
+        self._exec("DELETE FROM sessions WHERE token_hash = ?", (sha256(token),))
+
     # ------------------------------------------------------------------ messages
     def add_message(self, patient_id: str, role: str, text: str, *, modality: str = "text", channel: str = "app",
                     language: str | None = None, shared: bool = False, audio_path: str | None = None,
                     risk_level: str | None = None, analysis: dict | None = None,
-                    reply_source: str | None = None, created_at: str | None = None) -> int:
+                    reply_source: str | None = None, created_at: str | None = None,
+                    image_path: str | None = None) -> int:
         cur = self._exec(
             "INSERT INTO messages (patient_id, role, text, modality, channel, language, shared, audio_path, "
-            "risk_level, analysis_json, reply_source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "risk_level, analysis_json, reply_source, created_at, image_path) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (patient_id, role, text, modality, channel, language, int(shared), audio_path, risk_level,
-             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, created_at or now()))
+             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, created_at or now(),
+             image_path))
         return cur.lastrowid
+
+    def message(self, patient_id: str, message_id: int) -> dict | None:
+        return self._one("SELECT * FROM messages WHERE id = ? AND patient_id = ?", (message_id, patient_id))
 
     def set_shared(self, patient_id: str, message_id: int, shared: bool) -> bool:
         cur = self._exec("UPDATE messages SET shared = ? WHERE id = ? AND patient_id = ? AND role = 'user'",
@@ -186,6 +264,7 @@ class Store:
             if for_clinician and not r["shared"]:
                 r["text"] = None
                 r["audio_path"] = None
+                r["image_path"] = None
         return rows
 
     # ------------------------------------------------------------------ questionnaires

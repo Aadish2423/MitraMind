@@ -89,9 +89,13 @@ class OllamaBackend:
         names = {m["name"] for m in tags.get("models", [])} | {m["name"].split(":")[0] for m in tags.get("models", [])}
         return (self.model in names, "" if self.model in names else f"model {self.model} not pulled")
 
-    def chat(self, system: str, user: str, schema: dict) -> LLMResult:
+    def chat(self, system: str, user: str, schema: dict, images: list[tuple[str, str]] | None = None) -> LLMResult:
+        """`images`: (mime, base64) pairs attached to the user turn; needs a vision model (e.g. gemma4)."""
+        user_msg = {"role": "user", "content": user}
+        if images:
+            user_msg["images"] = [b64 for _, b64 in images]
         body = {"model": self.model, "stream": False, "format": schema,
-                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                "messages": [{"role": "system", "content": system}, user_msg],
                 "options": {"temperature": 0, "num_ctx": self.num_ctx, "seed": 7}}
         if self.think is not None:
             body["think"] = self.think
@@ -120,9 +124,11 @@ class OpenAICompatBackend:
     def _headers(self):
         return {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
 
-    def chat(self, system: str, user: str, schema: dict) -> LLMResult:
+    def chat(self, system: str, user: str, schema: dict, images: list[tuple[str, str]] | None = None) -> LLMResult:
+        content = user if not images else [{"type": "text", "text": user}] + [
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}} for mime, b64 in images]
         body = {"model": self.model, "temperature": 0,
-                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}],
                 "response_format": {"type": "json_schema",
                                     "json_schema": {"name": "narrative", "strict": True, "schema": schema}}}
         t0 = time.time()
@@ -203,13 +209,13 @@ _NUMBER_WORDS = {w: i for i, w in enumerate(
 
 
 def generate(backend, system: str, user: str, model: type[BaseModel], check, max_attempts: int = 2,
-             schema: dict | None = None):
+             schema: dict | None = None, images: list[tuple[str, str]] | None = None):
     """Call the backend until the output parses and passes `check` (returns issue list)."""
     schema = schema or inline_schema(model)
     log, prompt = [], user
     for attempt in range(1, max_attempts + 1):
         try:
-            res = backend.chat(system, prompt, schema)
+            res = backend.chat(system, prompt, schema, images=images) if images else backend.chat(system, prompt, schema)
         except requests.RequestException as e:
             log.append({"attempt": attempt, "error": f"request failed: {e.__class__.__name__}: {e}"})
             break

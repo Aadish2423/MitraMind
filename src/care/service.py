@@ -9,6 +9,8 @@ Used by the API, the WhatsApp webhook and the tests, so all channels follow the 
 """
 from __future__ import annotations
 
+import re
+import secrets
 from datetime import date as Date
 from datetime import datetime, timezone
 
@@ -18,7 +20,12 @@ from phase1.render import card_to_markdown
 from phase1.schema import Entry, PatientBundle, QuestionnaireResponse
 
 from .companion import Companion
+from .photos import MIME, as_base64, save_photo
 from .store import LEVEL_ORDER, Store
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+MIN_PASSWORD = 8
+PHOTO_ALERT_REASON = "photo may show self-harm or danger (flagged by the companion's image check; please review)"
 
 
 class ConsentRequired(Exception):
@@ -27,6 +34,14 @@ class ConsentRequired(Exception):
 
 class NotFound(Exception):
     pass
+
+
+class AuthError(Exception):
+    pass
+
+
+def normalise_email(email: str) -> str:
+    return (email or "").strip().lower()
 
 
 def _jsonable_analysis(a: dict) -> dict:
@@ -60,12 +75,56 @@ class CareService:
             raise NotFound(f"no patient {patient_id}")
         return p
 
+    # ------------------------------------------------------------------ patient accounts
+    def signup(self, email: str, password: str, *, consents: dict[str, bool] | None = None,
+               preferred_language: str = "auto", patient_code: str | None = None) -> dict:
+        """New account + new patient record. `patient_code` is the code the care team gave, if any; it must be new,
+        so nobody can sign up onto an existing patient's history by guessing their code."""
+        email = normalise_email(email)
+        if not EMAIL_RE.match(email):
+            raise ValueError("please enter a valid email address")
+        if len(password or "") < MIN_PASSWORD:
+            raise ValueError(f"the password needs at least {MIN_PASSWORD} characters")
+        if self.store.account_by_email(email):
+            raise ValueError("an account with this email already exists; please log in")
+        if patient_code and self.store.patient(patient_code):
+            raise ValueError("this patient code is already in use; please check it with your care team")
+        pid = patient_code or self._new_patient_id()
+        self.enroll(pid, preferred_language=preferred_language, consents=consents)
+        return self._session(self.store.create_account(email, password, pid))
+
+    def login(self, email: str, password: str) -> dict:
+        acc = self.store.check_login(normalise_email(email), password or "")
+        if acc is None:
+            raise AuthError("wrong email or password")
+        return self._session(acc)
+
+    def account(self, token: str | None) -> dict | None:
+        return self.store.session_account(token) if token else None
+
+    def logout(self, token: str) -> None:
+        self.store.end_session(token)
+
+    def _session(self, acc: dict) -> dict:
+        return {"token": self.store.new_session(acc["id"]), "email": acc["email"],
+                "profile": self.profile(acc["patient_id"])}
+
+    def _new_patient_id(self) -> str:
+        while True:
+            pid = "p_" + secrets.token_hex(4)
+            if not self.store.patient(pid):
+                return pid
+
     # ------------------------------------------------------------------ companion
     def chat(self, patient_id: str, text: str, *, share: bool = False, modality: str = "text", channel: str = "app",
-             audio_path: str | None = None, language: str = "auto") -> dict:
+             audio_path: str | None = None, language: str = "auto", photo: bytes | None = None) -> dict:
         self._patient(patient_id)
         if not self.store.has_consent(patient_id, "companion"):
             raise ConsentRequired("the patient has not consented to the companion")
+        text = (text or "").strip()
+        if not text and not photo:
+            raise ValueError("write a message or attach a photo")
+        photo_path = save_photo(patient_id, photo) if photo else None
         # Language is detected per message (patients switch scripts mid-conversation), not taken from the profile.
         entry = Entry(entry_id="live", timestamp=datetime.now(timezone.utc), text=text,
                       audio_path=audio_path if modality == "voice" else None, language=language,
@@ -75,8 +134,10 @@ class CareService:
         history = self.store.messages(patient_id, limit=16)
         msg_id = self.store.add_message(patient_id, "user", text, modality=modality, channel=channel,
                                         language=analysis["language"], shared=share, audio_path=audio_path,
-                                        risk_level=risk.level, analysis=_jsonable_analysis(analysis))
-        out = self.companion.respond(history, text, analysis)
+                                        risk_level=risk.level, analysis=_jsonable_analysis(analysis),
+                                        image_path=str(photo_path) if photo_path else None)
+        images = [(MIME[photo_path.suffix], as_base64(photo_path))] if photo_path else None
+        out = self.companion.respond(history, text, analysis, images=images)
         reply_id = self.store.add_message(patient_id, "assistant", out["reply"], modality=modality, channel=channel,
                                           language=analysis["language"], reply_source=out["source"])
         self.store.audit("crisis_reply" if out["source"] == "crisis_protocol" else "chat_reply", patient_id=patient_id,
@@ -85,11 +146,14 @@ class CareService:
         alert_id = None
         if risk.level != "none":
             alert_id = self.store.add_alert(patient_id, risk.level, risk.reasons or ["crisis language"], "message", msg_id)
+        elif out["image_concern"]:
+            alert_id = self.store.add_alert(patient_id, "watch", [PHOTO_ALERT_REASON], "message", msg_id)
         return {"message_id": msg_id, "reply_id": reply_id, "reply": out["reply"], "reply_source": out["source"],
                 "mind_pause": out["mind_pause"], "language": analysis["language"], "risk": risk.model_dump(),
                 "escalate": risk.level in ("high", "urgent"), "helplines": HELPLINES if risk.level != "none" else [],
                 "alert_id": alert_id, "models_used": analysis["models_used"], "emotion": analysis["emotion"],
-                "llm_attempts": out["attempts"]}
+                "llm_attempts": out["attempts"], "has_image": photo_path is not None,
+                "image_concern": out["image_concern"]}
 
     def voice(self, patient_id: str, audio: bytes, mime: str = "audio/wav", *, share: bool = False,
               channel: str = "app", language: str | None = None) -> dict:
@@ -113,8 +177,15 @@ class CareService:
 
     def history(self, patient_id: str, limit: int = 50) -> list[dict]:
         self._patient(patient_id)
-        return [{k: m[k] for k in ("id", "role", "text", "modality", "language", "shared", "risk_level",
-                                   "reply_source", "created_at")} for m in self.store.messages(patient_id, limit=limit)]
+        return [{**{k: m[k] for k in ("id", "role", "text", "modality", "language", "shared", "risk_level",
+                                      "reply_source", "created_at")}, "has_image": bool(m.get("image_path"))}
+                for m in self.store.messages(patient_id, limit=limit)]
+
+    def photo(self, patient_id: str, message_id: int) -> str:
+        m = self.store.message(patient_id, message_id)
+        if not m or not m.get("image_path"):
+            raise NotFound("no photo on this message")
+        return m["image_path"]
 
     def share(self, patient_id: str, message_id: int, shared: bool) -> bool:
         return self.store.set_shared(patient_id, message_id, shared)
