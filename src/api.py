@@ -7,6 +7,8 @@ POST /v1/checkins/analyze   one check-in -> cues + real-time crisis triage (no L
 POST /v1/state-card         patient bundle -> User State Card (JSON) and pre-visit summary (Markdown)
 POST /v1/questionnaires/score  PHQ-9 / GAD-7 responses -> totals, severity, trends
 GET  /health
+GET  /                      test page (src/web/index.html)
+GET  /v1/demo-patients[/{name}]  the fictional demo bundles in examples/patients
 """
 import os
 import sys
@@ -14,7 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from phase1.llm import OllamaBackend, OpenAICompatBackend
@@ -37,6 +40,8 @@ def _backend():
 
 app = FastAPI(title="MitraMind Phase 1", version="1.0")
 orch = Phase1Orchestrator(backend=_backend(), enable_neural=os.environ.get("MITRAMIND_NEURAL", "1") == "1")
+WEB = Path(__file__).resolve().parent / "web"
+DEMO = Path(__file__).resolve().parents[1] / "examples" / "patients"
 
 
 class CheckinResult(BaseModel):
@@ -52,6 +57,24 @@ class CheckinResult(BaseModel):
 class CardResponse(BaseModel):
     card: UserStateCard
     markdown: str
+
+
+@app.get("/", include_in_schema=False)
+def test_page():
+    return FileResponse(WEB / "index.html")
+
+
+@app.get("/v1/demo-patients")
+def demo_patients():
+    return sorted(p.stem for p in DEMO.glob("*.json"))
+
+
+@app.get("/v1/demo-patients/{name}", response_model=PatientBundle)
+def demo_patient(name: str):
+    path = DEMO / f"{name}.json"
+    if path.parent != DEMO or not path.exists():
+        raise HTTPException(404, f"no demo patient {name}")
+    return PatientBundle.model_validate_json(path.read_text(encoding="utf-8"))
 
 
 @app.get("/health")

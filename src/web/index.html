@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MitraMind Phase 1 Tester</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5c6577; --border: #dde1e8;
+    --accent: #2f6fdb; --accent-text: #ffffff; --code: #f0f2f5;
+    --none: #2e8b57; --watch: #b7791f; --high: #d4572a; --urgent: #c0262d; --bar: #7fa6ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b5; --border: #2c3240;
+      --accent: #5b8ff0; --accent-text: #0d1117; --code: #232937;
+      --none: #4cc28a; --watch: #e0a83e; --high: #f07a4f; --urgent: #ff5a5f; --bar: #5b8ff0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-top: 16px; }
+  .status { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; }
+  .pill { border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; color: var(--muted); }
+  .pill.ok { color: var(--none); border-color: var(--none); }
+  .pill.bad { color: var(--high); border-color: var(--high); }
+  textarea { width: 100%; min-height: 96px; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+             background: var(--bg); color: var(--text); font: inherit; resize: vertical; }
+  textarea.json { min-height: 220px; font: 12px/1.4 ui-monospace, Consolas, monospace; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+  select, button { font: inherit; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border);
+                   background: var(--panel); color: var(--text); }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); cursor: pointer; }
+  button.chip { font-size: 13px; padding: 4px 10px; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 6px; color: #fff; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+  .lvl-none { background: var(--none); } .lvl-watch { background: var(--watch); }
+  .lvl-high { background: var(--high); } .lvl-urgent { background: var(--urgent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+  .box { border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .box h3 { font-size: 13px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  .bar { display: grid; grid-template-columns: 90px 1fr 44px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+  .bar span.track { height: 8px; background: var(--code); border-radius: 4px; overflow: hidden; }
+  .bar span.fill { display: block; height: 100%; background: var(--bar); }
+  ul.plain { margin: 0; padding-left: 18px; } ul.plain li { margin: 2px 0; }
+  .muted { color: var(--muted); }
+  .err { color: var(--urgent); white-space: pre-wrap; }
+  details { margin-top: 12px; } summary { cursor: pointer; color: var(--muted); }
+  pre { background: var(--code); padding: 10px; border-radius: 8px; overflow: auto; font-size: 12px; max-height: 420px; }
+  .card-md { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 6px; overflow-x: auto; }
+  .card-md table { border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+  .card-md th, .card-md td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+  .card-md h1 { font-size: 19px; } .card-md h2 { font-size: 16px; margin-top: 16px; }
+  .meta { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  footer { margin-top: 20px; font-size: 12px; color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>MitraMind Phase 1 tester</h1>
+  <p class="sub">Try one check-in, or build a full User State Card for a patient.</p>
+  <div class="status" id="status"><span class="pill">checking server…</span></div>
+
+  <section class="panel">
+    <h2>1. Test one check-in</h2>
+    <textarea id="checkin" placeholder="Type how the patient feels, in English, Hinglish or Hindi…"></textarea>
+    <div class="row">
+      <span class="muted">Examples:</span>
+      <button class="chip" data-ex="Exams are next week and I can't sleep at night. I keep thinking I will fail. Did some breathing exercises and it helped a bit.">English stress</button>
+      <button class="chip" data-ex="office mein bahut pressure hai, boss roz daant-ta hai. neend nahi aati aur EMI ka tension alag.">Hinglish</button>
+      <button class="chip" data-ex="माँ की तबीयत ठीक नहीं है, रात को नींद नहीं आती और हर समय थकान रहती है।">Hindi</button>
+      <button class="chip" data-ex="I have been saving up pills. Everyone would be better off without me.">Crisis</button>
+    </div>
+    <div class="row">
+      <label>Language
+        <select id="lang"><option value="auto">auto-detect</option><option value="en">English</option>
+          <option value="hinglish">Hinglish</option><option value="hi">Hindi</option></select></label>
+      <button class="primary" id="analyze">Analyze check-in</button>
+    </div>
+    <div id="checkin-out"></div>
+  </section>
+
+  <section class="panel">
+    <h2>2. Build a User State Card</h2>
+    <div class="row" style="margin-top:0">
+      <label>Demo patient <select id="patient"></select></label>
+      <label><input type="checkbox" id="use-llm" checked> Write the summary with the LLM (20–60 s)</label>
+    </div>
+    <details>
+      <summary>Edit the patient's check-ins and questionnaires (JSON)</summary>
+      <textarea class="json" id="bundle" spellcheck="false"></textarea>
+    </details>
+    <div class="row"><button class="primary" id="build">Build State Card</button></div>
+    <div id="card-out"></div>
+  </section>
+
+  <footer>Test tool with fictional demo data. MitraMind supports clinicians and is not a diagnosis.
+    API docs: <a href="/docs">/docs</a></footer>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const label = (s) => String(s).replace(/_/g, " ");
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data, null, 2));
+  return data;
+}
+
+function list(items) {
+  return items && items.length ? `<ul class="plain">${items.map((x) => `<li>${x}</li>`).join("")}</ul>`
+                               : `<span class="muted">none found</span>`;
+}
+
+async function loadStatus() {
+  try {
+    const h = await api("/health");
+    const pills = [
+      [`LLM: ${h.llm ?? "off"}`, h.llm_ready, h.llm_note],
+      ["crisis classifier", h.crisis_classifier],
+      ...(h.models_unavailable && Object.keys(h.models_unavailable).length
+          ? [[`not available: ${Object.keys(h.models_unavailable).join(", ")}`, false]]
+          : [["cue models load on first check-in", true]]),
+    ];
+    $("status").innerHTML = pills.map(([t, ok, note]) =>
+      `<span class="pill ${ok ? "ok" : "bad"}" title="${esc(note || "")}">${esc(t)}</span>`).join("");
+  } catch (e) {
+    $("status").innerHTML = `<span class="pill bad">server not reachable</span>`;
+  }
+}
+
+document.querySelectorAll("[data-ex]").forEach((b) => b.onclick = () => { $("checkin").value = b.dataset.ex; });
+
+$("analyze").onclick = async () => {
+  const text = $("checkin").value.trim();
+  if (!text) { $("checkin-out").innerHTML = `<p class="err">Type a check-in first.</p>`; return; }
+  const btn = $("analyze"); btn.disabled = true; btn.textContent = "Analyzing…";
+  try {
+    const a = await api("/v1/checkins/analyze", {entry_id: "test-1", timestamp: new Date().toISOString(),
+                                                 text, language: $("lang").value});
+    const r = a.risk, c = a.cues || {}, e = a.emotion;
+    const emo = e ? Object.entries(e.cue_probs).sort((x, y) => y[1] - x[1]).map(([k, v]) =>
+      `<div class="bar"><span>${esc(label(k))}</span><span class="track"><span class="fill" style="width:${(v * 100).toFixed(0)}%"></span></span><span>${(v * 100).toFixed(0)}%</span></div>`).join("")
+      + `<p class="meta">Distress score ${e.distress.toFixed(2)} (0 = calm, 1 = high)</p>`
+      : `<span class="muted">No neural emotion model ran for this language.</span>`;
+    const stress = Object.entries(c.stressors || {}).map(([d, w]) => `<b>${esc(label(d))}</b>: ${esc(w.join(", "))}`);
+    const coping = Object.entries(a.coping || {}).map(([k, v]) => `${esc(label(k))} <span class="muted">(${esc(label(v))})</span>`);
+    $("checkin-out").innerHTML = `
+      <div class="row" style="margin-top:16px">
+        <span class="badge lvl-${r.level}">risk: ${esc(r.level)}</span>
+        <span class="muted">language: <b>${esc(a.language)}</b> · models: ${esc(a.models_used.join(", "))}</span>
+      </div>
+      <div class="grid">
+        <div class="box"><h3>Emotion (m1/m2 models)</h3>${emo}</div>
+        <div class="box"><h3>Safety layer</h3>${r.reasons.length ? list(r.reasons.map(esc)) : `<span class="muted">no warning signs found</span>`}
+          ${r.classifier_prob != null ? `<p class="meta">Crisis classifier probability ${r.classifier_prob.toFixed(2)}</p>` : ""}</div>
+        <div class="box"><h3>Depression symptoms (PHQ-9 areas)</h3>${list((c.phq || []).map((x) => esc(label(x))))}</div>
+        <div class="box"><h3>Anxiety symptoms (GAD-7 areas)</h3>${list((c.gad || []).map((x) => esc(label(x))))}</div>
+        <div class="box"><h3>Sleep</h3>${list((c.sleep || []).map((x) => esc(label(x))))}</div>
+        <div class="box"><h3>Stressors</h3>${list(stress)}</div>
+        <div class="box"><h3>Coping</h3>${list(coping)}</div>
+      </div>
+      <details><summary>Full JSON response</summary><pre>${esc(JSON.stringify(a, null, 2))}</pre></details>`;
+  } catch (err) {
+    $("checkin-out").innerHTML = `<p class="err">${esc(err.message)}</p>`;
+  } finally { btn.disabled = false; btn.textContent = "Analyze check-in"; }
+};
+
+async function loadPatient() {
+  const b = await api(`/v1/demo-patients/${$("patient").value}`);
+  $("bundle").value = JSON.stringify(b, null, 2);
+}
+
+async function loadPatients() {
+  const names = await api("/v1/demo-patients");
+  $("patient").innerHTML = names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  $("patient").onchange = loadPatient;
+  await loadPatient();
+}
+
+$("build").onclick = async () => {
+  let bundle;
+  try { bundle = JSON.parse($("bundle").value); }
+  catch (e) { $("card-out").innerHTML = `<p class="err">The patient JSON is not valid: ${esc(e.message)}</p>`; return; }
+  const useLlm = $("use-llm").checked;
+  const btn = $("build"); btn.disabled = true;
+  btn.textContent = useLlm ? "Building… (the LLM takes 20–60 s)" : "Building…";
+  const t0 = performance.now();
+  try {
+    const {card, markdown} = await api(`/v1/state-card?use_llm=${useLlm}`, bundle);
+    const secs = ((performance.now() - t0) / 1000).toFixed(0);
+    const md = window.marked ? marked.parse(esc(markdown).replace(/&gt;/g, ">")) : `<pre>${esc(markdown)}</pre>`;
+    $("card-out").innerHTML = `
+      <div class="row" style="margin-top:16px">
+        <span class="badge lvl-${card.risk.level}">risk: ${esc(card.risk.level)}</span>
+        <span class="muted">summary written by <b>${card.narrative_source === "llm" ? esc(card.llm_model) : "rule-based fallback"}</b>
+          · LLM attempts ${card.llm_attempts} · ${secs} s</span>
+      </div>
+      ${card.guardrail_notes && card.guardrail_notes.length
+        ? `<p class="meta">Guardrail notes: ${esc(card.guardrail_notes.join(" | "))}</p>` : ""}
+      <div class="card-md">${md}</div>
+      <details><summary>Full card JSON</summary><pre>${esc(JSON.stringify(card, null, 2))}</pre></details>`;
+  } catch (err) {
+    $("card-out").innerHTML = `<p class="err">${esc(err.message)}</p>`;
+  } finally { btn.disabled = false; btn.textContent = "Build State Card"; }
+};
+
+loadStatus();
+loadPatients().catch((e) => { $("card-out").innerHTML = `<p class="err">${esc(e.message)}</p>`; });
+</script>
+</body>
+</html>

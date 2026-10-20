@@ -74,6 +74,7 @@ r/depression, 5% of r/lonely and 0.2% of r/fitness (`outputs/phase1/crisis_class
 | `src/phase1/bench.py` | LLM structured-output benchmark |
 | `src/run_phase1.py` | CLI: `analyze`, `card`, `demo`, `bench` |
 | `src/api.py` | FastAPI service |
+| `src/web/index.html` | browser test page served at `/`: one check-in, or a State Card for a demo or pasted patient |
 | `examples/patients/*.json` | four fictional demo patients (English, Hinglish, Hindi, crisis) |
 | `outputs/phase1/cards/` | demo cards: `.json`, `.md`, and `.llm_input.json` (exactly what the LLM saw) |
 
@@ -86,7 +87,7 @@ ollama pull qwen3.5                                    # or another model, see d
 python src/run_phase1.py demo                          # cards for the 4 demo patients
 python src/run_phase1.py analyze --text "neend nahi aati, exams ka tension"
 python src/run_phase1.py card my_patient.json --backend openai --model Qwen/Qwen3.5-9B --base-url http://gpu-box:8000/v1
-uvicorn api:app --app-dir src --port 8080              # POST /v1/checkins/analyze, /v1/state-card
+uvicorn api:app --app-dir src --port 8080              # test page at http://localhost:8080, API docs at /docs
 python -m pytest tests                                 # 24 tests, no GPU or LLM needed
 ```
 
