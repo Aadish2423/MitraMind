@@ -66,8 +66,34 @@ def test_indic_crisis_phrases():
     assert indic_hits("marna nahi chahta, bas thak gaya hoon") == []
 
 
+def test_indic_ideation_variants():
+    # Missed by the lexicon in a manual run on 2026-10-20 (got the normal companion reply, no alert).
+    for text in ("mujhe ab jeena nahi hai, sab khatam karna chahta hoon", "mujhe jeena nahi hai",
+                 "sab kuch khatam karna chahti hoon", "jina nahi chahti", "mujhe nahi jeena ab",
+                 "मुझे अब जीना नहीं है", "मुझे नहीं जीना", "मैं सब खत्म करना चाहता हूँ"):
+        assert max((t for t, _ in indic_hits(text)), default=0) == 2, text
+
+
+def test_indic_ideation_near_misses():
+    for text in ("mujhe jeena hai, haar nahi maanunga", "exam khatam ho gaya, ab chill", "aaj sab kaam khatam karna hai",
+                 "jeena seekh raha hoon", "मुझे जीना है"):
+        assert indic_hits(text) == [], text
+
+
+def test_devanagari_nukta_typed_either_way():
+    # ख़ can arrive as one code point (U+0959) or as ख + nukta (U+0916 U+093C); both must match.
+    for text in ("सब ख़त्म करना चाहती हूँ", "सब ख़त्म करना चाहती हूँ", "खुद को ख़त्म कर दूंगा"):
+        assert max((t for t, _ in indic_hits(text)), default=0) == 2, text
+
+
 def test_entry_triage_levels():
     assert ORCH.analyze_entry(entry("I have been saving up pills."))["risk"].level == "urgent"
+    assert ORCH.analyze_entry(entry("I don't want to live anymore, I have the pills ready"))["risk"].level == "urgent"
+    assert ORCH.analyze_entry(entry("I have the pills ready for tonight"))["risk"].level == "urgent"
+    assert ORCH.analyze_entry(entry("mujhe ab jeena nahi hai, sab khatam karna chahta hoon"))["risk"].level == "high"
+    for text in ("I have my BP pills ready for the trip", "I have the pills ready for my mother",
+                 "The pharmacy texted that my pills are ready", "I don't have the pills ready yet"):
+        assert ORCH.analyze_entry(entry(text))["risk"].level == "none", text
     assert ORCH.analyze_entry(entry("I want to die"))["risk"].level == "high"
     assert ORCH.analyze_entry(entry("I don't want to die, I just want the pain to stop."))["risk"].level in ("none", "watch")
     assert ORCH.analyze_entry(entry("Went for a walk, felt good today."))["risk"].level == "none"

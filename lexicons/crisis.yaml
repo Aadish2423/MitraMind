@@ -94,6 +94,9 @@ items:
       - suicide note
       - "{bought|buying|got} {a rope|rope|pills|a gun|razor blades}"
       - "{saving|saved|stockpiling|hoarding} {up pills|pills}"
+      # "the pills", not "my pills": patients on daily medicine say "I have my BP pills ready".
+      # "ready for grandma" is a caregiver; "ready for tonight" is not.
+      - "re:\\b(?:have|got|kept) (?:the|all the|all those|those) (?:pills|tablets|sleeping pills) ready\\b(?! for (?!tonight\\b|today\\b|now\\b|it\\b))"
       - "{giving|gave} away my {things|stuff|belongings}"
       - "it all ends tonight"   # Low et al.
       - "{tonight is|today is} the night"
