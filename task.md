@@ -11,8 +11,8 @@ Branch: `phase1-orchestrator` on github.com/Aadish2423/mitramind-cue-models.
 | # | Step | Status |
 |---|------|--------|
 | 0 | Phase 1: cue models m1-m5, safety layer, PHQ-9/GAD-7, LLM State Card, API, test page | done |
-| 1 | Storage: patients, DPDP consent, messages, questionnaires, alerts, audit log of every AI reply | todo |
-| 2 | Text chat companion: safety first, LLM reply with guardrails, Mind Pause, Reflection Share | todo |
+| 1 | Storage: patients, DPDP consent, messages, questionnaires, alerts, audit log of every AI reply | done |
+| 2 | Text chat companion: safety first, LLM reply with guardrails, Mind Pause, Reflection Share | done |
 | 3 | Voice: speech-to-text, voice emotion (m3/m4), spoken replies | todo |
 | 4 | Clinician side: alert queue (risk triage), dashboard, State Card from stored data | todo |
 | 5 | Phase 2: de-identified pilot dataset export (conversations linked to PHQ/GAD change) | todo |
@@ -36,3 +36,25 @@ Branch: `phase1-orchestrator` on github.com/Aadish2423/mitramind-cue-models.
 ## Log
 
 Entries are added as each step finishes.
+
+### Steps 1-2: storage and the text companion (done)
+
+- `src/care/store.py`: SQLite (`var/mitramind.db`, gitignored; set `MITRAMIND_DB`). Tables: patients,
+  consents (append-only, latest row wins), messages, questionnaires, alerts, audit_log, mind_pause,
+  clinician_feedback. Consent purposes: `companion` (includes "safety alerts go to my care team"),
+  `care_team`, `pilot_research`, `research_text`.
+- `src/care/companion.py`: every message is analysed by Phase 1 first. Risk high/urgent → a fixed crisis
+  reply in English / Hinglish / Hindi with Tele-MANAS 14416 and 112; the LLM is never called. Otherwise
+  the LLM replies under a JSON schema (`reply`, `mind_pause`). Guardrails reject diagnosis words,
+  medicine/dose advice, "I'm your therapist" and secrecy promises; one retry, then a fixed fallback.
+  Risk "watch" adds a safety note to the prompt and opens a low-priority alert.
+- `src/care/service.py`: the rules for every channel (consent checks, alerts, audit, clinician privacy).
+- `src/care/mind_pause.py`: box breathing, 5-4-3-2-1 grounding, bedtime body scan (en + hi).
+- `src/care/instruments.py`: PHQ-9 / GAD-7 item text (English only, see Remaining).
+- `src/care/routes.py` + `src/api.py`: patient routes `/v1/patients/...` (enrol, consent, chat, messages,
+  share, mind-pause, questionnaires) and clinician routes `/v1/clinician/...`; `/v1/audit`.
+- `src/web/app.html` at `/`: patient app with Chat, Check-in, Mind Pause and Privacy tabs.
+- `tests/test_care.py`: 11 tests (crisis never reaches the LLM, guardrail retry/fallback, consent,
+  clinician sees only shared text, questionnaire alerts, State Card from stored chats).
+- Checked live with Ollama qwen3.5: a Hinglish message got a Hinglish reply with a Mind Pause offer
+  (31 s); "I want to die" got the crisis reply, an alert and an audit row without calling the LLM.

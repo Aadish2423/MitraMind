@@ -1,13 +1,17 @@
-"""Phase 1 HTTP API (FastAPI): the backend the app / WhatsApp channel and clinician dashboard call.
+"""MitraMind HTTP API (FastAPI): the backend the app / WhatsApp channel and clinician dashboard call.
 
     uvicorn api:app --app-dir src --port 8080
-    MITRAMIND_LLM=ollama:qwen3.5          # or openai:<model>@<base_url>, or none
+    MITRAMIND_LLM=ollama:qwen3.5          # State Card narrator: or openai:<model>@<base_url>, or none
+    MITRAMIND_CHAT_LLM=ollama:qwen3.5     # companion replies (defaults to MITRAMIND_LLM)
+    MITRAMIND_DB=var/mitramind.db         # SQLite file for patients, messages, alerts, audit log
+
+Patient app and clinician routes: src/care/routes.py (see /docs). Pages: / (patient app),
+/clinician (dashboard), /tester (Phase 1 tester).
 
 POST /v1/checkins/analyze   one check-in -> cues + real-time crisis triage (no LLM)
 POST /v1/state-card         patient bundle -> User State Card (JSON) and pre-visit summary (Markdown)
 POST /v1/questionnaires/score  PHQ-9 / GAD-7 responses -> totals, severity, trends
 GET  /health
-GET  /                      test page (src/web/index.html)
 GET  /v1/demo-patients[/{name}]  the fictional demo bundles in examples/patients
 """
 import os
@@ -18,8 +22,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from care.routes import build_router
+from care.service import CareService
+from care.store import Store
 from phase1.llm import OllamaBackend, OpenAICompatBackend
 from phase1.orchestrator import Phase1Orchestrator
 from phase1.questionnaires import trends
@@ -27,8 +35,8 @@ from phase1.render import card_to_markdown
 from phase1.schema import Entry, EntryRisk, PatientBundle, QuestionnaireResponse, UserStateCard
 
 
-def _backend():
-    spec = os.environ.get("MITRAMIND_LLM", "ollama:qwen3.5")
+def _backend(var: str = "MITRAMIND_LLM"):
+    spec = os.environ.get(var) or os.environ.get("MITRAMIND_LLM", "ollama:qwen3.5")
     kind, _, rest = spec.partition(":")
     if kind == "none":
         return None
@@ -38,10 +46,13 @@ def _backend():
     return OllamaBackend(rest or "qwen3.5")
 
 
-app = FastAPI(title="MitraMind Phase 1", version="1.0")
+app = FastAPI(title="MitraMind Care", version="1.1")
 orch = Phase1Orchestrator(backend=_backend(), enable_neural=os.environ.get("MITRAMIND_NEURAL", "1") == "1")
+svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM"))
+app.include_router(build_router(svc))
 WEB = Path(__file__).resolve().parent / "web"
 DEMO = Path(__file__).resolve().parents[1] / "examples" / "patients"
+app.mount("/static", StaticFiles(directory=WEB), name="static")
 
 
 class CheckinResult(BaseModel):
@@ -60,6 +71,16 @@ class CardResponse(BaseModel):
 
 
 @app.get("/", include_in_schema=False)
+def patient_app():
+    return FileResponse(WEB / "app.html")
+
+
+@app.get("/clinician", include_in_schema=False)
+def clinician_page():
+    return FileResponse(WEB / "clinician.html")
+
+
+@app.get("/tester", include_in_schema=False)
 def test_page():
     return FileResponse(WEB / "index.html")
 
