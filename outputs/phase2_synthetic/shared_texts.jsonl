@@ -1,0 +1,820 @@
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. did the breathing exercise, it helped."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 1, "text": "went for a walk in the evening and it helped. I felt nervous and on edge."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 2, "text": "my partner and I argued again. nothing feels enjoyable anymore. had a decent day."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 3, "text": "talked to my friend and felt lighter. watched a movie with my family."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. talked to my friend and felt lighter. exams are coming up and I'm behind."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 4, "text": "lying awake at 3 am again. I'm not hungry at all."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 4, "text": "I feel like a failure. slept better last night."}
+{"patient": "p_91ae26bdc620", "instrument": "PHQ-9", "window": 5, "text": "I couldn't sleep last night. my partner and I argued again. I get irritated so easily these days."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. did the breathing exercise, it helped."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 1, "text": "went for a walk in the evening and it helped. I felt nervous and on edge."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 2, "text": "my partner and I argued again. nothing feels enjoyable anymore. had a decent day."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 3, "text": "talked to my friend and felt lighter. watched a movie with my family."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. talked to my friend and felt lighter. exams are coming up and I'm behind."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 4, "text": "lying awake at 3 am again. I'm not hungry at all."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 4, "text": "I feel like a failure. slept better last night."}
+{"patient": "p_91ae26bdc620", "instrument": "GAD-7", "window": 5, "text": "I couldn't sleep last night. my partner and I argued again. I get irritated so easily these days."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 0, "text": "my back pain is bad again. I'm not hungry at all. I couldn't sleep last night."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 0, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 0, "text": "watched a movie with my family. worried about rent and the EMI. went for a walk in the evening and it helped."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 1, "text": "did the breathing exercise, it helped. slept better last night. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 1, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 4, "text": "slept better last night. watched a movie with my family. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 4, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. my back pain is bad again. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. had a decent day. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "PHQ-9", "window": 5, "text": "my back pain is bad again. did the breathing exercise, it helped. went for a walk in the evening and it helped."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 0, "text": "my back pain is bad again. I'm not hungry at all. I couldn't sleep last night."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 0, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 0, "text": "watched a movie with my family. worried about rent and the EMI. went for a walk in the evening and it helped."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 1, "text": "did the breathing exercise, it helped. slept better last night. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 1, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 4, "text": "slept better last night. watched a movie with my family. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 4, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. my back pain is bad again. had a decent day."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. had a decent day. worried about rent and the EMI."}
+{"patient": "p_34cdcf1d6757", "instrument": "GAD-7", "window": 5, "text": "my back pain is bad again. did the breathing exercise, it helped. went for a walk in the evening and it helped."}
+{"patient": "p_2db14d24c41b", "instrument": "PHQ-9", "window": 2, "text": "watched a movie with my family. my partner and I argued again. I felt nervous and on edge."}
+{"patient": "p_2db14d24c41b", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. went for a walk in the evening and it helped."}
+{"patient": "p_2db14d24c41b", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. had a fight with my parents. talked to my friend and felt lighter."}
+{"patient": "p_2db14d24c41b", "instrument": "PHQ-9", "window": 4, "text": "talked to my friend and felt lighter. lying awake at 3 am again."}
+{"patient": "p_2db14d24c41b", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_2db14d24c41b", "instrument": "GAD-7", "window": 2, "text": "watched a movie with my family. my partner and I argued again. I felt nervous and on edge."}
+{"patient": "p_2db14d24c41b", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. went for a walk in the evening and it helped."}
+{"patient": "p_2db14d24c41b", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. had a fight with my parents. talked to my friend and felt lighter."}
+{"patient": "p_2db14d24c41b", "instrument": "GAD-7", "window": 4, "text": "talked to my friend and felt lighter. lying awake at 3 am again."}
+{"patient": "p_2db14d24c41b", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 0, "text": "aaj din theek tha. raat ko neend nahi aayi. office mein boss ne phir deadline de di."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 1, "text": "aaj din theek tha. aaj walk pe gaya, accha laga. office mein boss ne phir deadline de di."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 2, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 3, "text": "kisi kaam mein mann nahi lag raha. kal raat neend acchi aayi."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 3, "text": "aaj mood bahut low hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 3, "text": "chhoti chhoti baat pe gussa aa jata hai. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 5, "text": "exams ka bahut pressure hai. bahut tension ho rahi hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 5, "text": "exams ka bahut pressure hai. aaj din theek tha. aaj walk pe gaya, accha laga."}
+{"patient": "p_eb5207311a28", "instrument": "PHQ-9", "window": 5, "text": "aaj din theek tha. office mein boss ne phir deadline de di. breathing exercise ki, thoda help hua."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 0, "text": "aaj din theek tha. raat ko neend nahi aayi. office mein boss ne phir deadline de di."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 1, "text": "aaj din theek tha. aaj walk pe gaya, accha laga. office mein boss ne phir deadline de di."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 2, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 3, "text": "kisi kaam mein mann nahi lag raha. kal raat neend acchi aayi."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 3, "text": "aaj mood bahut low hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 3, "text": "chhoti chhoti baat pe gussa aa jata hai. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 5, "text": "exams ka bahut pressure hai. bahut tension ho rahi hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 5, "text": "exams ka bahut pressure hai. aaj din theek tha. aaj walk pe gaya, accha laga."}
+{"patient": "p_eb5207311a28", "instrument": "GAD-7", "window": 5, "text": "aaj din theek tha. office mein boss ne phir deadline de di. breathing exercise ki, thoda help hua."}
+{"patient": "p_b19bfcd883ad", "instrument": "PHQ-9", "window": 3, "text": "I get irritated so easily these days. I kept worrying about everything."}
+{"patient": "p_b19bfcd883ad", "instrument": "PHQ-9", "window": 4, "text": "my back pain is bad again. watched a movie with my family. talked to my friend and felt lighter."}
+{"patient": "p_b19bfcd883ad", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. I feel like a failure. worried about rent and the EMI."}
+{"patient": "p_b19bfcd883ad", "instrument": "PHQ-9", "window": 5, "text": "had a decent day. worried about rent and the EMI. felt so tired all day."}
+{"patient": "p_b19bfcd883ad", "instrument": "GAD-7", "window": 3, "text": "I get irritated so easily these days. I kept worrying about everything."}
+{"patient": "p_b19bfcd883ad", "instrument": "GAD-7", "window": 4, "text": "my back pain is bad again. watched a movie with my family. talked to my friend and felt lighter."}
+{"patient": "p_b19bfcd883ad", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. I feel like a failure. worried about rent and the EMI."}
+{"patient": "p_b19bfcd883ad", "instrument": "GAD-7", "window": 5, "text": "had a decent day. worried about rent and the EMI. felt so tired all day."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 0, "text": "watched a movie with my family. slept better last night. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 0, "text": "went for a walk in the evening and it helped. watched a movie with my family."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 0, "text": "worried about rent and the EMI. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 1, "text": "I feel like a failure. slept better last night. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 1, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 1, "text": "talked to my friend and felt lighter. worried about rent and the EMI. talked to my friend and felt lighter."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 2, "text": "watched a movie with my family. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 2, "text": "worried about rent and the EMI. had a decent day. talked to my friend and felt lighter."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. I can't concentrate on anything."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 3, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 4, "text": "worried about rent and the EMI. slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 4, "text": "slept better last night. had a decent day. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "PHQ-9", "window": 5, "text": "talked to my friend and felt lighter. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 0, "text": "watched a movie with my family. slept better last night. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 0, "text": "went for a walk in the evening and it helped. watched a movie with my family."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 0, "text": "worried about rent and the EMI. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 1, "text": "I feel like a failure. slept better last night. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 1, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 1, "text": "talked to my friend and felt lighter. worried about rent and the EMI. talked to my friend and felt lighter."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 2, "text": "watched a movie with my family. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 2, "text": "worried about rent and the EMI. had a decent day. talked to my friend and felt lighter."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. I can't concentrate on anything."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 3, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 4, "text": "worried about rent and the EMI. slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 4, "text": "slept better last night. had a decent day. worried about rent and the EMI."}
+{"patient": "p_48eff4a7262a", "instrument": "GAD-7", "window": 5, "text": "talked to my friend and felt lighter. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 0, "text": "EMI aur rent ki tension hai. kisi kaam mein mann nahi lag raha. aaj din theek tha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 0, "text": "breathing exercise ki, thoda help hua. ghar pe papa se fight ho gayi. dimaag shaant nahi ho raha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 1, "text": "raat ko neend nahi aayi. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 1, "text": "aaj mood bahut low hai. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 1, "text": "breathing exercise ki, thoda help hua. EMI aur rent ki tension hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 2, "text": "dimaag shaant nahi ho raha. aaj walk pe gaya, accha laga. ghar pe papa se fight ho gayi."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 2, "text": "bahut tension ho rahi hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 2, "text": "dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 2, "text": "kisi kaam mein mann nahi lag raha. ghar pe papa se fight ho gayi. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 3, "text": "bahut tension ho rahi hai. kuch bhi accha nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 4, "text": "raat ko neend nahi aayi. EMI aur rent ki tension hai. dimaag shaant nahi ho raha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 4, "text": "bahut thakaan ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 4, "text": "aaj mood bahut low hai. kuch bhi accha nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 5, "text": "kisi kaam mein mann nahi lag raha. ghar pe papa se fight ho gayi. raat ko neend nahi aayi."}
+{"patient": "p_9c9549990463", "instrument": "PHQ-9", "window": 5, "text": "kuch bhi accha nahi lag raha. aaj din theek tha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 0, "text": "EMI aur rent ki tension hai. kisi kaam mein mann nahi lag raha. aaj din theek tha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 0, "text": "breathing exercise ki, thoda help hua. ghar pe papa se fight ho gayi. dimaag shaant nahi ho raha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 1, "text": "raat ko neend nahi aayi. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 1, "text": "aaj mood bahut low hai. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 1, "text": "breathing exercise ki, thoda help hua. EMI aur rent ki tension hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 2, "text": "dimaag shaant nahi ho raha. aaj walk pe gaya, accha laga. ghar pe papa se fight ho gayi."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 2, "text": "bahut tension ho rahi hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 2, "text": "dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai. bahut thakaan ho rahi hai."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 2, "text": "kisi kaam mein mann nahi lag raha. ghar pe papa se fight ho gayi. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 3, "text": "bahut tension ho rahi hai. kuch bhi accha nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 4, "text": "raat ko neend nahi aayi. EMI aur rent ki tension hai. dimaag shaant nahi ho raha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 4, "text": "bahut thakaan ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 4, "text": "aaj mood bahut low hai. kuch bhi accha nahi lag raha."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 5, "text": "kisi kaam mein mann nahi lag raha. ghar pe papa se fight ho gayi. raat ko neend nahi aayi."}
+{"patient": "p_9c9549990463", "instrument": "GAD-7", "window": 5, "text": "kuch bhi accha nahi lag raha. aaj din theek tha."}
+{"patient": "p_2f7e0709478d", "instrument": "PHQ-9", "window": 0, "text": "I feel like a failure. had a fight with my parents. slept better last night."}
+{"patient": "p_2f7e0709478d", "instrument": "PHQ-9", "window": 1, "text": "did the breathing exercise, it helped. I feel like a failure."}
+{"patient": "p_2f7e0709478d", "instrument": "PHQ-9", "window": 3, "text": "had a fight with my parents. talked to my friend and felt lighter. I get irritated so easily these days."}
+{"patient": "p_2f7e0709478d", "instrument": "PHQ-9", "window": 4, "text": "worried about rent and the EMI. had a decent day. lying awake at 3 am again."}
+{"patient": "p_2f7e0709478d", "instrument": "PHQ-9", "window": 4, "text": "felt so tired all day. I feel like a failure. had a fight with my parents. sometimes I feel like a burden to everyone."}
+{"patient": "p_2f7e0709478d", "instrument": "GAD-7", "window": 0, "text": "I feel like a failure. had a fight with my parents. slept better last night."}
+{"patient": "p_2f7e0709478d", "instrument": "GAD-7", "window": 1, "text": "did the breathing exercise, it helped. I feel like a failure."}
+{"patient": "p_2f7e0709478d", "instrument": "GAD-7", "window": 3, "text": "had a fight with my parents. talked to my friend and felt lighter. I get irritated so easily these days."}
+{"patient": "p_2f7e0709478d", "instrument": "GAD-7", "window": 4, "text": "worried about rent and the EMI. had a decent day. lying awake at 3 am again."}
+{"patient": "p_2f7e0709478d", "instrument": "GAD-7", "window": 4, "text": "felt so tired all day. I feel like a failure. had a fight with my parents. sometimes I feel like a burden to everyone."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 0, "text": "dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 0, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 1, "text": "girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 2, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 2, "text": "kal raat neend acchi aayi. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 2, "text": "aaj walk pe gaya, accha laga. girlfriend se phir jhagda ho gaya. aaj din theek tha."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 4, "text": "EMI aur rent ki tension hai. breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "PHQ-9", "window": 5, "text": "EMI aur rent ki tension hai. kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 0, "text": "dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 0, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 1, "text": "girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 2, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 2, "text": "kal raat neend acchi aayi. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 2, "text": "aaj walk pe gaya, accha laga. girlfriend se phir jhagda ho gaya. aaj din theek tha."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 4, "text": "EMI aur rent ki tension hai. breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_e4d4fb26b958", "instrument": "GAD-7", "window": 5, "text": "EMI aur rent ki tension hai. kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 0, "text": "aaj walk pe gaya, accha laga. raat ko neend nahi aayi."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 0, "text": "aaj din theek tha. ghar pe papa se fight ho gayi. aaj din theek tha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 1, "text": "kuch bhi accha nahi lag raha. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 1, "text": "bahut tension ho rahi hai. dimaag shaant nahi ho raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 2, "text": "kisi kaam mein mann nahi lag raha. aaj din theek tha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 3, "text": "girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua. dimaag shaant nahi ho raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 4, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 4, "text": "girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 4, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 5, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_30ca5d37fbb4", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. aaj din theek tha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 0, "text": "aaj walk pe gaya, accha laga. raat ko neend nahi aayi."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 0, "text": "aaj din theek tha. ghar pe papa se fight ho gayi. aaj din theek tha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 1, "text": "kuch bhi accha nahi lag raha. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 1, "text": "bahut tension ho rahi hai. dimaag shaant nahi ho raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 2, "text": "kisi kaam mein mann nahi lag raha. aaj din theek tha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 3, "text": "girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua. dimaag shaant nahi ho raha."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 4, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 4, "text": "girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 4, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 5, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_30ca5d37fbb4", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya. aaj din theek tha."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 0, "text": "breathing exercise ki, thoda help hua. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 0, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 0, "text": "exams ka bahut pressure hai. dost se baat ki, halka mehsoos hua. kuch bhi accha nahi lag raha."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 0, "text": "breathing exercise ki, thoda help hua. raat ko neend nahi aayi."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 0, "text": "bahut tension ho rahi hai. breathing exercise ki, thoda help hua. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 1, "text": "kal raat neend acchi aayi. breathing exercise ki, thoda help hua. EMI aur rent ki tension hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 2, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 2, "text": "aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 3, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 5, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_d8ff7378ea80", "instrument": "PHQ-9", "window": 5, "text": "chhoti chhoti baat pe gussa aa jata hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 0, "text": "breathing exercise ki, thoda help hua. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 0, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 0, "text": "exams ka bahut pressure hai. dost se baat ki, halka mehsoos hua. kuch bhi accha nahi lag raha."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 0, "text": "breathing exercise ki, thoda help hua. raat ko neend nahi aayi."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 0, "text": "bahut tension ho rahi hai. breathing exercise ki, thoda help hua. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 1, "text": "kal raat neend acchi aayi. breathing exercise ki, thoda help hua. EMI aur rent ki tension hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 2, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 2, "text": "aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua. exams ka bahut pressure hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 3, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 5, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_d8ff7378ea80", "instrument": "GAD-7", "window": 5, "text": "chhoti chhoti baat pe gussa aa jata hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 0, "text": "bahut tension ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 0, "text": "kisi kaam mein mann nahi lag raha. aaj mood bahut low hai. office mein boss ne phir deadline de di."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 0, "text": "aaj mood bahut low hai. EMI aur rent ki tension hai. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 2, "text": "chhoti chhoti baat pe gussa aa jata hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 2, "text": "kal raat neend acchi aayi. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 3, "text": "bahut thakaan ho rahi hai. EMI aur rent ki tension hai. bahut thakaan ho rahi hai."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 4, "text": "office mein boss ne phir deadline de di. raat ko neend nahi aayi. lagta hai sab ke liye bojh ban gaya hoon. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 5, "text": "kuch bhi accha nahi lag raha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_86c498aebcf4", "instrument": "PHQ-9", "window": 5, "text": "bahut thakaan ho rahi hai. office mein boss ne phir deadline de di. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 0, "text": "bahut tension ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 0, "text": "kisi kaam mein mann nahi lag raha. aaj mood bahut low hai. office mein boss ne phir deadline de di."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 0, "text": "aaj mood bahut low hai. EMI aur rent ki tension hai. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 2, "text": "chhoti chhoti baat pe gussa aa jata hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 2, "text": "kal raat neend acchi aayi. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 3, "text": "bahut thakaan ho rahi hai. EMI aur rent ki tension hai. bahut thakaan ho rahi hai."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 4, "text": "office mein boss ne phir deadline de di. raat ko neend nahi aayi. lagta hai sab ke liye bojh ban gaya hoon. raat ko neend nahi aayi."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 5, "text": "kuch bhi accha nahi lag raha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_86c498aebcf4", "instrument": "GAD-7", "window": 5, "text": "bahut thakaan ho rahi hai. office mein boss ne phir deadline de di. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 1, "text": "chhoti chhoti baat pe gussa aa jata hai. aaj din theek tha."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 1, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 3, "text": "office mein boss ne phir deadline de di. kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi. exams ka bahut pressure hai."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 4, "text": "aaj walk pe gaya, accha laga. kal raat neend acchi aayi. exams ka bahut pressure hai."}
+{"patient": "p_06776be0b327", "instrument": "PHQ-9", "window": 4, "text": "office mein boss ne phir deadline de di. kal raat neend acchi aayi. aaj din theek tha."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 1, "text": "chhoti chhoti baat pe gussa aa jata hai. aaj din theek tha."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 1, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 3, "text": "office mein boss ne phir deadline de di. kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi. exams ka bahut pressure hai."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 4, "text": "aaj walk pe gaya, accha laga. kal raat neend acchi aayi. exams ka bahut pressure hai."}
+{"patient": "p_06776be0b327", "instrument": "GAD-7", "window": 4, "text": "office mein boss ne phir deadline de di. kal raat neend acchi aayi. aaj din theek tha."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 0, "text": "slept better last night. my boss gave me another deadline. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 0, "text": "I felt nervous and on edge. did the breathing exercise, it helped. my boss gave me another deadline."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. slept better last night. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 3, "text": "slept better last night. I kept worrying about everything. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 3, "text": "slept better last night. had a decent day."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 4, "text": "talked to my friend and felt lighter. slept better last night. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 4, "text": "had a decent day. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 4, "text": "my back pain is bad again. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 4, "text": "my boss gave me another deadline. went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. my back pain is bad again. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "PHQ-9", "window": 5, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 0, "text": "slept better last night. my boss gave me another deadline. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 0, "text": "I felt nervous and on edge. did the breathing exercise, it helped. my boss gave me another deadline."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. slept better last night. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 3, "text": "slept better last night. I kept worrying about everything. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 3, "text": "slept better last night. had a decent day."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 4, "text": "talked to my friend and felt lighter. slept better last night. my back pain is bad again."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 4, "text": "had a decent day. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 4, "text": "my back pain is bad again. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 4, "text": "my boss gave me another deadline. went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. my back pain is bad again. did the breathing exercise, it helped."}
+{"patient": "p_639590c884a7", "instrument": "GAD-7", "window": 5, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 1, "text": "पति से फिर बहस हो गई। कल रात नींद अच्छी आई। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 1, "text": "आज दिन ठीक था। बहुत चिंता हो रही है।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 2, "text": "आज टहलने गया, अच्छा लगा। कल रात नींद अच्छी आई।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 3, "text": "आज टहलने गया, अच्छा लगा। आज दिन ठीक था। पति से फिर बहस हो गई।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 3, "text": "दोस्त से बात की, हल्का महसूस हुआ। दोस्त से बात की, हल्का महसूस हुआ। पति से फिर बहस हो गई।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 4, "text": "कल रात नींद अच्छी आई। कल रात नींद अच्छी आई।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 4, "text": "दोस्त से बात की, हल्का महसूस हुआ। दोस्त से बात की, हल्का महसूस हुआ। माँ की तबीयत ठीक नहीं है।"}
+{"patient": "p_cfef41e4a884", "instrument": "PHQ-9", "window": 5, "text": "आज दिन ठीक था। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 1, "text": "पति से फिर बहस हो गई। कल रात नींद अच्छी आई। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 1, "text": "आज दिन ठीक था। बहुत चिंता हो रही है।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 2, "text": "आज टहलने गया, अच्छा लगा। कल रात नींद अच्छी आई।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 3, "text": "आज टहलने गया, अच्छा लगा। आज दिन ठीक था। पति से फिर बहस हो गई।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 3, "text": "दोस्त से बात की, हल्का महसूस हुआ। दोस्त से बात की, हल्का महसूस हुआ। पति से फिर बहस हो गई।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 4, "text": "कल रात नींद अच्छी आई। कल रात नींद अच्छी आई।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 4, "text": "दोस्त से बात की, हल्का महसूस हुआ। दोस्त से बात की, हल्का महसूस हुआ। माँ की तबीयत ठीक नहीं है।"}
+{"patient": "p_cfef41e4a884", "instrument": "GAD-7", "window": 5, "text": "आज दिन ठीक था। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_8d17ed9d351d", "instrument": "PHQ-9", "window": 0, "text": "nothing feels enjoyable anymore. I feel like a failure."}
+{"patient": "p_8d17ed9d351d", "instrument": "PHQ-9", "window": 1, "text": "did the breathing exercise, it helped. I couldn't relax at all. exams are coming up and I'm behind."}
+{"patient": "p_8d17ed9d351d", "instrument": "PHQ-9", "window": 3, "text": "felt so tired all day. I get irritated so easily these days."}
+{"patient": "p_8d17ed9d351d", "instrument": "PHQ-9", "window": 3, "text": "I get irritated so easily these days. I'm not hungry at all."}
+{"patient": "p_8d17ed9d351d", "instrument": "PHQ-9", "window": 4, "text": "slept better last night. had a fight with my parents. slept better last night."}
+{"patient": "p_8d17ed9d351d", "instrument": "GAD-7", "window": 0, "text": "nothing feels enjoyable anymore. I feel like a failure."}
+{"patient": "p_8d17ed9d351d", "instrument": "GAD-7", "window": 1, "text": "did the breathing exercise, it helped. I couldn't relax at all. exams are coming up and I'm behind."}
+{"patient": "p_8d17ed9d351d", "instrument": "GAD-7", "window": 3, "text": "felt so tired all day. I get irritated so easily these days."}
+{"patient": "p_8d17ed9d351d", "instrument": "GAD-7", "window": 3, "text": "I get irritated so easily these days. I'm not hungry at all."}
+{"patient": "p_8d17ed9d351d", "instrument": "GAD-7", "window": 4, "text": "slept better last night. had a fight with my parents. slept better last night."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 0, "text": "EMI aur rent ki tension hai. breathing exercise ki, thoda help hua. dimaag shaant nahi ho raha."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 0, "text": "EMI aur rent ki tension hai. raat ko neend nahi aayi. aaj din theek tha."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 1, "text": "raat ko neend nahi aayi. EMI aur rent ki tension hai. kal raat neend acchi aayi."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 2, "text": "aaj din theek tha. dimaag shaant nahi ho raha."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 3, "text": "EMI aur rent ki tension hai. aaj mood bahut low hai. aaj walk pe gaya, accha laga."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 3, "text": "bahut tension ho rahi hai. girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 4, "text": "kal raat neend acchi aayi. raat ko neend nahi aayi."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 4, "text": "kisi kaam mein mann nahi lag raha. kuch bhi accha nahi lag raha."}
+{"patient": "p_7a7661b44947", "instrument": "PHQ-9", "window": 4, "text": "dost se baat ki, halka mehsoos hua. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 0, "text": "EMI aur rent ki tension hai. breathing exercise ki, thoda help hua. dimaag shaant nahi ho raha."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 0, "text": "EMI aur rent ki tension hai. raat ko neend nahi aayi. aaj din theek tha."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 1, "text": "raat ko neend nahi aayi. EMI aur rent ki tension hai. kal raat neend acchi aayi."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 2, "text": "aaj din theek tha. dimaag shaant nahi ho raha."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 3, "text": "EMI aur rent ki tension hai. aaj mood bahut low hai. aaj walk pe gaya, accha laga."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 3, "text": "bahut tension ho rahi hai. girlfriend se phir jhagda ho gaya. breathing exercise ki, thoda help hua."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 4, "text": "kal raat neend acchi aayi. raat ko neend nahi aayi."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 4, "text": "kisi kaam mein mann nahi lag raha. kuch bhi accha nahi lag raha."}
+{"patient": "p_7a7661b44947", "instrument": "GAD-7", "window": 4, "text": "dost se baat ki, halka mehsoos hua. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_5007101ca505", "instrument": "PHQ-9", "window": 1, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_5007101ca505", "instrument": "PHQ-9", "window": 3, "text": "aaj walk pe gaya, accha laga. kal raat neend acchi aayi."}
+{"patient": "p_5007101ca505", "instrument": "PHQ-9", "window": 5, "text": "aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_5007101ca505", "instrument": "GAD-7", "window": 1, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_5007101ca505", "instrument": "GAD-7", "window": 3, "text": "aaj walk pe gaya, accha laga. kal raat neend acchi aayi."}
+{"patient": "p_5007101ca505", "instrument": "GAD-7", "window": 5, "text": "aaj walk pe gaya, accha laga. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_fedd7b62a37c", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_fedd7b62a37c", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. had a fight with my parents. slept better last night."}
+{"patient": "p_fedd7b62a37c", "instrument": "PHQ-9", "window": 2, "text": "went for a walk in the evening and it helped. I can't concentrate on anything."}
+{"patient": "p_fedd7b62a37c", "instrument": "PHQ-9", "window": 4, "text": "went for a walk in the evening and it helped. watched a movie with my family. worried about rent and the EMI."}
+{"patient": "p_fedd7b62a37c", "instrument": "PHQ-9", "window": 4, "text": "I get irritated so easily these days. had a decent day. worried about rent and the EMI."}
+{"patient": "p_fedd7b62a37c", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_fedd7b62a37c", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. had a fight with my parents. slept better last night."}
+{"patient": "p_fedd7b62a37c", "instrument": "GAD-7", "window": 2, "text": "went for a walk in the evening and it helped. I can't concentrate on anything."}
+{"patient": "p_fedd7b62a37c", "instrument": "GAD-7", "window": 4, "text": "went for a walk in the evening and it helped. watched a movie with my family. worried about rent and the EMI."}
+{"patient": "p_fedd7b62a37c", "instrument": "GAD-7", "window": 4, "text": "I get irritated so easily these days. had a decent day. worried about rent and the EMI."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 2, "text": "aaj walk pe gaya, accha laga. girlfriend se phir jhagda ho gaya. bahut tension ho rahi hai."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 2, "text": "kisi kaam mein mann nahi lag raha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 3, "text": "kal raat neend acchi aayi. office mein boss ne phir deadline de di. aaj din theek tha."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 4, "text": "office mein boss ne phir deadline de di. dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 4, "text": "dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_fb82cadbd542", "instrument": "PHQ-9", "window": 5, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 2, "text": "aaj walk pe gaya, accha laga. girlfriend se phir jhagda ho gaya. bahut tension ho rahi hai."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 2, "text": "kisi kaam mein mann nahi lag raha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 3, "text": "kal raat neend acchi aayi. office mein boss ne phir deadline de di. aaj din theek tha."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 4, "text": "office mein boss ne phir deadline de di. dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 4, "text": "dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_fb82cadbd542", "instrument": "GAD-7", "window": 5, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 2, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 2, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 3, "text": "body pain phir se badh gaya. bahut tension ho rahi hai. kal raat neend acchi aayi."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 3, "text": "body pain phir se badh gaya. aaj din theek tha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 3, "text": "aaj mood bahut low hai. dost se baat ki, halka mehsoos hua. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 4, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj mood bahut low hai."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 5, "text": "aaj walk pe gaya, accha laga. body pain phir se badh gaya. bahut thakaan ho rahi hai."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 5, "text": "raat ko neend nahi aayi. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 5, "text": "breathing exercise ki, thoda help hua. body pain phir se badh gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_d60854bbb02d", "instrument": "PHQ-9", "window": 5, "text": "aaj din theek tha. kisi kaam mein mann nahi lag raha. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 2, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 2, "text": "dost se baat ki, halka mehsoos hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 3, "text": "body pain phir se badh gaya. bahut tension ho rahi hai. kal raat neend acchi aayi."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 3, "text": "body pain phir se badh gaya. aaj din theek tha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 3, "text": "aaj mood bahut low hai. dost se baat ki, halka mehsoos hua. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 4, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj mood bahut low hai."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 5, "text": "aaj walk pe gaya, accha laga. body pain phir se badh gaya. bahut thakaan ho rahi hai."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 5, "text": "raat ko neend nahi aayi. girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 5, "text": "breathing exercise ki, thoda help hua. body pain phir se badh gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_d60854bbb02d", "instrument": "GAD-7", "window": 5, "text": "aaj din theek tha. kisi kaam mein mann nahi lag raha. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 0, "text": "I get irritated so easily these days. talked to my friend and felt lighter. my partner and I argued again."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 1, "text": "I kept worrying about everything. I get irritated so easily these days."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 1, "text": "talked to my friend and felt lighter. I couldn't relax at all. my boss gave me another deadline."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 1, "text": "felt so tired all day. lying awake at 3 am again."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 2, "text": "I can't concentrate on anything. my partner and I argued again. talked to my friend and felt lighter."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 3, "text": "slept better last night. my boss gave me another deadline. did the breathing exercise, it helped."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped. my partner and I argued again."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. did the breathing exercise, it helped."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. my boss gave me another deadline. slept better last night."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 5, "text": "feeling really low today. slept better last night."}
+{"patient": "p_24d024f04feb", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 0, "text": "I get irritated so easily these days. talked to my friend and felt lighter. my partner and I argued again."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 1, "text": "I kept worrying about everything. I get irritated so easily these days."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 1, "text": "talked to my friend and felt lighter. I couldn't relax at all. my boss gave me another deadline."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 1, "text": "felt so tired all day. lying awake at 3 am again."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 2, "text": "I can't concentrate on anything. my partner and I argued again. talked to my friend and felt lighter."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 3, "text": "slept better last night. my boss gave me another deadline. did the breathing exercise, it helped."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped. my partner and I argued again."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. did the breathing exercise, it helped."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 5, "text": "slept better last night. my boss gave me another deadline. slept better last night."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 5, "text": "feeling really low today. slept better last night."}
+{"patient": "p_24d024f04feb", "instrument": "GAD-7", "window": 5, "text": "slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 0, "text": "aaj din theek tha. dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 1, "text": "bahut thakaan ho rahi hai. bahut tension ho rahi hai. EMI aur rent ki tension hai."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 1, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 2, "text": "kuch bhi accha nahi lag raha. ghar pe papa se fight ho gayi. kal raat neend acchi aayi."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 3, "text": "kisi kaam mein mann nahi lag raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 4, "text": "ghar pe papa se fight ho gayi. kisi kaam mein mann nahi lag raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_97d725268d34", "instrument": "PHQ-9", "window": 4, "text": "breathing exercise ki, thoda help hua. aaj din theek tha. EMI aur rent ki tension hai."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 0, "text": "aaj din theek tha. dost se baat ki, halka mehsoos hua. EMI aur rent ki tension hai."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 1, "text": "bahut thakaan ho rahi hai. bahut tension ho rahi hai. EMI aur rent ki tension hai."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 1, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 2, "text": "kuch bhi accha nahi lag raha. ghar pe papa se fight ho gayi. kal raat neend acchi aayi."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 3, "text": "kisi kaam mein mann nahi lag raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 4, "text": "ghar pe papa se fight ho gayi. kisi kaam mein mann nahi lag raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_97d725268d34", "instrument": "GAD-7", "window": 4, "text": "breathing exercise ki, thoda help hua. aaj din theek tha. EMI aur rent ki tension hai."}
+{"patient": "p_bb8110393e2e", "instrument": "PHQ-9", "window": 1, "text": "talked to my friend and felt lighter. went for a walk in the evening and it helped."}
+{"patient": "p_bb8110393e2e", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. slept better last night. had a fight with my parents."}
+{"patient": "p_bb8110393e2e", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. talked to my friend and felt lighter."}
+{"patient": "p_bb8110393e2e", "instrument": "PHQ-9", "window": 5, "text": "talked to my friend and felt lighter. had a decent day. had a fight with my parents."}
+{"patient": "p_bb8110393e2e", "instrument": "GAD-7", "window": 1, "text": "talked to my friend and felt lighter. went for a walk in the evening and it helped."}
+{"patient": "p_bb8110393e2e", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. slept better last night. had a fight with my parents."}
+{"patient": "p_bb8110393e2e", "instrument": "GAD-7", "window": 5, "text": "slept better last night. talked to my friend and felt lighter."}
+{"patient": "p_bb8110393e2e", "instrument": "GAD-7", "window": 5, "text": "talked to my friend and felt lighter. had a decent day. had a fight with my parents."}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 0, "text": "किसी काम में मन नहीं लग रहा। बहुत चिंता हो रही है। पैसों की चिंता है।"}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 1, "text": "बहुत चिंता हो रही है। बहुत थकान लग रही है।"}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 3, "text": "पति से फिर बहस हो गई। बहुत चिंता हो रही है। रात को नींद नहीं आई।"}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 4, "text": "आज टहलने गया, अच्छा लगा। पैसों की चिंता है। किसी काम में मन नहीं लग रहा।"}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 4, "text": "पैसों की चिंता है। बहुत चिंता हो रही है। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_742f8698ee0c", "instrument": "PHQ-9", "window": 5, "text": "आज टहलने गया, अच्छा लगा। पति से फिर बहस हो गई। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 0, "text": "किसी काम में मन नहीं लग रहा। बहुत चिंता हो रही है। पैसों की चिंता है।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 1, "text": "बहुत चिंता हो रही है। बहुत थकान लग रही है।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 3, "text": "पति से फिर बहस हो गई। बहुत चिंता हो रही है। रात को नींद नहीं आई।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 4, "text": "आज टहलने गया, अच्छा लगा। पैसों की चिंता है। किसी काम में मन नहीं लग रहा।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 4, "text": "पैसों की चिंता है। बहुत चिंता हो रही है। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_742f8698ee0c", "instrument": "GAD-7", "window": 5, "text": "आज टहलने गया, अच्छा लगा। पति से फिर बहस हो गई। आज टहलने गया, अच्छा लगा।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 2, "text": "पैसों की चिंता है। बहुत चिंता हो रही है। आज दिन ठीक था।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 2, "text": "रात को नींद नहीं आई। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 2, "text": "आज मन बहुत उदास है। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 3, "text": "रात को नींद नहीं आई। आज दिन ठीक था।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 5, "text": "पैसों की चिंता है। रात को नींद नहीं आई। आज मन बहुत उदास है।"}
+{"patient": "p_41aca91c0c11", "instrument": "PHQ-9", "window": 5, "text": "रात को नींद नहीं आई। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 2, "text": "पैसों की चिंता है। बहुत चिंता हो रही है। आज दिन ठीक था।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 2, "text": "रात को नींद नहीं आई। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 2, "text": "आज मन बहुत उदास है। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 3, "text": "रात को नींद नहीं आई। आज दिन ठीक था।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 5, "text": "पैसों की चिंता है। रात को नींद नहीं आई। आज मन बहुत उदास है।"}
+{"patient": "p_41aca91c0c11", "instrument": "GAD-7", "window": 5, "text": "रात को नींद नहीं आई। कुछ भी अच्छा नहीं लग रहा।"}
+{"patient": "p_e8d217a2fee1", "instrument": "PHQ-9", "window": 1, "text": "feeling really low today. I felt nervous and on edge. worried about rent and the EMI."}
+{"patient": "p_e8d217a2fee1", "instrument": "PHQ-9", "window": 2, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped. worried about rent and the EMI."}
+{"patient": "p_e8d217a2fee1", "instrument": "PHQ-9", "window": 3, "text": "had a decent day. did the breathing exercise, it helped."}
+{"patient": "p_e8d217a2fee1", "instrument": "PHQ-9", "window": 3, "text": "worried about rent and the EMI. nothing feels enjoyable anymore. I'm not hungry at all."}
+{"patient": "p_e8d217a2fee1", "instrument": "GAD-7", "window": 1, "text": "feeling really low today. I felt nervous and on edge. worried about rent and the EMI."}
+{"patient": "p_e8d217a2fee1", "instrument": "GAD-7", "window": 2, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped. worried about rent and the EMI."}
+{"patient": "p_e8d217a2fee1", "instrument": "GAD-7", "window": 3, "text": "had a decent day. did the breathing exercise, it helped."}
+{"patient": "p_e8d217a2fee1", "instrument": "GAD-7", "window": 3, "text": "worried about rent and the EMI. nothing feels enjoyable anymore. I'm not hungry at all."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 0, "text": "I feel like a failure. I couldn't relax at all."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 1, "text": "I feel like a failure. feeling really low today."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 1, "text": "I get irritated so easily these days. slept better last night."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 1, "text": "worried about rent and the EMI. I feel like a failure. nothing feels enjoyable anymore."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 1, "text": "my boss gave me another deadline. I get irritated so easily these days. I'm not hungry at all."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 1, "text": "lying awake at 3 am again. I get irritated so easily these days."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 2, "text": "feeling really low today. my boss gave me another deadline. I felt nervous and on edge."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 4, "text": "feeling really low today. had a decent day."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 4, "text": "watched a movie with my family. my boss gave me another deadline. talked to my friend and felt lighter."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. feeling really low today."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 4, "text": "had a decent day. my boss gave me another deadline. went for a walk in the evening and it helped."}
+{"patient": "p_cf3b46125dc1", "instrument": "PHQ-9", "window": 5, "text": "felt so tired all day. went for a walk in the evening and it helped. my boss gave me another deadline."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 0, "text": "I feel like a failure. I couldn't relax at all."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 1, "text": "I feel like a failure. feeling really low today."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 1, "text": "I get irritated so easily these days. slept better last night."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 1, "text": "worried about rent and the EMI. I feel like a failure. nothing feels enjoyable anymore."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 1, "text": "my boss gave me another deadline. I get irritated so easily these days. I'm not hungry at all."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 1, "text": "lying awake at 3 am again. I get irritated so easily these days."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 2, "text": "feeling really low today. my boss gave me another deadline. I felt nervous and on edge."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 4, "text": "feeling really low today. had a decent day."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 4, "text": "watched a movie with my family. my boss gave me another deadline. talked to my friend and felt lighter."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. feeling really low today."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 4, "text": "had a decent day. my boss gave me another deadline. went for a walk in the evening and it helped."}
+{"patient": "p_cf3b46125dc1", "instrument": "GAD-7", "window": 5, "text": "felt so tired all day. went for a walk in the evening and it helped. my boss gave me another deadline."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 0, "text": "nothing feels enjoyable anymore. had a fight with my parents. I can't concentrate on anything."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 2, "text": "my partner and I argued again. feeling really low today. I felt nervous and on edge."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 3, "text": "I couldn't relax at all. my partner and I argued again. I'm not hungry at all."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 3, "text": "did the breathing exercise, it helped. watched a movie with my family."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 3, "text": "had a fight with my parents. lying awake at 3 am again. I feel like a failure."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 4, "text": "talked to my friend and felt lighter. my partner and I argued again. feeling really low today."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 4, "text": "feeling really low today. had a fight with my parents. talked to my friend and felt lighter."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 4, "text": "had a fight with my parents. I couldn't sleep last night. I get irritated so easily these days."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 4, "text": "went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 5, "text": "my partner and I argued again. watched a movie with my family. did the breathing exercise, it helped."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 5, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_101e17256dab", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. lying awake at 3 am again."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 0, "text": "nothing feels enjoyable anymore. had a fight with my parents. I can't concentrate on anything."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 2, "text": "my partner and I argued again. feeling really low today. I felt nervous and on edge."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 3, "text": "I couldn't relax at all. my partner and I argued again. I'm not hungry at all."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 3, "text": "did the breathing exercise, it helped. watched a movie with my family."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 3, "text": "had a fight with my parents. lying awake at 3 am again. I feel like a failure."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 4, "text": "talked to my friend and felt lighter. my partner and I argued again. feeling really low today."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 4, "text": "feeling really low today. had a fight with my parents. talked to my friend and felt lighter."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 4, "text": "had a fight with my parents. I couldn't sleep last night. I get irritated so easily these days."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 4, "text": "went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 5, "text": "my partner and I argued again. watched a movie with my family. did the breathing exercise, it helped."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 5, "text": "went for a walk in the evening and it helped. went for a walk in the evening and it helped."}
+{"patient": "p_101e17256dab", "instrument": "GAD-7", "window": 5, "text": "slept better last night. lying awake at 3 am again."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 0, "text": "went for a walk in the evening and it helped. feeling really low today."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 0, "text": "I feel like a failure. feeling really low today."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 2, "text": "I couldn't relax at all. I felt nervous and on edge."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 3, "text": "I feel like a failure. I kept worrying about everything. sometimes I feel like a burden to everyone."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 5, "text": "I felt nervous and on edge. my back pain is bad again. I kept worrying about everything."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 5, "text": "I'm not hungry at all. talked to my friend and felt lighter."}
+{"patient": "p_48e528f3378d", "instrument": "PHQ-9", "window": 5, "text": "I feel like a failure. my back pain is bad again. had a decent day."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 0, "text": "went for a walk in the evening and it helped. feeling really low today."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 0, "text": "I feel like a failure. feeling really low today."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 2, "text": "I couldn't relax at all. I felt nervous and on edge."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 3, "text": "I feel like a failure. I kept worrying about everything. sometimes I feel like a burden to everyone."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 5, "text": "I felt nervous and on edge. my back pain is bad again. I kept worrying about everything."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 5, "text": "I'm not hungry at all. talked to my friend and felt lighter."}
+{"patient": "p_48e528f3378d", "instrument": "GAD-7", "window": 5, "text": "I feel like a failure. my back pain is bad again. had a decent day."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 0, "text": "dimaag shaant nahi ho raha. kuch bhi accha nahi lag raha."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 0, "text": "aaj mood bahut low hai. raat ko neend nahi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 1, "text": "kuch bhi accha nahi lag raha. aaj mood bahut low hai. exams ka bahut pressure hai."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 1, "text": "raat ko neend nahi aayi. kal raat neend acchi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 2, "text": "exams ka bahut pressure hai. aaj mood bahut low hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 2, "text": "kuch bhi accha nahi lag raha. aaj mood bahut low hai."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 4, "text": "exams ka bahut pressure hai. chhoti chhoti baat pe gussa aa jata hai. kal raat neend acchi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 5, "text": "EMI aur rent ki tension hai. bahut tension ho rahi hai. aaj walk pe gaya, accha laga."}
+{"patient": "p_68a3e42fd350", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. exams ka bahut pressure hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 0, "text": "dimaag shaant nahi ho raha. kuch bhi accha nahi lag raha."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 0, "text": "aaj mood bahut low hai. raat ko neend nahi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 1, "text": "kuch bhi accha nahi lag raha. aaj mood bahut low hai. exams ka bahut pressure hai."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 1, "text": "raat ko neend nahi aayi. kal raat neend acchi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 2, "text": "exams ka bahut pressure hai. aaj mood bahut low hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 2, "text": "kuch bhi accha nahi lag raha. aaj mood bahut low hai."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 4, "text": "exams ka bahut pressure hai. chhoti chhoti baat pe gussa aa jata hai. kal raat neend acchi aayi."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 5, "text": "EMI aur rent ki tension hai. bahut tension ho rahi hai. aaj walk pe gaya, accha laga."}
+{"patient": "p_68a3e42fd350", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. exams ka bahut pressure hai. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 0, "text": "I can't concentrate on anything. my partner and I argued again. had a decent day."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 1, "text": "my partner and I argued again. I feel like a failure. went for a walk in the evening and it helped."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 1, "text": "slept better last night. feeling really low today."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 1, "text": "watched a movie with my family. I felt nervous and on edge. worried about rent and the EMI."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 1, "text": "I couldn't relax at all. had a decent day."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 2, "text": "slept better last night. watched a movie with my family."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 4, "text": "I couldn't sleep last night. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 5, "text": "sometimes I feel like a burden to everyone. I feel like a failure. talked to my friend and felt lighter."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 5, "text": "I'm not hungry at all. I feel like a failure. worried about rent and the EMI."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "PHQ-9", "window": 5, "text": "I feel like a failure. felt so tired all day."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 0, "text": "I can't concentrate on anything. my partner and I argued again. had a decent day."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 1, "text": "my partner and I argued again. I feel like a failure. went for a walk in the evening and it helped."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 1, "text": "slept better last night. feeling really low today."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 1, "text": "watched a movie with my family. I felt nervous and on edge. worried about rent and the EMI."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 1, "text": "I couldn't relax at all. had a decent day."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 2, "text": "slept better last night. watched a movie with my family."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 4, "text": "I couldn't sleep last night. worried about rent and the EMI. watched a movie with my family."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 5, "text": "sometimes I feel like a burden to everyone. I feel like a failure. talked to my friend and felt lighter."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 5, "text": "I'm not hungry at all. I feel like a failure. worried about rent and the EMI."}
+{"patient": "p_5ffb1a7fa4d1", "instrument": "GAD-7", "window": 5, "text": "I feel like a failure. felt so tired all day."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 1, "text": "feeling really low today. talked to my friend and felt lighter."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 1, "text": "felt so tired all day. felt so tired all day."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 1, "text": "watched a movie with my family. I couldn't relax at all."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 2, "text": "I felt nervous and on edge. I kept worrying about everything."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 2, "text": "lying awake at 3 am again. my boss gave me another deadline. I'm not hungry at all. sometimes I feel like a burden to everyone."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 3, "text": "my boss gave me another deadline. I get irritated so easily these days. I felt nervous and on edge."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 4, "text": "my boss gave me another deadline. felt so tired all day. lying awake at 3 am again."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 4, "text": "my boss gave me another deadline. talked to my friend and felt lighter. did the breathing exercise, it helped."}
+{"patient": "p_fb96ce984fe1", "instrument": "PHQ-9", "window": 4, "text": "I couldn't relax at all. I couldn't sleep last night."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 1, "text": "feeling really low today. talked to my friend and felt lighter."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 1, "text": "felt so tired all day. felt so tired all day."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 1, "text": "watched a movie with my family. I couldn't relax at all."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 2, "text": "I felt nervous and on edge. I kept worrying about everything."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 2, "text": "lying awake at 3 am again. my boss gave me another deadline. I'm not hungry at all. sometimes I feel like a burden to everyone."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 3, "text": "my boss gave me another deadline. I get irritated so easily these days. I felt nervous and on edge."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 4, "text": "my boss gave me another deadline. felt so tired all day. lying awake at 3 am again."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 4, "text": "my boss gave me another deadline. talked to my friend and felt lighter. did the breathing exercise, it helped."}
+{"patient": "p_fb96ce984fe1", "instrument": "GAD-7", "window": 4, "text": "I couldn't relax at all. I couldn't sleep last night."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 0, "text": "feeling really low today. felt so tired all day."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. nothing feels enjoyable anymore."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 2, "text": "slept better last night. had a decent day."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 4, "text": "watched a movie with my family. went for a walk in the evening and it helped. my boss gave me another deadline."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 4, "text": "felt so tired all day. talked to my friend and felt lighter."}
+{"patient": "p_ad5b60fa06d3", "instrument": "PHQ-9", "window": 5, "text": "did the breathing exercise, it helped. had a decent day. had a fight with my parents."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 0, "text": "feeling really low today. felt so tired all day."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. nothing feels enjoyable anymore."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 2, "text": "slept better last night. had a decent day."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 4, "text": "watched a movie with my family. went for a walk in the evening and it helped. my boss gave me another deadline."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 4, "text": "felt so tired all day. talked to my friend and felt lighter."}
+{"patient": "p_ad5b60fa06d3", "instrument": "GAD-7", "window": 5, "text": "did the breathing exercise, it helped. had a decent day. had a fight with my parents."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 1, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 1, "text": "body pain phir se badh gaya. raat ko neend nahi aayi. bahut tension ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 2, "text": "bahut tension ho rahi hai. body pain phir se badh gaya. bahut thakaan ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 3, "text": "body pain phir se badh gaya. kuch bhi accha nahi lag raha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 4, "text": "ghar pe papa se fight ho gayi. raat ko neend nahi aayi. kuch bhi accha nahi lag raha."}
+{"patient": "p_f5a3c6d481b8", "instrument": "PHQ-9", "window": 4, "text": "raat ko neend nahi aayi. bahut thakaan ho rahi hai. body pain phir se badh gaya."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 1, "text": "dost se baat ki, halka mehsoos hua. bahut thakaan ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 1, "text": "body pain phir se badh gaya. raat ko neend nahi aayi. bahut tension ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 2, "text": "bahut tension ho rahi hai. body pain phir se badh gaya. bahut thakaan ho rahi hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 3, "text": "body pain phir se badh gaya. kuch bhi accha nahi lag raha. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 4, "text": "ghar pe papa se fight ho gayi. raat ko neend nahi aayi. kuch bhi accha nahi lag raha."}
+{"patient": "p_f5a3c6d481b8", "instrument": "GAD-7", "window": 4, "text": "raat ko neend nahi aayi. bahut thakaan ho rahi hai. body pain phir se badh gaya."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 0, "text": "bahut thakaan ho rahi hai. ghar pe papa se fight ho gayi. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 1, "text": "kal raat neend acchi aayi. ghar pe papa se fight ho gayi. raat ko neend nahi aayi."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 3, "text": "dost se baat ki, halka mehsoos hua. kisi kaam mein mann nahi lag raha. office mein boss ne phir deadline de di."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 4, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 4, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua. office mein boss ne phir deadline de di."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 4, "text": "ghar pe papa se fight ho gayi. breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_68764595e008", "instrument": "PHQ-9", "window": 5, "text": "office mein boss ne phir deadline de di. aaj din theek tha. aaj din theek tha."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 0, "text": "bahut thakaan ho rahi hai. ghar pe papa se fight ho gayi. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 1, "text": "kal raat neend acchi aayi. ghar pe papa se fight ho gayi. raat ko neend nahi aayi."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 3, "text": "dost se baat ki, halka mehsoos hua. kisi kaam mein mann nahi lag raha. office mein boss ne phir deadline de di."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 4, "text": "breathing exercise ki, thoda help hua. aaj din theek tha."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 4, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua. office mein boss ne phir deadline de di."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 4, "text": "ghar pe papa se fight ho gayi. breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_68764595e008", "instrument": "GAD-7", "window": 5, "text": "office mein boss ne phir deadline de di. aaj din theek tha. aaj din theek tha."}
+{"patient": "p_47fae0a0950e", "instrument": "PHQ-9", "window": 0, "text": "exams ka bahut pressure hai. aaj din theek tha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_47fae0a0950e", "instrument": "PHQ-9", "window": 3, "text": "dost se baat ki, halka mehsoos hua. aaj din theek tha."}
+{"patient": "p_47fae0a0950e", "instrument": "GAD-7", "window": 0, "text": "exams ka bahut pressure hai. aaj din theek tha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_47fae0a0950e", "instrument": "GAD-7", "window": 3, "text": "dost se baat ki, halka mehsoos hua. aaj din theek tha."}
+{"patient": "p_b0dd7a0a1674", "instrument": "PHQ-9", "window": 0, "text": "I feel like a failure. had a fight with my parents. watched a movie with my family."}
+{"patient": "p_b0dd7a0a1674", "instrument": "PHQ-9", "window": 1, "text": "I felt nervous and on edge. worried about rent and the EMI. I'm not hungry at all."}
+{"patient": "p_b0dd7a0a1674", "instrument": "PHQ-9", "window": 3, "text": "slept better last night. worried about rent and the EMI. felt so tired all day."}
+{"patient": "p_b0dd7a0a1674", "instrument": "PHQ-9", "window": 3, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped."}
+{"patient": "p_b0dd7a0a1674", "instrument": "GAD-7", "window": 0, "text": "I feel like a failure. had a fight with my parents. watched a movie with my family."}
+{"patient": "p_b0dd7a0a1674", "instrument": "GAD-7", "window": 1, "text": "I felt nervous and on edge. worried about rent and the EMI. I'm not hungry at all."}
+{"patient": "p_b0dd7a0a1674", "instrument": "GAD-7", "window": 3, "text": "slept better last night. worried about rent and the EMI. felt so tired all day."}
+{"patient": "p_b0dd7a0a1674", "instrument": "GAD-7", "window": 3, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped."}
+{"patient": "p_55677f244c12", "instrument": "PHQ-9", "window": 1, "text": "dost se baat ki, halka mehsoos hua. exams ka bahut pressure hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_55677f244c12", "instrument": "PHQ-9", "window": 2, "text": "girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_55677f244c12", "instrument": "PHQ-9", "window": 3, "text": "aaj walk pe gaya, accha laga. bahut tension ho rahi hai."}
+{"patient": "p_55677f244c12", "instrument": "PHQ-9", "window": 4, "text": "breathing exercise ki, thoda help hua. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_55677f244c12", "instrument": "PHQ-9", "window": 5, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_55677f244c12", "instrument": "GAD-7", "window": 1, "text": "dost se baat ki, halka mehsoos hua. exams ka bahut pressure hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_55677f244c12", "instrument": "GAD-7", "window": 2, "text": "girlfriend se phir jhagda ho gaya. dost se baat ki, halka mehsoos hua. kal raat neend acchi aayi."}
+{"patient": "p_55677f244c12", "instrument": "GAD-7", "window": 3, "text": "aaj walk pe gaya, accha laga. bahut tension ho rahi hai."}
+{"patient": "p_55677f244c12", "instrument": "GAD-7", "window": 4, "text": "breathing exercise ki, thoda help hua. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_55677f244c12", "instrument": "GAD-7", "window": 5, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 0, "text": "went for a walk in the evening and it helped. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 0, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 1, "text": "went for a walk in the evening and it helped. slept better last night. had a fight with my parents."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 2, "text": "slept better last night. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 2, "text": "watched a movie with my family. watched a movie with my family."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 3, "text": "slept better last night. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 3, "text": "went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 3, "text": "I kept worrying about everything. worried about rent and the EMI. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 3, "text": "worried about rent and the EMI. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 4, "text": "I couldn't relax at all. felt so tired all day."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 4, "text": "had a fight with my parents. went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 5, "text": "went for a walk in the evening and it helped. worried about rent and the EMI. did the breathing exercise, it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 5, "text": "did the breathing exercise, it helped. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. went for a walk in the evening and it helped. had a fight with my parents."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 0, "text": "went for a walk in the evening and it helped. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 0, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 1, "text": "went for a walk in the evening and it helped. slept better last night. had a fight with my parents."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 2, "text": "slept better last night. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 2, "text": "watched a movie with my family. watched a movie with my family."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 3, "text": "slept better last night. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 3, "text": "went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 3, "text": "I kept worrying about everything. worried about rent and the EMI. slept better last night."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 3, "text": "worried about rent and the EMI. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 4, "text": "I couldn't relax at all. felt so tired all day."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 4, "text": "had a fight with my parents. went for a walk in the evening and it helped. had a decent day."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 5, "text": "went for a walk in the evening and it helped. worried about rent and the EMI. did the breathing exercise, it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 5, "text": "did the breathing exercise, it helped. went for a walk in the evening and it helped."}
+{"patient": "p_8445a48b86ed", "instrument": "GAD-7", "window": 5, "text": "slept better last night. went for a walk in the evening and it helped. had a fight with my parents."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 0, "text": "I felt nervous and on edge. my back pain is bad again. went for a walk in the evening and it helped."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 1, "text": "slept better last night. my partner and I argued again. I'm not hungry at all."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 2, "text": "went for a walk in the evening and it helped. slept better last night."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 3, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped. my back pain is bad again."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. my partner and I argued again. had a decent day."}
+{"patient": "p_98b87280ec2b", "instrument": "PHQ-9", "window": 5, "text": "did the breathing exercise, it helped. talked to my friend and felt lighter."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 0, "text": "I felt nervous and on edge. my back pain is bad again. went for a walk in the evening and it helped."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 1, "text": "slept better last night. my partner and I argued again. I'm not hungry at all."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 2, "text": "went for a walk in the evening and it helped. slept better last night."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 3, "text": "went for a walk in the evening and it helped. did the breathing exercise, it helped. my back pain is bad again."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. my partner and I argued again. had a decent day."}
+{"patient": "p_98b87280ec2b", "instrument": "GAD-7", "window": 5, "text": "did the breathing exercise, it helped. talked to my friend and felt lighter."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 0, "text": "I couldn't sleep last night. I couldn't sleep last night."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 1, "text": "I get irritated so easily these days. my back pain is bad again. I kept worrying about everything."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 1, "text": "nothing feels enjoyable anymore. I'm not hungry at all. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 2, "text": "went for a walk in the evening and it helped. watched a movie with my family. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 4, "text": "nothing feels enjoyable anymore. went for a walk in the evening and it helped. exams are coming up and I'm behind."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 4, "text": "watched a movie with my family. slept better last night. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "PHQ-9", "window": 5, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 0, "text": "I couldn't sleep last night. I couldn't sleep last night."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 1, "text": "I get irritated so easily these days. my back pain is bad again. I kept worrying about everything."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 1, "text": "nothing feels enjoyable anymore. I'm not hungry at all. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 2, "text": "went for a walk in the evening and it helped. watched a movie with my family. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 4, "text": "nothing feels enjoyable anymore. went for a walk in the evening and it helped. exams are coming up and I'm behind."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 4, "text": "watched a movie with my family. slept better last night. my back pain is bad again."}
+{"patient": "p_1b92fbdbea71", "instrument": "GAD-7", "window": 5, "text": "talked to my friend and felt lighter. had a decent day."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 0, "text": "I feel like a failure. I kept worrying about everything."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 1, "text": "I'm not hungry at all. worried about rent and the EMI. I can't concentrate on anything."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 2, "text": "talked to my friend and felt lighter. slept better last night."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 2, "text": "I kept worrying about everything. I can't concentrate on anything. worried about rent and the EMI."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 2, "text": "worried about rent and the EMI. I couldn't relax at all. lying awake at 3 am again."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 3, "text": "worried about rent and the EMI. I couldn't sleep last night. I feel like a failure."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 4, "text": "feeling really low today. sometimes I feel like a burden to everyone. I couldn't sleep last night. my boss gave me another deadline."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 4, "text": "I can't concentrate on anything. my boss gave me another deadline. feeling really low today."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 5, "text": "I feel like a failure. worried about rent and the EMI. I'm not hungry at all."}
+{"patient": "p_2d8452eddda6", "instrument": "PHQ-9", "window": 5, "text": "lying awake at 3 am again. my boss gave me another deadline. I get irritated so easily these days."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 0, "text": "I feel like a failure. I kept worrying about everything."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 1, "text": "I'm not hungry at all. worried about rent and the EMI. I can't concentrate on anything."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 2, "text": "talked to my friend and felt lighter. slept better last night."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 2, "text": "I kept worrying about everything. I can't concentrate on anything. worried about rent and the EMI."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 2, "text": "worried about rent and the EMI. I couldn't relax at all. lying awake at 3 am again."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 3, "text": "worried about rent and the EMI. I couldn't sleep last night. I feel like a failure."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 4, "text": "feeling really low today. sometimes I feel like a burden to everyone. I couldn't sleep last night. my boss gave me another deadline."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 4, "text": "I can't concentrate on anything. my boss gave me another deadline. feeling really low today."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 5, "text": "I feel like a failure. worried about rent and the EMI. I'm not hungry at all."}
+{"patient": "p_2d8452eddda6", "instrument": "GAD-7", "window": 5, "text": "lying awake at 3 am again. my boss gave me another deadline. I get irritated so easily these days."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 0, "text": "I couldn't sleep last night. feeling really low today."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 1, "text": "lying awake at 3 am again. my back pain is bad again. had a decent day."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 1, "text": "had a decent day. my back pain is bad again. I can't concentrate on anything."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 2, "text": "I couldn't sleep last night. did the breathing exercise, it helped. my partner and I argued again."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 3, "text": "went for a walk in the evening and it helped. I kept worrying about everything. my back pain is bad again."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 4, "text": "my partner and I argued again. went for a walk in the evening and it helped. talked to my friend and felt lighter."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 5, "text": "slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 5, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_2c323ec11187", "instrument": "PHQ-9", "window": 5, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 0, "text": "I couldn't sleep last night. feeling really low today."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 1, "text": "lying awake at 3 am again. my back pain is bad again. had a decent day."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 1, "text": "had a decent day. my back pain is bad again. I can't concentrate on anything."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 2, "text": "I couldn't sleep last night. did the breathing exercise, it helped. my partner and I argued again."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 3, "text": "went for a walk in the evening and it helped. I kept worrying about everything. my back pain is bad again."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 4, "text": "my partner and I argued again. went for a walk in the evening and it helped. talked to my friend and felt lighter."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 5, "text": "slept better last night. did the breathing exercise, it helped."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 5, "text": "watched a movie with my family. slept better last night."}
+{"patient": "p_2c323ec11187", "instrument": "GAD-7", "window": 5, "text": "did the breathing exercise, it helped. had a decent day."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 0, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 3, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 3, "text": "kal raat neend acchi aayi. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 4, "text": "kal raat neend acchi aayi. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. breathing exercise ki, thoda help hua."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 0, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 3, "text": "dost se baat ki, halka mehsoos hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 3, "text": "kal raat neend acchi aayi. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. kal raat neend acchi aayi. girlfriend se phir jhagda ho gaya."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 4, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 4, "text": "kal raat neend acchi aayi. kal raat neend acchi aayi."}
+{"patient": "p_447f8b7c66aa", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. breathing exercise ki, thoda help hua."}
+{"patient": "p_71bd9f90418c", "instrument": "PHQ-9", "window": 1, "text": "office mein boss ne phir deadline de di. breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_71bd9f90418c", "instrument": "PHQ-9", "window": 3, "text": "bahut tension ho rahi hai. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_71bd9f90418c", "instrument": "PHQ-9", "window": 4, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj mood bahut low hai."}
+{"patient": "p_71bd9f90418c", "instrument": "PHQ-9", "window": 5, "text": "kal raat neend acchi aayi. dimaag shaant nahi ho raha."}
+{"patient": "p_71bd9f90418c", "instrument": "PHQ-9", "window": 5, "text": "bahut thakaan ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_71bd9f90418c", "instrument": "GAD-7", "window": 1, "text": "office mein boss ne phir deadline de di. breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_71bd9f90418c", "instrument": "GAD-7", "window": 3, "text": "bahut tension ho rahi hai. kisi kaam mein mann nahi lag raha."}
+{"patient": "p_71bd9f90418c", "instrument": "GAD-7", "window": 4, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj mood bahut low hai."}
+{"patient": "p_71bd9f90418c", "instrument": "GAD-7", "window": 5, "text": "kal raat neend acchi aayi. dimaag shaant nahi ho raha."}
+{"patient": "p_71bd9f90418c", "instrument": "GAD-7", "window": 5, "text": "bahut thakaan ho rahi hai. raat ko neend nahi aayi."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. feeling really low today. worried about rent and the EMI."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 0, "text": "went for a walk in the evening and it helped. worried about rent and the EMI. slept better last night."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 0, "text": "watched a movie with my family. my boss gave me another deadline. I felt nervous and on edge."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 1, "text": "talked to my friend and felt lighter. I kept worrying about everything."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 2, "text": "worried about rent and the EMI. went for a walk in the evening and it helped. did the breathing exercise, it helped."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 2, "text": "I couldn't sleep last night. feeling really low today."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 3, "text": "I'm not hungry at all. nothing feels enjoyable anymore."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 3, "text": "I couldn't relax at all. I feel like a failure. my boss gave me another deadline."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 3, "text": "watched a movie with my family. watched a movie with my family."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 3, "text": "I get irritated so easily these days. went for a walk in the evening and it helped. worried about rent and the EMI."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 4, "text": "I can't concentrate on anything. talked to my friend and felt lighter. my boss gave me another deadline."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 5, "text": "my boss gave me another deadline. went for a walk in the evening and it helped. talked to my friend and felt lighter."}
+{"patient": "p_45ecffc1d9c3", "instrument": "PHQ-9", "window": 5, "text": "I'm not hungry at all. feeling really low today."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. feeling really low today. worried about rent and the EMI."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 0, "text": "went for a walk in the evening and it helped. worried about rent and the EMI. slept better last night."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 0, "text": "watched a movie with my family. my boss gave me another deadline. I felt nervous and on edge."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 1, "text": "talked to my friend and felt lighter. I kept worrying about everything."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 2, "text": "worried about rent and the EMI. went for a walk in the evening and it helped. did the breathing exercise, it helped."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 2, "text": "I couldn't sleep last night. feeling really low today."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 3, "text": "I'm not hungry at all. nothing feels enjoyable anymore."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 3, "text": "I couldn't relax at all. I feel like a failure. my boss gave me another deadline."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 3, "text": "watched a movie with my family. watched a movie with my family."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 3, "text": "I get irritated so easily these days. went for a walk in the evening and it helped. worried about rent and the EMI."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 4, "text": "I can't concentrate on anything. talked to my friend and felt lighter. my boss gave me another deadline."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 5, "text": "my boss gave me another deadline. went for a walk in the evening and it helped. talked to my friend and felt lighter."}
+{"patient": "p_45ecffc1d9c3", "instrument": "GAD-7", "window": 5, "text": "I'm not hungry at all. feeling really low today."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 0, "text": "kal raat neend acchi aayi. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 0, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 0, "text": "chhoti chhoti baat pe gussa aa jata hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 1, "text": "aaj din theek tha. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 1, "text": "kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 1, "text": "breathing exercise ki, thoda help hua. office mein boss ne phir deadline de di. bahut tension ho rahi hai."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 2, "text": "aaj din theek tha. office mein boss ne phir deadline de di. kal raat neend acchi aayi."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 2, "text": "breathing exercise ki, thoda help hua. raat ko neend nahi aayi."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 3, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "PHQ-9", "window": 5, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 0, "text": "kal raat neend acchi aayi. chhoti chhoti baat pe gussa aa jata hai."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 0, "text": "breathing exercise ki, thoda help hua. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 0, "text": "chhoti chhoti baat pe gussa aa jata hai. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 1, "text": "aaj din theek tha. girlfriend se phir jhagda ho gaya. aaj walk pe gaya, accha laga."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 1, "text": "kal raat neend acchi aayi. aaj walk pe gaya, accha laga."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 1, "text": "breathing exercise ki, thoda help hua. office mein boss ne phir deadline de di. bahut tension ho rahi hai."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 2, "text": "aaj din theek tha. office mein boss ne phir deadline de di. kal raat neend acchi aayi."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 2, "text": "breathing exercise ki, thoda help hua. raat ko neend nahi aayi."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 3, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_741f8acba0db", "instrument": "GAD-7", "window": 5, "text": "breathing exercise ki, thoda help hua. breathing exercise ki, thoda help hua."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 0, "text": "talked to my friend and felt lighter. lying awake at 3 am again."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 1, "text": "I get irritated so easily these days. slept better last night."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 1, "text": "I can't concentrate on anything. went for a walk in the evening and it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 2, "text": "I couldn't sleep last night. felt so tired all day. had a fight with my parents."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 3, "text": "had a fight with my parents. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 3, "text": "exams are coming up and I'm behind. feeling really low today. I get irritated so easily these days."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 3, "text": "felt so tired all day. I get irritated so easily these days."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 4, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "PHQ-9", "window": 5, "text": "I feel like a failure. I felt nervous and on edge."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 0, "text": "talked to my friend and felt lighter. lying awake at 3 am again."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 1, "text": "I get irritated so easily these days. slept better last night."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 1, "text": "I can't concentrate on anything. went for a walk in the evening and it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 2, "text": "I couldn't sleep last night. felt so tired all day. had a fight with my parents."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 3, "text": "had a fight with my parents. had a decent day. went for a walk in the evening and it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 3, "text": "exams are coming up and I'm behind. feeling really low today. I get irritated so easily these days."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 3, "text": "felt so tired all day. I get irritated so easily these days."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 4, "text": "did the breathing exercise, it helped. did the breathing exercise, it helped."}
+{"patient": "p_da2eecd1482e", "instrument": "GAD-7", "window": 5, "text": "I feel like a failure. I felt nervous and on edge."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 0, "text": "kal raat neend acchi aayi. aaj din theek tha. ghar pe papa se fight ho gayi."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 1, "text": "kal raat neend acchi aayi. ghar pe papa se fight ho gayi. aaj din theek tha."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 1, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj din theek tha."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 1, "text": "ghar pe papa se fight ho gayi. aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 2, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 3, "text": "dimaag shaant nahi ho raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 3, "text": "aaj din theek tha. kal raat neend acchi aayi. body pain phir se badh gaya."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 3, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 4, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 4, "text": "aaj din theek tha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "PHQ-9", "window": 4, "text": "kal raat neend acchi aayi. aaj din theek tha. ghar pe papa se fight ho gayi."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 0, "text": "kal raat neend acchi aayi. aaj din theek tha. ghar pe papa se fight ho gayi."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 1, "text": "kal raat neend acchi aayi. ghar pe papa se fight ho gayi. aaj din theek tha."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 1, "text": "dost se baat ki, halka mehsoos hua. body pain phir se badh gaya. aaj din theek tha."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 1, "text": "ghar pe papa se fight ho gayi. aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 2, "text": "aaj din theek tha. breathing exercise ki, thoda help hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 3, "text": "dimaag shaant nahi ho raha. aaj walk pe gaya, accha laga."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 3, "text": "aaj din theek tha. kal raat neend acchi aayi. body pain phir se badh gaya."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 3, "text": "aaj walk pe gaya, accha laga. aaj walk pe gaya, accha laga."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 4, "text": "aaj din theek tha. kal raat neend acchi aayi."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 4, "text": "aaj din theek tha. dost se baat ki, halka mehsoos hua."}
+{"patient": "p_aa08e8c22b2c", "instrument": "GAD-7", "window": 4, "text": "kal raat neend acchi aayi. aaj din theek tha. ghar pe papa se fight ho gayi."}

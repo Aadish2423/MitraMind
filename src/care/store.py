@@ -71,6 +71,11 @@ CREATE INDEX IF NOT EXISTS ix_messages_patient ON messages(patient_id, created_a
 CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 """
 
+# Columns added after the first release; applied to existing databases on startup.
+MIGRATIONS = [
+    ("alerts", "outcome TEXT"),  # clinician's label when resolving: confirmed_risk / false_alarm / unclear
+]
+ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
 LEVEL_ORDER = {"none": 0, "watch": 1, "high": 2, "urgent": 3}
 
 
@@ -92,6 +97,11 @@ class Store:
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
         self._conn.executescript(SCHEMA)
+        for table, column in MIGRATIONS:
+            try:
+                self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
+            except sqlite3.OperationalError:
+                pass  # column already there
 
     # ------------------------------------------------------------------ helpers
     def _exec(self, sql: str, args=()) -> sqlite3.Cursor:
@@ -145,12 +155,12 @@ class Store:
     def add_message(self, patient_id: str, role: str, text: str, *, modality: str = "text", channel: str = "app",
                     language: str | None = None, shared: bool = False, audio_path: str | None = None,
                     risk_level: str | None = None, analysis: dict | None = None,
-                    reply_source: str | None = None) -> int:
+                    reply_source: str | None = None, created_at: str | None = None) -> int:
         cur = self._exec(
             "INSERT INTO messages (patient_id, role, text, modality, channel, language, shared, audio_path, "
             "risk_level, analysis_json, reply_source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (patient_id, role, text, modality, channel, language, int(shared), audio_path, risk_level,
-             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, now()))
+             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, created_at or now()))
         return cur.lastrowid
 
     def set_shared(self, patient_id: str, message_id: int, shared: bool) -> bool:
@@ -175,10 +185,10 @@ class Store:
 
     # ------------------------------------------------------------------ questionnaires
     def add_questionnaire(self, patient_id: str, instrument: str, date: str, items: list[int],
-                          channel: str = "app") -> int:
+                          channel: str = "app", created_at: str | None = None) -> int:
         cur = self._exec("INSERT INTO questionnaires (patient_id, instrument, date, items_json, total, channel, "
                          "created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                         (patient_id, instrument, date, json.dumps(items), sum(items), channel, now()))
+                         (patient_id, instrument, date, json.dumps(items), sum(items), channel, created_at or now()))
         return cur.lastrowid
 
     def questionnaires(self, patient_id: str) -> list[dict]:
@@ -189,9 +199,10 @@ class Store:
 
     # ------------------------------------------------------------------ alerts
     def add_alert(self, patient_id: str, level: str, reasons: list[str], source: str,
-                  source_id: int | None = None) -> int:
+                  source_id: int | None = None, created_at: str | None = None) -> int:
         cur = self._exec("INSERT INTO alerts (patient_id, level, reasons_json, source, source_id, created_at) "
-                         "VALUES (?, ?, ?, ?, ?, ?)", (patient_id, level, json.dumps(reasons), source, source_id, now()))
+                         "VALUES (?, ?, ?, ?, ?, ?)",
+                         (patient_id, level, json.dumps(reasons), source, source_id, created_at or now()))
         return cur.lastrowid
 
     def alerts(self, status: str | None = "open", patient_id: str | None = None) -> list[dict]:
@@ -207,9 +218,13 @@ class Store:
             r["reasons"] = json.loads(r.pop("reasons_json"))
         return sorted(rows, key=lambda r: -LEVEL_ORDER.get(r["level"], 0))
 
-    def update_alert(self, alert_id: int, status: str, handled_by: str | None = None, note: str | None = None) -> bool:
-        cur = self._exec("UPDATE alerts SET status = ?, handled_by = ?, handled_at = ?, note = ? WHERE id = ?",
-                         (status, handled_by, now(), note, alert_id))
+    def update_alert(self, alert_id: int, status: str, handled_by: str | None = None, note: str | None = None,
+                     outcome: str | None = None) -> bool:
+        if outcome is not None and outcome not in ALERT_OUTCOMES:
+            raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
+        cur = self._exec("UPDATE alerts SET status = ?, handled_by = ?, handled_at = ?, note = ?, "
+                         "outcome = COALESCE(?, outcome) WHERE id = ?",
+                         (status, handled_by, now(), note, outcome, alert_id))
         return cur.rowcount == 1
 
     # ------------------------------------------------------------------ audit, Mind Pause, feedback
@@ -226,9 +241,9 @@ class Store:
             return self._all("SELECT * FROM audit_log WHERE patient_id = ? ORDER BY id DESC LIMIT ?", (patient_id, limit))
         return self._all("SELECT * FROM audit_log ORDER BY id DESC LIMIT ?", (limit,))
 
-    def add_mind_pause(self, patient_id: str, exercise: str, completed: bool) -> int:
+    def add_mind_pause(self, patient_id: str, exercise: str, completed: bool, created_at: str | None = None) -> int:
         return self._exec("INSERT INTO mind_pause (patient_id, exercise, completed, created_at) VALUES (?, ?, ?, ?)",
-                          (patient_id, exercise, int(completed), now())).lastrowid
+                          (patient_id, exercise, int(completed), created_at or now())).lastrowid
 
     def mind_pauses(self, patient_id: str) -> list[dict]:
         return self._all("SELECT * FROM mind_pause WHERE patient_id = ? ORDER BY id", (patient_id,))

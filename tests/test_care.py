@@ -133,6 +133,29 @@ def test_dashboard_hides_scores_without_consent():
     assert "usage" in rows["p1"] and "usage" not in rows["p2"]
 
 
+def test_pilot_export_respects_consent(tmp_path=None):
+    import csv
+    import tempfile
+    from pathlib import Path
+
+    from care.pilot import export
+
+    svc, _ = service([reply("ok")] * 6)
+    svc.enroll("p2", consents={"companion": True, "care_team": True, "pilot_research": False})
+    for pid in ("p1", "p2"):
+        svc.store.add_questionnaire(pid, "PHQ-9", "2026-01-01", [1] * 9, created_at="2026-01-01T09:00:00+00:00")
+    svc.chat("p1", "Secret about my family and exams, cannot sleep.", share=True)
+    svc.chat("p2", "Exams and no sleep.")
+    for pid in ("p1", "p2"):
+        svc.store.add_questionnaire(pid, "PHQ-9", "2099-01-01", [2] * 9)
+    out = Path(tmp_path or tempfile.mkdtemp())
+    meta = export(svc.store, out, "test-salt-0123456789")
+    rows = list(csv.DictReader(open(out / "windows.csv", encoding="utf-8")))
+    assert meta["patients_included"] == 1 and len(rows) == 1 and rows[0]["patient"].startswith("p_")
+    assert rows[0]["change"] == "9" and rows[0]["worsened"] == "1" and float(rows[0]["str_school_exam"]) == 1.0
+    assert "p1" not in (out / "windows.csv").read_text() and not (out / "shared_texts.jsonl").exists()
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

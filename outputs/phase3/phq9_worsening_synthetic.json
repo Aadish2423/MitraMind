@@ -1,0 +1,51 @@
+{
+  "task": "PHQ-9 worsens by >= the meaningful-change threshold by the next administration",
+  "trained_on": "synthetic",
+  "trained_at": "2026-10-20T04:18:28+00:00",
+  "windows": 1032,
+  "patients": 172,
+  "worsened": 80,
+  "best_model": "logistic_all",
+  "cv": {
+    "baseline_score_only": {
+      "auroc": 0.516,
+      "auprc": 0.075,
+      "brier": 0.0717
+    },
+    "logistic_all": {
+      "auroc": 0.736,
+      "auprc": 0.214,
+      "brier": 0.1867
+    },
+    "boosted_trees_all": {
+      "auroc": 0.769,
+      "auprc": 0.187,
+      "brier": 0.1136
+    }
+  },
+  "change_regression": {
+    "mae_ridge": 2.303,
+    "mae_predict_no_change": 2.436
+  },
+  "top_logistic_coefficients": {
+    "baseline_total": -1.656,
+    "cope_breathing": -0.925,
+    "cope_social_support": -0.617,
+    "gad_nervous": 0.597,
+    "mind_pause_started": 0.386,
+    "str_family": -0.373,
+    "gad_irritable": 0.336,
+    "phq_concentration": 0.321,
+    "mind_pause_completed": -0.308,
+    "phq_worthlessness_guilt": 0.285,
+    "str_school_exam": -0.271,
+    "phq_fatigue": 0.268
+  },
+  "alert_precision": {
+    "watch/message": {
+      "labelled": 154,
+      "precision": 0.851
+    }
+  },
+  "use": "PIPELINE TEST ONLY: trained on synthetic data"
+}

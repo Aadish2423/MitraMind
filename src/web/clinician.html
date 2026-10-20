@@ -88,8 +88,14 @@ async function loadAlerts() {
         <button data-a="${a.id}" data-s="resolved">Resolve</button></div>`}</td></tr>`).join("")
     : `<tr><td class="muted">No ${$("astatus").value === "all" ? "" : $("astatus").value} alerts.</td></tr>`;
   $("alerts").querySelectorAll("button[data-a]").forEach((b) => b.onclick = async () => {
-    const note = b.dataset.s === "resolved" ? prompt("Outcome note (e.g. 'called patient, safety plan done')") : null;
-    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, handled_by: "clinician", note});
+    let note = null, outcome = null;
+    if (b.dataset.s === "resolved") {
+      note = prompt("Outcome note (e.g. 'called patient, safety plan done')");
+      if (note === null) return;
+      const ans = (prompt("Was the risk real? Type yes, no or unclear") || "").trim().toLowerCase();
+      outcome = {yes: "confirmed_risk", no: "false_alarm", unclear: "unclear"}[ans] || null;
+    }
+    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, handled_by: "clinician", note, outcome});
     loadAlerts(); loadPatients();
   });
   $("alerts").querySelectorAll("a[data-p]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openPatient(a.dataset.p); });

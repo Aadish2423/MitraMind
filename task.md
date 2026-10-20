@@ -15,8 +15,8 @@ Branch: `phase1-orchestrator` on github.com/Aadish2423/mitramind-cue-models.
 | 2 | Text chat companion: safety first, LLM reply with guardrails, Mind Pause, Reflection Share | done |
 | 3 | Voice: speech-to-text, voice emotion (m3/m4), spoken replies | done (m3 needs training, see Remaining) |
 | 4 | Clinician side: alert queue (risk triage), dashboard, State Card from stored data | done |
-| 5 | Phase 2: de-identified pilot dataset export (conversations linked to PHQ/GAD change) | todo |
-| 6 | Phase 3: train small models on the pilot dataset | todo |
+| 5 | Phase 2: de-identified pilot dataset export (conversations linked to PHQ/GAD change) | done (tested on synthetic data) |
+| 6 | Phase 3: train small models on the pilot dataset | done (pipeline; real models need pilot data) |
 | 7 | Integrations: WhatsApp Business webhook, FHIR export | todo |
 | 8 | Red-team suite, end-to-end test, docs | todo |
 
@@ -66,7 +66,7 @@ Entries are added as each step finishes.
   (`MITRAMIND_STT=whisper`, default `openai/whisper-small`, multilingual, runs on the GPU; set
   `MITRAMIND_STT_MODEL` for an IndicWhisper / Hindi fine-tune) or Sarvam saarika over HTTPS
   (`MITRAMIND_STT=sarvam` + `SARVAM_API_KEY`, written but not tested: no key).
-- `POST /v1/patients/{id}/voice` (`audio_base64`, `mime`, `share`, optional `language` hint): transcript ?
+- `POST /v1/patients/{id}/voice` (`audio_base64`, `mime`, `share`, optional `language` hint): transcript →
   the same safety-first companion path as text, with `modality=voice`. The saved WAV goes to the voice
   emotion models m3 / m4 through the orchestrator.
 - Patient app: a Voice button records 16 kHz WAV in the browser (no ffmpeg needed for app uploads) and
@@ -89,3 +89,33 @@ Entries are added as each step finishes.
   questionnaires (only shared texts reach the LLM). `.../shared`: the reflections the patient shared.
   `.../feedback`: clinician rating, accuracy, minutes saved (pilot outcome data).
 - `src/web/clinician.html` at `/clinician`. Checked live: alert acknowledge, summary from stored chats.
+- Resolving an alert asks "was the risk real?" (`outcome`: confirmed_risk / false_alarm / unclear). These
+  labels are the training data for recalibrating the crisis layer.
+
+### Step 5: Phase 2 pilot dataset (done, tested on synthetic data)
+
+- `src/care/pilot.py` + `src/export_pilot_dataset.py`: one row per questionnaire window (between two
+  PHQ-9 or two GAD-7 administrations) with ~65 features of the messages inside it (share of messages
+  mentioning each PHQ/GAD domain, sleep item, stressor, coping; emotion means; risk; usage, Mind Pause)
+  and the labels (`next_total`, `change`, `worsened`, `improved`). Also `alert_outcomes.csv`,
+  `summary_ratings.csv` and a `DATASHEET.md`.
+- Privacy: only patients with `pilot_research` consent; salted SHA-256 pseudonyms
+  (`MITRAMIND_EXPORT_SALT`, kept at the hospital); day offsets instead of dates; no text unless
+  `research_text` consent, and then only shared reflections in a separate file. Tested in
+  `tests/test_care.py::test_pilot_export_respects_consent`.
+- `src/simulate_pilot.py`: SYNTHETIC patients (hidden severity trajectories, en/Hinglish/hi phrases, PHQ-9
+  and GAD-7 every 14 days) through the real Phase 1 analysis, to test the pipeline. `--signal 0` is a
+  negative control. Committed export: `outputs/phase2_synthetic/` (200 patients, 172 consented, 2,064 windows).
+
+### Step 6: Phase 3 small models (done as a pipeline)
+
+- `src/train_outcome_model.py`: deterioration model (next PHQ-9 worse by ≥ 5) with patient-grouped
+  5-fold CV, compared with a score-only baseline; logistic regression and shallow boosted trees
+  (CPU, kilobytes, can run inside the hospital); change regression; alert precision per level from the
+  clinician labels. Model to `models/outcome_model/` (gitignored), report to `outputs/phase3/`.
+- Synthetic result (`outputs/phase3/phq9_worsening_synthetic.md`): AUROC 0.74 (logistic) / 0.77 (trees)
+  vs 0.52 for the score-only baseline. This only proves the trainer finds a signal that the simulator
+  planted. With the first simulator (weak link between symptom talk and severity) it found nothing
+  (AUROC 0.49), as it should. Real numbers need the pilot.
+- Not wired into the dashboard on purpose: no prediction is shown to clinicians until a model trained on
+  real pilot data is validated and approved.

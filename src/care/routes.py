@@ -62,6 +62,8 @@ class AlertUpdate(BaseModel):
     status: Literal["acknowledged", "resolved"]
     handled_by: str | None = None
     note: str | None = None
+    outcome: Literal["confirmed_risk", "false_alarm", "unclear"] | None = Field(
+        None, description="when resolving: was the risk real? Labels recalibrate the crisis layer (Phase 3)")
 
 
 class FeedbackIn(BaseModel):
@@ -159,7 +161,7 @@ def build_router(svc: CareService) -> APIRouter:
 
     @r.post("/v1/clinician/alerts/{aid}", tags=["clinician"])
     def update_alert(aid: int, body: AlertUpdate):
-        if not svc.store.update_alert(aid, body.status, body.handled_by, body.note):
+        if not svc.store.update_alert(aid, body.status, body.handled_by, body.note, body.outcome):
             raise HTTPException(404, "no such alert")
         return {"id": aid, "status": body.status}
 
