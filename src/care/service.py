@@ -19,7 +19,7 @@ from phase1.questionnaires import score, trends
 from phase1.render import card_to_markdown
 from phase1.schema import Entry, PatientBundle, QuestionnaireResponse
 
-from .companion import Companion
+from .companion import Companion, history_offset
 from .photos import MIME, as_base64, save_photo
 from .store import LEVEL_ORDER, Store
 
@@ -118,6 +118,32 @@ class CareService:
     # ------------------------------------------------------------------ companion
     def chat(self, patient_id: str, text: str, *, share: bool = False, modality: str = "text", channel: str = "app",
              audio_path: str | None = None, language: str = "auto", photo: bytes | None = None) -> dict:
+        turn = self._start_turn(patient_id, text, share=share, modality=modality, channel=channel,
+                                audio_path=audio_path, language=language, photo=photo)
+        out = self.companion.respond(turn["history"], turn["text"], turn["analysis"], images=turn["images"])
+        return self._finish_turn(turn, out)
+
+    def chat_stream(self, patient_id: str, text: str, *, share: bool = False, photo: bytes | None = None):
+        """Same rules as chat(), but returns an iterator of companion events ("sentence" / "replace") ending in
+        {"type": "final", **chat()-style result}. Input problems raise here, before anything is streamed."""
+        turn = self._start_turn(patient_id, text, share=share, photo=photo)
+
+        def events():
+            final = None
+            for ev in self.companion.respond_stream(turn["history"], turn["text"], turn["analysis"],
+                                                    images=turn["images"]):
+                if ev["type"] == "final":
+                    final = {k: v for k, v in ev.items() if k != "type"}
+                else:
+                    yield ev
+            yield {"type": "final", **self._finish_turn(turn, final)}
+
+        return events()
+
+    def _start_turn(self, patient_id: str, text: str, *, share: bool = False, modality: str = "text",
+                    channel: str = "app", audio_path: str | None = None, language: str = "auto",
+                    photo: bytes | None = None) -> dict:
+        """Checks, photo storage, Phase 1 analysis (safety layer) and storing the patient's message."""
         self._patient(patient_id)
         if not self.store.has_consent(patient_id, "companion"):
             raise ConsentRequired("the patient has not consented to the companion")
@@ -130,16 +156,22 @@ class CareService:
                       audio_path=audio_path if modality == "voice" else None, language=language,
                       shared_with_clinician=share)
         analysis = self.orch.analyze_entry(entry)
-        risk = analysis["risk"]
-        history = self.store.messages(patient_id, limit=16)
+        history = self.store.messages_from(patient_id, history_offset(self.store.message_count(patient_id)))
         msg_id = self.store.add_message(patient_id, "user", text, modality=modality, channel=channel,
                                         language=analysis["language"], shared=share, audio_path=audio_path,
-                                        risk_level=risk.level, analysis=_jsonable_analysis(analysis),
+                                        risk_level=analysis["risk"].level, analysis=_jsonable_analysis(analysis),
                                         image_path=str(photo_path) if photo_path else None)
-        images = [(MIME[photo_path.suffix], as_base64(photo_path))] if photo_path else None
-        out = self.companion.respond(history, text, analysis, images=images)
-        reply_id = self.store.add_message(patient_id, "assistant", out["reply"], modality=modality, channel=channel,
-                                          language=analysis["language"], reply_source=out["source"])
+        return {"patient_id": patient_id, "text": text, "analysis": analysis, "history": history, "msg_id": msg_id,
+                "modality": modality, "channel": channel, "photo_path": photo_path,
+                "images": [(MIME[photo_path.suffix], as_base64(photo_path))] if photo_path else None}
+
+    def _finish_turn(self, turn: dict, out: dict) -> dict:
+        """Store the reply, write the audit log, open alerts, and build the API result."""
+        patient_id, analysis, msg_id = turn["patient_id"], turn["analysis"], turn["msg_id"]
+        risk = analysis["risk"]
+        reply_id = self.store.add_message(patient_id, "assistant", out["reply"], modality=turn["modality"],
+                                          channel=turn["channel"], language=analysis["language"],
+                                          reply_source=out["source"])
         self.store.audit("crisis_reply" if out["source"] == "crisis_protocol" else "chat_reply", patient_id=patient_id,
                          model=out["model"], prompt=out["prompt"], output=out["reply"], guardrails=out["log"],
                          attempts=out["attempts"], risk_level=risk.level)
@@ -152,7 +184,7 @@ class CareService:
                 "mind_pause": out["mind_pause"], "language": analysis["language"], "risk": risk.model_dump(),
                 "escalate": risk.level in ("high", "urgent"), "helplines": HELPLINES if risk.level != "none" else [],
                 "alert_id": alert_id, "models_used": analysis["models_used"], "emotion": analysis["emotion"],
-                "llm_attempts": out["attempts"], "has_image": photo_path is not None,
+                "llm_attempts": out["attempts"], "has_image": turn["photo_path"] is not None,
                 "image_concern": out["image_concern"]}
 
     def voice(self, patient_id: str, audio: bytes, mime: str = "audio/wav", *, share: bool = False,

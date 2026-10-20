@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="/static/patient.css">
+<link rel="stylesheet" href="/static/patient.css?v=2">
 </head>
 <body>
 
@@ -123,7 +123,16 @@
 
   <!-- chat -->
   <section class="view on" id="v-chat">
-    <div class="chat">
+    <div class="chat" id="chat">
+      <div class="chat-head">
+        <button class="voice-toggle" id="voice-toggle" aria-pressed="false" title="Talk with Mitra, who answers out loud">
+          <span data-icon="headphones" data-size="16"></span><span id="voice-label">Voice mode</span></button>
+      </div>
+      <div class="stage" id="stage">
+        <div id="mitra-chat"></div>
+        <div class="who"><b>Mitra</b> · your AI companion</div>
+        <div class="caption quiet" id="caption" aria-live="polite"></div>
+      </div>
       <div id="crisis" class="crisis" hidden></div>
       <div id="msgs" aria-live="polite"></div>
       <div class="composer">
@@ -174,7 +183,8 @@
     </div>
     <div class="card player" id="player" hidden>
       <h3 id="p-title"></h3>
-      <div class="p-orb calm" id="p-orb"><div class="p-count" id="p-count"></div></div>
+      <div class="p-stage"><div id="mitra-pause"></div>
+        <div class="p-bubble" aria-live="polite"><small id="p-phase"></small><span id="p-count"></span></div></div>
       <div class="p-step" id="p-step"></div>
       <div class="small muted" id="p-progress"></div>
       <button class="btn-ghost" id="p-stop">End exercise</button>
@@ -206,6 +216,7 @@
     In a crisis call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</p>
 </div>
 
+<script src="/static/mitra.js?v=3"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
@@ -215,6 +226,7 @@ const ls = {
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
 };
 let TOKEN = ls.get("mm_token"), PID = null, PURPOSES = {}, PHOTO = null, BUSY = false;
+let VOICE = false, MITRA = null, PMITRA = null, MOOD = "idle";
 
 // ------------------------------------------------------------------ icons (Lucide shapes, MIT)
 const ICONS = {
@@ -240,6 +252,7 @@ const ICONS = {
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/>',
+  headphones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
 };
 const svg = (name, size = 20) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
   stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -345,6 +358,7 @@ function showAuth(mode = "login") {
 function signOut(expired = false) {
   if (!expired && TOKEN) fetch("/v1/auth/logout", {method: "POST", headers: {Authorization: `Bearer ${TOKEN}`}}).catch(() => {});
   if (playing) stopExercise(false);
+  speech.reset();
   TOKEN = null; PID = null; ls.set("mm_token", null);
   clearPhoto(); $("msgs").innerHTML = ""; $("crisis").hidden = true;
   showAuth("login");
@@ -391,15 +405,25 @@ function addMsg(m) {
   if (m.text) bubble.insertAdjacentHTML("beforeend", `<div class="txt">${esc(m.text)}</div>`);
   if (mine && m.id) addPrivacyChip(row, m);
   if (mine && m.modality === "voice") row.querySelector(".chips").insertAdjacentHTML("afterbegin", `<span class="chip">${svg("mic", 13)} voice</span>`);
-  if (!mine && m.mind_pause && m.mind_pause !== "none") {
-    const b = document.createElement("button");
-    b.className = "chip go"; b.innerHTML = `${svg("wind", 13)} Try a Mind Pause`;
-    b.onclick = () => { openTab("pause"); startExercise(m.mind_pause); };
-    row.querySelector(".chips").appendChild(b);
-  }
+  if (!mine) addPauseChip(row, m.mind_pause);
   $("msgs").appendChild(row);
   scrollDown();
   return row;
+}
+
+function addPauseChip(row, exercise) {
+  if (!exercise || exercise === "none" || row.querySelector(".chip.go")) return;
+  const b = document.createElement("button");
+  b.className = "chip go"; b.innerHTML = `${svg("wind", 13)} Try a Mind Pause`;
+  b.onclick = () => { openTab("pause"); startExercise(exercise); };
+  row.querySelector(".chips").appendChild(b);
+}
+
+function setBubbleText(row, text) {
+  let t = row.querySelector(".txt");
+  if (!t) { t = document.createElement("div"); t.className = "txt"; row.querySelector(".bubble").appendChild(t); }
+  t.textContent = text;
+  scrollDown();
 }
 
 function addPrivacyChip(row, m) {
@@ -452,14 +476,121 @@ function showCrisis(res) {
     Your care team has been told and will contact you.</span>`;
 }
 
-function speak(text, language) {
-  if (!$("speak").checked || !("speechSynthesis" in window)) return;
+// ------------------------------------------------------------------ speech: a sentence queue that drives Mitra's
+// mouth and the captions. Uses the browser's voices; without any, Mitra still "speaks" with captions at reading pace.
+let VOICES = [];
+if ("speechSynthesis" in window) {
+  const load = () => { VOICES = speechSynthesis.getVoices(); };
+  load(); speechSynthesis.onvoiceschanged = load;
+}
+function pickVoice(lang) {
+  const local = VOICES.filter((v) => v.localService);  // local voices report word timings, which drive the mouth
+  const pool = [...local, ...VOICES];
+  return pool.find((v) => v.lang === lang) || pool.find((v) => v.lang.startsWith(lang.slice(0, 2))) || null;
+}
+const langOf = (text) => /[ऀ-ॿ]/.test(text) ? "hi-IN" : "en-IN";
+
+const speech = {
+  queue: [], busy: false, gen: 0, timer: null,
+  on() { return VOICE || $("speak").checked; },
+  push(text) {
+    if (!this.on() || !text) return;
+    this.queue.push(text);
+    if (!this.busy) this.next();
+  },
+  pushAll(text) { (text.match(/[^.!?।\n]+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean).forEach((s) => this.push(s)); },
+  reset() {
+    this.gen++; this.queue = []; this.busy = false; clearTimeout(this.timer);
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    if (MITRA) MITRA.talk(false);
+  },
+  async next() {
+    const text = this.queue.shift();
+    if (text == null) { this.busy = false; if (VOICE) MITRA.setState(MOOD); return; }
+    this.busy = true;
+    const gen = this.gen;
+    if (VOICE) { MITRA.setState("speaking"); showCaption(text); }
+    const voice = "speechSynthesis" in window ? pickVoice(langOf(text)) : null;
+    if (voice) await this.say(text, voice); else if (VOICE) await this.mime(text);
+    if (gen === this.gen) this.next();
+  },
+  say(text, voice) {
+    return new Promise((done) => {
+      let finished = false;
+      const end = () => {
+        if (finished) return;
+        finished = true; clearTimeout(this.timer);
+        if (VOICE) { MITRA.talk(false); markCaptionDone(); }
+        done();
+      };
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = voice; u.lang = voice.lang; u.rate = 0.95; u.pitch = 1.05;
+      u.onstart = () => { if (VOICE) MITRA.talk(true); };
+      u.onboundary = (e) => { if (e.name && e.name !== "word") return; if (VOICE) { MITRA.word(); highlightAt(e.charIndex); } };
+      u.onend = end; u.onerror = end;
+      speechSynthesis.speak(u);
+      this.timer = setTimeout(end, 5000 + text.split(/\s+/).length * 700);  // some browsers never fire onend
+    });
+  },
+  mime(text) {  // no voice available: move the mouth and the caption at a calm reading pace
+    return new Promise((done) => {
+      const words = text.split(/\s+/).filter(Boolean);
+      let i = 0;
+      MITRA.talk(true);
+      const tick = () => {
+        if (i >= words.length) { MITRA.talk(false); markCaptionDone(); return done(); }
+        highlightWord(i); MITRA.word();
+        this.timer = setTimeout(tick, 260 + words[i++].length * 28);
+      };
+      tick();
+    });
+  },
+};
+
+function narrate(text) {  // Mind Pause voice-over: plain speech, Mitra keeps demonstrating instead of talking
+  if (!(VOICE || $("speak").checked) || !("speechSynthesis" in window)) return;
+  const voice = pickVoice(langOf(text));
+  if (!voice) return;
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = language === "hi" ? "hi-IN" : "en-IN";
-  const v = speechSynthesis.getVoices().find((x) => x.lang === u.lang);
-  if (v) u.voice = v;
+  u.voice = voice; u.lang = voice.lang; u.rate = 0.9;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
+
+function showCaption(text, quiet = false) {
+  const c = $("caption");
+  c.className = `caption${quiet ? " quiet" : ""}`;
+  c.innerHTML = "";
+  if (quiet) { c.textContent = text; return; }
+  const re = /\S+/g;
+  let m, last = 0;
+  while ((m = re.exec(text))) {
+    c.append(text.slice(last, m.index));
+    const w = document.createElement("span");
+    w.className = "w"; w.dataset.at = m.index; w.textContent = m[0];
+    c.append(w);
+    last = m.index + m[0].length;
+  }
+}
+function highlightWord(k) {
+  $("caption").querySelectorAll(".w").forEach((w, j) => { w.classList.toggle("on", j === k); w.classList.toggle("done", j < k); });
+}
+function highlightAt(charIndex) {
+  let k = -1;
+  $("caption").querySelectorAll(".w").forEach((w, j) => { if (+w.dataset.at <= charIndex) k = j; });
+  highlightWord(k);
+}
+function markCaptionDone() { $("caption").querySelectorAll(".w").forEach((w) => { w.classList.remove("on"); w.classList.add("done"); }); }
+
+function setVoice(on) {
+  VOICE = on; ls.set("mm_voice", on ? "1" : null);
+  $("chat").classList.toggle("voice", on);
+  $("voice-toggle").classList.toggle("on", on);
+  $("voice-toggle").setAttribute("aria-pressed", String(on));
+  $("voice-label").textContent = on ? "Voice mode on" : "Voice mode";
+  speech.reset(); MOOD = "idle"; MITRA.setState("idle");
+  if (on) showCaption("Hi, I'm Mitra. Tap the mic and tell me how you're feeling, or type below.", true);
+}
+$("voice-toggle").onclick = () => setVoice(!VOICE);
 
 function setStatus(msg, isErr = false) { $("status").innerHTML = isErr ? `<span class="err">${esc(msg)}</span>` : esc(msg); }
 function updateSend() { $("send").disabled = BUSY || (!$("text").value.trim() && !PHOTO); }
@@ -470,23 +601,73 @@ $("text").addEventListener("input", () => { grow(); updateSend(); });
 $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
 $("send").onclick = () => send();
 
+// The reply streams in sentence by sentence (newline-delimited JSON), so it can be shown and spoken sooner.
+async function streamChat(body, onEvent) {
+  let r;
+  try {
+    r = await fetch(`/v1/patients/${enc(PID)}/chat/stream`, {method: "POST", body: JSON.stringify(body),
+      headers: {"Content-Type": "application/json", Authorization: `Bearer ${TOKEN}`}});
+  } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 401) signOut(true);
+    throw new Error(friendly(data.detail));
+  }
+  const reader = r.body.getReader(), dec = new TextDecoder();
+  let buf = "", final = null;
+  for (;;) {
+    const {value, done} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line) continue;
+      const ev = JSON.parse(line);
+      if (ev.type === "final") final = ev;
+      else if (ev.type === "error") throw new Error(ev.detail);
+      else onEvent(ev);
+    }
+  }
+  if (!final) throw new Error("The reply was cut off. Please try again.");
+  return final;
+}
+
 async function send() {
   const text = $("text").value.trim(), photo = PHOTO, share = $("share").checked;
   if (BUSY || (!text && !photo)) return;
   $("text").value = ""; grow(); clearPhoto(); setStatus("");
+  speech.reset(); MOOD = "idle";
   const msg = {role: "user", text, shared: share, photoUrl: photo?.dataUrl};
   const row = addMsg(msg);
   const typing = showTyping();
+  if (VOICE) { MITRA.setState("thinking"); showCaption("Thinking…", true); }
   setBusy(true);
+  let ai = null, shown = [];
+  const reply = () => { if (!ai) { typing.done(); ai = addMsg({role: "assistant", text: ""}); } return ai; };
   try {
-    const res = await api(`/v1/patients/${enc(PID)}/chat`, {text, share, photo_base64: photo?.b64 || null});
-    typing.done();
+    const res = await streamChat({text, share, photo_base64: photo?.b64 || null}, (ev) => {
+      if (ev.type === "sentence") {
+        shown.push(ev.text);
+        setBubbleText(reply(), shown.join(" "));
+        speech.push(ev.text);
+      } else if (ev.type === "replace") {  // a later sentence failed the safety checks: show the safe reply instead
+        speech.reset();
+        shown = [ev.text];
+        setBubbleText(reply(), ev.text);
+        speech.pushAll(ev.text);
+      }
+    });
+    setBubbleText(reply(), res.reply);
+    addPauseChip(ai, res.mind_pause);
     msg.id = res.message_id; addPrivacyChip(row, msg);
-    addMsg({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
     showCrisis(res);
-    speak(res.reply, res.language);
+    MOOD = res.escalate ? "concerned" : "idle";
+    if (VOICE && !speech.busy) MITRA.setState(MOOD);
   } catch (e) {
-    typing.done();
+    typing.done(); speech.reset();
+    if (VOICE) { MITRA.setState("idle"); showCaption("Sorry, that didn't go through. Please try again.", true); }
     row.classList.add("failed");
     if (!$("text").value) { $("text").value = text; grow(); }
     if (photo && !PHOTO) setPhoto(photo, "photo");
@@ -540,6 +721,8 @@ $("mic").onclick = async () => {
     rec = {stream, ctx, proc, chunks, t0: Date.now()};
     $("mic").classList.add("rec"); $("mic").innerHTML = svg("stop"); $("mic").setAttribute("aria-label", "Stop and send");
     $("send").disabled = true;
+    speech.reset();
+    if (VOICE) { MITRA.setState("listening"); showCaption("I'm listening…", true); }
     rec.timer = setInterval(() => {
       const s = Math.round((Date.now() - rec.t0) / 1000);
       setStatus(`Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} · tap the square to send`);
@@ -572,15 +755,22 @@ async function stopRecording() {
   $("mic").classList.remove("rec"); $("mic").innerHTML = svg("mic"); $("mic").setAttribute("aria-label", "Record a voice message");
   setStatus("");
   const typing = showTyping();
+  if (VOICE) { MITRA.setState("thinking"); showCaption("Thinking…", true); }
   setBusy(true);
   try {
     const res = await api(`/v1/patients/${enc(PID)}/voice`, {audio_base64: b64(wav), mime: "audio/wav", share: $("share").checked});
     typing.done();
     addMsg({id: res.message_id, role: "user", text: res.transcript, shared: $("share").checked, modality: "voice"});
     addMsg({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
-    showCrisis(res); speak(res.reply, res.language);
-  } catch (e) { typing.done(); setStatus(`Voice message not sent: ${e.message}`, true); }
-  finally { setBusy(false); }
+    showCrisis(res);
+    MOOD = res.escalate ? "concerned" : "idle";
+    speech.pushAll(res.reply);
+    if (VOICE && !speech.busy) MITRA.setState(MOOD);
+  } catch (e) {
+    typing.done();
+    if (VOICE) { MITRA.setState("idle"); showCaption("Sorry, I couldn't hear that. Please try again or type below.", true); }
+    setStatus(`Voice message not sent: ${e.message}`, true);
+  } finally { setBusy(false); }
 }
 
 // ------------------------------------------------------------------ check-in
@@ -637,38 +827,64 @@ async function loadExercises() {
   }).join("");
   $("exlist").querySelectorAll("button").forEach((b) => b.onclick = () => startExercise(b.dataset.ex));
 }
-function phase(text, seconds) {
-  const orb = $("p-orb");
-  orb.classList.remove("in", "out", "calm");
-  orb.style.transitionDuration = `${seconds}s`;
-  if (/breathe in|inhale|साँस अंदर/i.test(text)) orb.classList.add("in");
-  else if (/breathe out|exhale|बाहर/i.test(text)) orb.classList.add("out");
-  else if (!/hold|रोक|रुक/i.test(text)) orb.classList.add("calm");
+// Mitra demonstrates each step: inhales (grows, eyes closed), holds, exhales (puffs of air), or rests calmly,
+// while the bubble counts 1-2-3-4 for breathing steps and shows the seconds left on longer steps.
+const PHASE_LABEL = {in: "breathe in", hold: "hold", out: "breathe out", calm: "notice", rest: "relax"};
+function phaseOf(text, exId) {
+  if (/breathe in|inhale|साँस अंदर/i.test(text)) return "in";
+  if (/breathe out|exhale|बाहर/i.test(text)) return "out";
+  if (/hold|रोक|रुक/i.test(text)) return "hold";
+  return exId === "body_scan" ? "rest" : "calm";
 }
 function startExercise(id) {
   const ex = EXS[id]; if (!ex) return;
   stopExercise(false);
   $("pause-list").hidden = true; $("player").hidden = false; $("p-title").textContent = ex.title;
-  let i = 0, left = ex.steps[0].seconds;
-  const draw = () => { $("p-step").textContent = ex.steps[i].text; $("p-count").textContent = left;
-                       $("p-progress").textContent = `Step ${i + 1} of ${ex.steps.length}`; };
-  draw(); phase(ex.steps[0].text, ex.steps[0].seconds); speakStep(ex.steps[0].text);
+  $("p-stop").textContent = "End exercise";
+  let i = 0, t = 0;
+  const draw = () => {
+    const s = ex.steps[i], p = phaseOf(s.text, id);
+    $("p-step").textContent = s.text;
+    $("p-phase").textContent = PHASE_LABEL[p];
+    $("p-count").textContent = ["in", "hold", "out"].includes(p) ? t + 1 : s.seconds - t;
+    $("p-progress").textContent = `Step ${i + 1} of ${ex.steps.length}`;
+  };
+  const begin = () => {
+    const s = ex.steps[i];
+    t = 0;
+    PMITRA.breathe(phaseOf(s.text, id), s.seconds, id !== "grounding_54321");
+    narrate(s.text);
+    draw();
+  };
+  begin();
   playing = {id, timer: setInterval(() => {
-    if (--left > 0) return draw();
+    if (++t < ex.steps[i].seconds) return draw();
     if (++i >= ex.steps.length) return stopExercise(true);
-    left = ex.steps[i].seconds; draw(); phase(ex.steps[i].text, ex.steps[i].seconds); speakStep(ex.steps[i].text);
+    begin();
   }, 1000)};
 }
-function speakStep(t) { if ($("speak").checked) speak(t, "en"); }
 function stopExercise(completed) {
   if (!playing) return;
   clearInterval(playing.timer);
   api(`/v1/patients/${enc(PID)}/mind-pause`, {exercise: playing.id, completed}).catch(() => {});
   playing = null;
-  $("player").hidden = true; $("pause-list").hidden = false;
-  if (completed) $("p-step").textContent = "";
+  PMITRA.breathe(null);
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if (completed) {  // stay on screen for a moment: Mitra smiles and invites the patient to notice how they feel
+    PMITRA.mouth("smile");
+    $("p-phase").textContent = "well done"; $("p-count").textContent = "✓";
+    $("p-step").textContent = "Well done. Take a moment to notice how you feel now.";
+    $("p-progress").textContent = "";
+    $("p-stop").textContent = "Back to exercises";
+    narrate("Well done. Take a moment to notice how you feel now.");
+  } else {
+    $("player").hidden = true; $("pause-list").hidden = false;
+  }
 }
-$("p-stop").onclick = () => stopExercise(false);
+$("p-stop").onclick = () => {
+  if (playing) return stopExercise(false);
+  $("player").hidden = true; $("pause-list").hidden = false;
+};
 
 // ------------------------------------------------------------------ privacy
 function renderConsents(current) {
@@ -685,6 +901,9 @@ function renderConsents(current) {
 async function boot() {
   paintIcons();
   if (matchMedia("(max-width: 480px)").matches) $("text").placeholder = "Write how you feel…";
+  MITRA = new Mitra($("mitra-chat"));
+  PMITRA = new Mitra($("mitra-pause"));
+  setVoice(ls.get("mm_voice") === "1");
   PURPOSES = (await api("/v1/consent-purposes")).purposes;
   renderSignupConsents();
   if (TOKEN) {

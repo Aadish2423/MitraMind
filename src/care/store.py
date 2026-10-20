@@ -243,6 +243,17 @@ class Store:
              image_path))
         return cur.lastrowid
 
+    def message_count(self, patient_id: str) -> int:
+        return self._one("SELECT COUNT(*) AS n FROM messages WHERE patient_id = ?", (patient_id,))["n"]
+
+    def messages_from(self, patient_id: str, offset: int) -> list[dict]:
+        """The patient's messages in order, skipping the first `offset` (the companion's history window)."""
+        rows = self._all("SELECT * FROM messages WHERE patient_id = ? ORDER BY id LIMIT -1 OFFSET ?",
+                         (patient_id, offset))
+        for r in rows:
+            r["analysis"] = json.loads(r.pop("analysis_json")) if r.get("analysis_json") else None
+        return rows
+
     def message(self, patient_id: str, message_id: int) -> dict | None:
         return self._one("SELECT * FROM messages WHERE id = ? AND patient_id = ?", (message_id, patient_id))
 

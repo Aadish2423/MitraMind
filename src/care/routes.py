@@ -17,7 +17,7 @@ from datetime import date as Date
 from typing import Literal
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import fhir, instruments, mind_pause
@@ -191,18 +191,38 @@ def build_router(svc: CareService) -> APIRouter:
         _call(svc.store.record_consent, pid, body.purpose, body.granted)
         return _call(svc.profile, pid)
 
+    def decode_photo(body: ChatIn) -> bytes | None:
+        if not body.photo_base64:
+            return None
+        try:
+            photo = base64.b64decode(body.photo_base64, validate=True)
+        except binascii.Error as e:
+            raise HTTPException(422, "photo_base64 is not valid base64") from e
+        if len(photo) > MAX_PHOTO_BYTES:
+            raise HTTPException(413, "photos can be at most 5 MB")
+        return photo
+
     @r.post("/v1/patients/{pid}/chat", tags=["patient"])
     def chat(pid: str, body: ChatIn, request: Request):
         guard(request, pid)
-        photo = None
-        if body.photo_base64:
+        return _call(svc.chat, pid, body.text, share=body.share, photo=decode_photo(body))
+
+    @r.post("/v1/patients/{pid}/chat/stream", tags=["patient"])
+    def chat_stream(pid: str, body: ChatIn, request: Request):
+        """Same as /chat, but the reply arrives sentence by sentence as newline-delimited JSON events:
+        {"type": "sentence", "text"} ..., optionally {"type": "replace", "text"}, then {"type": "final", ...}."""
+        guard(request, pid)
+        events = _call(svc.chat_stream, pid, body.text, share=body.share, photo=decode_photo(body))
+
+        def ndjson():
             try:
-                photo = base64.b64decode(body.photo_base64, validate=True)
-            except binascii.Error as e:
-                raise HTTPException(422, "photo_base64 is not valid base64") from e
-            if len(photo) > MAX_PHOTO_BYTES:
-                raise HTTPException(413, "photos can be at most 5 MB")
-        return _call(svc.chat, pid, body.text, share=body.share, photo=photo)
+                for ev in events:
+                    yield json.dumps(ev, ensure_ascii=False, default=str) + "\n"
+            except Exception as e:  # mid-stream failure: tell the app instead of silently cutting the connection
+                yield json.dumps({"type": "error", "detail": f"the reply could not be finished ({e.__class__.__name__})"}) + "\n"
+
+        return StreamingResponse(ndjson(), media_type="application/x-ndjson",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     @r.get("/v1/patients/{pid}/messages/{mid}/photo", tags=["patient"])
     def message_photo(pid: str, mid: int, request: Request):

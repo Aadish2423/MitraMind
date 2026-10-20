@@ -13,12 +13,18 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import re
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 import requests
 from pydantic import BaseModel, ValidationError
+
+# On Windows "localhost" tries IPv6 (::1) first and waits ~2 s per request before falling back to IPv4, where Ollama
+# listens (measured: 2.0 s vs 0.03 s per call), so the default uses the IPv4 address directly.
+DEFAULT_OLLAMA_HOST = os.environ.get("MITRAMIND_OLLAMA_HOST", "http://127.0.0.1:11434")
 
 
 def inline_schema(model: type[BaseModel]) -> dict:
@@ -73,9 +79,13 @@ class LLMResult:
 
 
 class OllamaBackend:
-    def __init__(self, model: str = "qwen3.5", host: str = "http://localhost:11434", think: bool | None = False,
-                 num_ctx: int = 8192, timeout: int = 600):
-        self.model, self.host, self.think, self.num_ctx, self.timeout = model, host.rstrip("/"), think, num_ctx, timeout
+    def __init__(self, model: str = "qwen3.5", host: str | None = None, think: bool | None = False,
+                 num_ctx: int = 8192, timeout: int = 600, keep_alive: str | None = None):
+        """`keep_alive` (e.g. "30m"): how long Ollama keeps the model in memory after a request (its default is 5
+        minutes; reloading a 6.6 GB model from disk adds about a minute to the next reply)."""
+        self.model, self.host, self.think, self.num_ctx, self.timeout = (model, (host or DEFAULT_OLLAMA_HOST).rstrip("/"),
+                                                                         think, num_ctx, timeout)
+        self.keep_alive = keep_alive
 
     @property
     def name(self) -> str:
@@ -89,20 +99,49 @@ class OllamaBackend:
         names = {m["name"] for m in tags.get("models", [])} | {m["name"].split(":")[0] for m in tags.get("models", [])}
         return (self.model in names, "" if self.model in names else f"model {self.model} not pulled")
 
-    def chat(self, system: str, user: str, schema: dict, images: list[tuple[str, str]] | None = None) -> LLMResult:
-        """`images`: (mime, base64) pairs attached to the user turn; needs a vision model (e.g. gemma4)."""
+    def _body(self, system: str, user: str, schema: dict, images: list[tuple[str, str]] | None, stream: bool) -> dict:
         user_msg = {"role": "user", "content": user}
         if images:
             user_msg["images"] = [b64 for _, b64 in images]
-        body = {"model": self.model, "stream": False, "format": schema,
+        body = {"model": self.model, "stream": stream, "format": schema,
                 "messages": [{"role": "system", "content": system}, user_msg],
                 "options": {"temperature": 0, "num_ctx": self.num_ctx, "seed": 7}}
         if self.think is not None:
             body["think"] = self.think
+        if self.keep_alive:
+            body["keep_alive"] = self.keep_alive
+        return body
+
+    def chat(self, system: str, user: str, schema: dict, images: list[tuple[str, str]] | None = None) -> LLMResult:
+        """`images`: (mime, base64) pairs attached to the user turn; needs a vision model (e.g. gemma4)."""
         t0 = time.time()
-        r = requests.post(f"{self.host}/api/chat", json=body, timeout=self.timeout)
+        r = requests.post(f"{self.host}/api/chat", json=self._body(system, user, schema, images, False),
+                          timeout=self.timeout)
         r.raise_for_status()
         return LLMResult(r.json()["message"]["content"], time.time() - t0, self.name)
+
+    def chat_stream(self, system: str, user: str, schema: dict,
+                    images: list[tuple[str, str]] | None = None) -> Iterator[str]:
+        """Yield the raw output (JSON text) piece by piece as the model writes it."""
+        with requests.post(f"{self.host}/api/chat", json=self._body(system, user, schema, images, True),
+                           stream=True, timeout=self.timeout) as r:
+            r.raise_for_status()
+            for line in r.iter_lines():
+                if not line:
+                    continue
+                msg = json.loads(line)
+                if msg.get("error"):
+                    raise requests.RequestException(msg["error"])
+                yield msg.get("message", {}).get("content", "")
+                if msg.get("done"):
+                    return
+
+    def warm(self) -> None:
+        """Load the model into memory now (an empty generate request), so the first patient message doesn't wait.
+        Uses the same context size as chat(): Ollama reloads a model whose num_ctx changes."""
+        requests.post(f"{self.host}/api/generate", json={"model": self.model, "keep_alive": self.keep_alive or "5m",
+                                                         "options": {"num_ctx": self.num_ctx}},
+                      timeout=self.timeout).raise_for_status()
 
 
 class OpenAICompatBackend:
@@ -235,6 +274,56 @@ def generate(backend, system: str, user: str, model: type[BaseModel], check, max
         prompt = (user + "\n\nYour previous answer had these problems; fix them and answer again:\n- "
                   + "\n- ".join(issues))
     return None, log
+
+
+_ESCAPES = {'"': '"', "\\": "\\", "/": "/", "b": "\b", "f": "\f", "n": "\n", "r": "\r", "t": "\t"}
+
+
+def partial_json_string(raw: str, key: str) -> tuple[str, bool]:
+    """Read the string value of `key` from JSON that may still be arriving. Returns (text so far, finished?)."""
+    m = re.search(r'"%s"\s*:\s*"' % re.escape(key), raw)
+    if not m:
+        return "", False
+    out, i = [], m.end()
+    while i < len(raw):
+        c = raw[i]
+        if c == '"':
+            return "".join(out), True
+        if c != "\\":
+            out.append(c)
+            i += 1
+            continue
+        if i + 1 >= len(raw):
+            break  # escape not complete yet
+        e = raw[i + 1]
+        if e == "u":
+            if i + 6 > len(raw):
+                break
+            out.append(chr(int(raw[i + 2:i + 6], 16)))
+            i += 6
+        else:
+            out.append(_ESCAPES.get(e, e))
+            i += 2
+    return "".join(out), False
+
+
+_SENTENCE_END = re.compile(r"[.!?।](?:[\"')\]]*)\s+|\n+")
+
+
+def take_sentences(buffer: str, final: bool = False) -> tuple[list[str], str]:
+    """Split finished sentences off the front of `buffer`; returns (sentences, unfinished rest).
+    With final=True the rest counts as the last sentence."""
+    out, start = [], 0
+    for m in _SENTENCE_END.finditer(buffer):
+        if s := buffer[start:m.end()].strip():
+            out.append(s)
+        start = m.end()
+    rest = buffer[start:]
+    if final:
+        if rest.strip():
+            out.append(rest.strip())
+        rest = ""
+    return out, rest
 
 
 def _strip_fences(raw: str) -> str:

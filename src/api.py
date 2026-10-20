@@ -4,6 +4,8 @@
     MITRAMIND_LLM=ollama:qwen3.5          # State Card narrator: or openai:<model>@<base_url>, or none
     MITRAMIND_CHAT_LLM=ollama:gemma4:e4b  # companion replies (default; red-team winner)
     MITRAMIND_DB=var/mitramind.db         # SQLite file for patients, messages, alerts, audit log
+    MITRAMIND_KEEP_ALIVE=30m              # how long Ollama keeps the companion model in memory between messages
+    MITRAMIND_WARMUP=1                    # load the companion model and text cue models when the server starts
 
 Patient app and clinician routes: src/care/routes.py (see /docs). Pages: / (patient app),
 /clinician (dashboard), /tester (Phase 1 tester).
@@ -16,6 +18,7 @@ GET  /v1/demo-patients[/{name}]  the fictional demo bundles in examples/patients
 """
 import os
 import sys
+import threading
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -36,7 +39,7 @@ from phase1.render import card_to_markdown
 from phase1.schema import Entry, EntryRisk, PatientBundle, QuestionnaireResponse, UserStateCard
 
 
-def _backend(var: str = "MITRAMIND_LLM", default: str = "ollama:qwen3.5"):
+def _backend(var: str = "MITRAMIND_LLM", default: str = "ollama:qwen3.5", keep_alive: str | None = None):
     spec = os.environ.get(var, default)
     kind, _, rest = spec.partition(":")
     if kind == "none":
@@ -44,14 +47,32 @@ def _backend(var: str = "MITRAMIND_LLM", default: str = "ollama:qwen3.5"):
     if kind == "openai":
         model, _, base = rest.partition("@")
         return OpenAICompatBackend(model, base or "http://localhost:8000/v1", os.environ.get("MITRAMIND_LLM_KEY"))
-    return OllamaBackend(rest or "qwen3.5")
+    return OllamaBackend(rest or "qwen3.5", keep_alive=keep_alive)
 
 
 app = FastAPI(title="MitraMind Care", version="1.1")
 orch = Phase1Orchestrator(backend=_backend(), enable_neural=os.environ.get("MITRAMIND_NEURAL", "1") == "1")
 # Companion default: Gemma 4 E4B passed 19/19 red-team cases at 7.8 s/reply (Qwen3.5 9B: 18/19, 11.1 s),
-# see outputs/redteam/companion_redteam.md.
-svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM", "ollama:gemma4:e4b"), make_stt())
+# see outputs/redteam/companion_redteam.md. It stays loaded between messages (MITRAMIND_KEEP_ALIVE) because the
+# companion is the latency-sensitive path; the State Card narrator keeps Ollama's 5-minute default.
+svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM", "ollama:gemma4:e4b",
+                                          keep_alive=os.environ.get("MITRAMIND_KEEP_ALIVE", "30m")), make_stt())
+
+
+def _warm_up() -> None:
+    """Load the companion model and the text cue models in the background, so the first message isn't slow."""
+    backend = svc.companion.backend
+    if hasattr(backend, "warm"):
+        try:
+            backend.warm()
+        except Exception as e:  # Ollama not running yet: the first message will load it instead
+            print(f"[warm-up] companion model not loaded: {e.__class__.__name__}", flush=True)
+    for model_id in ("m2_hinglish_text", "m1_hindi_text"):
+        orch.registry.get(model_id)
+
+
+if os.environ.get("MITRAMIND_WARMUP", "1") == "1":
+    threading.Thread(target=_warm_up, name="warm-up", daemon=True).start()
 app.include_router(build_router(svc))
 WEB = Path(__file__).resolve().parent / "web"
 DEMO = Path(__file__).resolve().parents[1] / "examples" / "patients"
@@ -75,7 +96,8 @@ class CardResponse(BaseModel):
 
 @app.get("/", include_in_schema=False)
 def patient_app():
-    return FileResponse(WEB / "app.html")
+    # no-cache: browsers re-check the page on every visit, so new ?v= asset versions reach patients right away.
+    return FileResponse(WEB / "app.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/clinician", include_in_schema=False)
