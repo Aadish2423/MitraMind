@@ -146,3 +146,65 @@ def test_route_streams_ndjson_and_is_guarded():
     assert r.status_code == 200 and r.headers["content-type"].startswith("application/x-ndjson")
     lines = [json.loads(line) for line in r.text.splitlines() if line]
     assert [e["type"] for e in lines] == ["sentence", "sentence", "final"] and lines[-1]["message_id"]
+
+
+class FakeSTT:
+    name = "fake-stt"
+
+    def __init__(self, text):
+        self.text = text
+
+    def transcribe(self, wav_path, language=None):
+        return {"text": self.text, "seconds": 2.0, "engine": self.name}
+
+
+def voice_service(backend, heard, tmp_dir):
+    import care.voice as voice
+    voice.AUDIO_DIR = pathlib.Path(tmp_dir)
+    svc = CareService(Store(":memory:"), ORCH, backend, stt=FakeSTT(heard))
+    svc.enroll("p1", consents=CONSENTS)
+    return svc
+
+
+def test_voice_stream_sends_transcript_then_sentences(tmp_path):
+    svc = voice_service(StreamBackend(reply("That sounds exhausting. Want to try a body scan?", "body_scan")),
+                        "I couldn't sleep, exams tomorrow", tmp_path)
+    events = list(svc.voice_stream("p1", b"RIFF fake wav"))
+    assert events[0] == {"type": "transcript", "text": "I couldn't sleep, exams tomorrow", "transcript":
+                         "I couldn't sleep, exams tomorrow", "stt_engine": "fake-stt", "audio_seconds": 2.0}
+    assert [e["text"] for e in events[1:-1]] == ["That sounds exhausting.", "Want to try a body scan?"]
+    final = events[-1]
+    assert final["type"] == "final" and final["transcript"] == "I couldn't sleep, exams tomorrow"
+    user = [m for m in svc.history("p1") if m["role"] == "user"][-1]
+    assert user["modality"] == "voice" and user["text"] == "I couldn't sleep, exams tomorrow"
+
+
+def test_spoken_crisis_still_skips_the_llm(tmp_path):
+    backend = StreamBackend(reply("should never be used"))
+    svc = voice_service(backend, "I don't want to live anymore", tmp_path)
+    final = list(svc.voice_stream("p1", b"RIFF fake wav"))[-1]
+    assert backend.calls == [] and final["reply_source"] == "crisis_protocol" and final["alert_id"]
+
+
+def test_empty_speech_is_rejected_before_streaming(tmp_path):
+    import pytest
+    svc = voice_service(StreamBackend(reply("x")), "", tmp_path)
+    with pytest.raises(ValueError, match="no speech"):
+        svc.voice_stream("p1", b"RIFF fake wav")
+
+
+def test_voice_stream_route_is_guarded(tmp_path):
+    import base64
+    import care.voice as voice
+    voice.AUDIO_DIR = pathlib.Path(tmp_path)
+    svc = CareService(Store(":memory:"), ORCH, StreamBackend(reply("I hear you. Thank you for telling me.")),
+                      stt=FakeSTT("long day today"))
+    app = FastAPI()
+    app.include_router(build_router(svc))
+    c = TestClient(app)
+    s = c.post("/v1/auth/signup", json={"email": "v@example.com", "password": "voice-test-1", "consents": CONSENTS}).json()
+    pid, body = s["profile"]["id"], {"audio_base64": base64.b64encode(b"RIFF fake wav").decode()}
+    assert c.post(f"/v1/patients/{pid}/voice/stream", json=body).status_code == 401
+    r = c.post(f"/v1/patients/{pid}/voice/stream", json=body, headers={"Authorization": f"Bearer {s['token']}"})
+    types = [json.loads(line)["type"] for line in r.text.splitlines() if line]
+    assert r.status_code == 200 and types == ["transcript", "sentence", "sentence", "final"]

@@ -123,10 +123,12 @@ class CareService:
         out = self.companion.respond(turn["history"], turn["text"], turn["analysis"], images=turn["images"])
         return self._finish_turn(turn, out)
 
-    def chat_stream(self, patient_id: str, text: str, *, share: bool = False, photo: bytes | None = None):
+    def chat_stream(self, patient_id: str, text: str, *, share: bool = False, photo: bytes | None = None,
+                    modality: str = "text", channel: str = "app", audio_path: str | None = None):
         """Same rules as chat(), but returns an iterator of companion events ("sentence" / "replace") ending in
         {"type": "final", **chat()-style result}. Input problems raise here, before anything is streamed."""
-        turn = self._start_turn(patient_id, text, share=share, photo=photo)
+        turn = self._start_turn(patient_id, text, share=share, photo=photo, modality=modality, channel=channel,
+                                audio_path=audio_path)
 
         def events():
             final = None
@@ -190,6 +192,25 @@ class CareService:
     def voice(self, patient_id: str, audio: bytes, mime: str = "audio/wav", *, share: bool = False,
               channel: str = "app", language: str | None = None) -> dict:
         """Voice message: transcribe, then the same path as text, plus voice emotion models on the clip."""
+        wav, stt = self._transcribe(patient_id, audio, mime, language)
+        out = self.chat(patient_id, stt["text"], share=share, modality="voice", channel=channel, audio_path=str(wav))
+        return {**out, **self._stt_fields(stt)}
+
+    def voice_stream(self, patient_id: str, audio: bytes, mime: str = "audio/wav", *, share: bool = False,
+                     language: str | None = None):
+        """Voice message with a streamed reply: first {"type": "transcript", ...}, then the chat_stream() events.
+        Transcription and input checks happen here, before anything is streamed."""
+        wav, stt = self._transcribe(patient_id, audio, mime, language)
+
+        def gen():
+            # The transcript goes out before the safety and emotion analysis, so the patient sees their words at once.
+            yield {"type": "transcript", "text": stt["text"], **self._stt_fields(stt)}
+            for ev in self.chat_stream(patient_id, stt["text"], share=share, modality="voice", audio_path=str(wav)):
+                yield {**ev, **self._stt_fields(stt)} if ev["type"] == "final" else ev
+
+        return gen()
+
+    def _transcribe(self, patient_id: str, audio: bytes, mime: str, language: str | None):
         from .voice import VoiceError, save_clip
 
         self._patient(patient_id)
@@ -204,8 +225,11 @@ class CareService:
             raise ValueError(str(e)) from e
         if not stt["text"]:
             raise ValueError("no speech was recognised in the recording")
-        out = self.chat(patient_id, stt["text"], share=share, modality="voice", channel=channel, audio_path=str(wav))
-        return {**out, "transcript": stt["text"], "stt_engine": stt["engine"], "audio_seconds": stt["seconds"]}
+        return wav, stt
+
+    @staticmethod
+    def _stt_fields(stt: dict) -> dict:
+        return {"transcript": stt["text"], "stt_engine": stt["engine"], "audio_seconds": stt["seconds"]}
 
     def history(self, patient_id: str, limit: int = 50) -> list[dict]:
         self._patient(patient_id)

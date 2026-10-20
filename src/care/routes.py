@@ -117,6 +117,19 @@ def _bearer(request: Request) -> str | None:
     return token.strip() if scheme.lower() == "bearer" and token.strip() else None
 
 
+def ndjson_response(events) -> StreamingResponse:
+    """Stream service events as newline-delimited JSON."""
+    def lines():
+        try:
+            for ev in events:
+                yield json.dumps(ev, ensure_ascii=False, default=str) + "\n"
+        except Exception as e:  # mid-stream failure: tell the app instead of silently cutting the connection
+            yield json.dumps({"type": "error", "detail": f"the reply could not be finished ({e.__class__.__name__})"}) + "\n"
+
+    return StreamingResponse(lines(), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 LOGIN_WINDOW_S, LOGIN_MAX_FAILURES = 15 * 60, 5
 
 
@@ -212,33 +225,33 @@ def build_router(svc: CareService) -> APIRouter:
         """Same as /chat, but the reply arrives sentence by sentence as newline-delimited JSON events:
         {"type": "sentence", "text"} ..., optionally {"type": "replace", "text"}, then {"type": "final", ...}."""
         guard(request, pid)
-        events = _call(svc.chat_stream, pid, body.text, share=body.share, photo=decode_photo(body))
-
-        def ndjson():
-            try:
-                for ev in events:
-                    yield json.dumps(ev, ensure_ascii=False, default=str) + "\n"
-            except Exception as e:  # mid-stream failure: tell the app instead of silently cutting the connection
-                yield json.dumps({"type": "error", "detail": f"the reply could not be finished ({e.__class__.__name__})"}) + "\n"
-
-        return StreamingResponse(ndjson(), media_type="application/x-ndjson",
-                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+        return ndjson_response(_call(svc.chat_stream, pid, body.text, share=body.share, photo=decode_photo(body)))
 
     @r.get("/v1/patients/{pid}/messages/{mid}/photo", tags=["patient"])
     def message_photo(pid: str, mid: int, request: Request):
         guard(request, pid)
         return FileResponse(_call(svc.photo, pid, mid), headers={"Cache-Control": "private, max-age=3600"})
 
-    @r.post("/v1/patients/{pid}/voice", tags=["patient"])
-    def voice(pid: str, body: VoiceIn, request: Request):
-        guard(request, pid)
+    def decode_audio(body: VoiceIn) -> bytes:
         try:
             audio = base64.b64decode(body.audio_base64, validate=True)
         except binascii.Error as e:
             raise HTTPException(422, "audio_base64 is not valid base64") from e
         if len(audio) > 15 * 1024 * 1024:
             raise HTTPException(413, "voice message too long (max 15 MB)")
-        return _call(svc.voice, pid, audio, body.mime, share=body.share, language=body.language)
+        return audio
+
+    @r.post("/v1/patients/{pid}/voice", tags=["patient"])
+    def voice(pid: str, body: VoiceIn, request: Request):
+        guard(request, pid)
+        return _call(svc.voice, pid, decode_audio(body), body.mime, share=body.share, language=body.language)
+
+    @r.post("/v1/patients/{pid}/voice/stream", tags=["patient"])
+    def voice_stream(pid: str, body: VoiceIn, request: Request):
+        """Same as /voice, but streams NDJSON: {"type": "transcript"} first, then the /chat/stream events."""
+        guard(request, pid)
+        return ndjson_response(_call(svc.voice_stream, pid, decode_audio(body), body.mime, share=body.share,
+                                     language=body.language))
 
     @r.get("/v1/patients/{pid}/messages", tags=["patient"])
     def messages(pid: str, request: Request, limit: int = 50):

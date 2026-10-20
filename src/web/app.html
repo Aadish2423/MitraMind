@@ -216,7 +216,7 @@
     In a crisis call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</p>
 </div>
 
-<script src="/static/mitra.js?v=3"></script>
+<script src="/static/mitra.js?v=4"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
@@ -602,10 +602,10 @@ $("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shift
 $("send").onclick = () => send();
 
 // The reply streams in sentence by sentence (newline-delimited JSON), so it can be shown and spoken sooner.
-async function streamChat(body, onEvent) {
+async function streamChat(body, onEvent, kind = "chat") {
   let r;
   try {
-    r = await fetch(`/v1/patients/${enc(PID)}/chat/stream`, {method: "POST", body: JSON.stringify(body),
+    r = await fetch(`/v1/patients/${enc(PID)}/${kind}/stream`, {method: "POST", body: JSON.stringify(body),
       headers: {"Content-Type": "application/json", Authorization: `Bearer ${TOKEN}`}});
   } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
   if (!r.ok) {
@@ -754,20 +754,39 @@ async function stopRecording() {
   const wav = toWav(r.chunks, r.ctx.sampleRate); r.ctx.close();
   $("mic").classList.remove("rec"); $("mic").innerHTML = svg("mic"); $("mic").setAttribute("aria-label", "Record a voice message");
   setStatus("");
-  const typing = showTyping();
-  if (VOICE) { MITRA.setState("thinking"); showCaption("Thinking…", true); }
+  speech.reset(); MOOD = "idle";
+  let typing = showTyping(), ai = null, shown = [];
+  const share = $("share").checked, msg = {role: "user", text: "", shared: share, modality: "voice"};
+  let mine = null;
+  if (VOICE) { MITRA.setState("thinking"); showCaption("Listening back to you…", true); }
   setBusy(true);
+  const reply = () => { if (!ai) { typing.done(); ai = addMsg({role: "assistant", text: ""}); } return ai; };
   try {
-    const res = await api(`/v1/patients/${enc(PID)}/voice`, {audio_base64: b64(wav), mime: "audio/wav", share: $("share").checked});
-    typing.done();
-    addMsg({id: res.message_id, role: "user", text: res.transcript, shared: $("share").checked, modality: "voice"});
-    addMsg({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
+    // Streamed: the transcript arrives first, then Mitra's reply sentence by sentence (spoken as it comes).
+    const res = await streamChat({audio_base64: b64(wav), mime: "audio/wav", share}, (ev) => {
+      if (ev.type === "transcript") {
+        typing.done();
+        msg.text = ev.text; mine = addMsg(msg);
+        typing = showTyping();
+        if (VOICE) showCaption("Thinking…", true);
+      } else if (ev.type === "sentence") {
+        shown.push(ev.text);
+        setBubbleText(reply(), shown.join(" "));
+        speech.push(ev.text);
+      } else if (ev.type === "replace") {
+        speech.reset(); shown = [ev.text];
+        setBubbleText(reply(), ev.text);
+        speech.pushAll(ev.text);
+      }
+    }, "voice");
+    setBubbleText(reply(), res.reply);
+    addPauseChip(ai, res.mind_pause);
+    if (mine) { msg.id = res.message_id; addPrivacyChip(mine, msg); }
     showCrisis(res);
     MOOD = res.escalate ? "concerned" : "idle";
-    speech.pushAll(res.reply);
     if (VOICE && !speech.busy) MITRA.setState(MOOD);
   } catch (e) {
-    typing.done();
+    typing.done(); speech.reset();
     if (VOICE) { MITRA.setState("idle"); showCaption("Sorry, I couldn't hear that. Please try again or type below.", true); }
     setStatus(`Voice message not sent: ${e.message}`, true);
   } finally { setBusy(false); }
