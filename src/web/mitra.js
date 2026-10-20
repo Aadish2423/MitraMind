@@ -66,6 +66,7 @@
       host.innerHTML = SVG.replace(/mitraBody|mitraBelly/g, (id) => `${id}${n}`);
       this.fill = host.querySelector(".m-mouth-fill");
       this.line = host.querySelector(".m-mouth-line");
+      this.eyes = host.querySelector(".m-eyes");
       this.state = "idle";
       this.talking = null;
       this.mouth("rest");
@@ -114,6 +115,16 @@
       if (eyesClosed && phase !== "calm") h.classList.add("eyes-closed");
       this.mouth(phase === "out" ? "oo" : phase === "calm" ? "smile" : "m");
     }
+
+    /** Look toward something: x and y from -1 (left/up) to 1 (right/down); null looks straight ahead again. */
+    lookAt(x, y) {
+      if (x == null) { this.eyes.style.transform = ""; return; }
+      const c = (v) => Math.max(-1, Math.min(1, v));
+      this.eyes.style.transform = `translate(${(c(x) * 7).toFixed(1)}px, ${(c(y) * 5).toFixed(1)}px)`;
+    }
+
+    /** Wave hello with one arm, until wave(false). */
+    wave(on) { this.host.classList.toggle("waving", on); if (!this.talking) this.mouth(on ? "smile" : "rest"); }
 
     _blinkLoop() {
       const next = () => {
