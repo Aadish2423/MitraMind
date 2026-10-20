@@ -11,3 +11,6 @@ models/
 __pycache__/
 *.pyc
 .venv/
+
+# Local database (patients, messages, audit log) and uploaded voice clips: never commit.
+var/

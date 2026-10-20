@@ -1,0 +1,73 @@
+# Cognitive Distortion Schemata (CDS): 12 CBT distortion types, n-grams transcribed from
+# Bathina et al. (2021, Nature Human Behaviour; arXiv 2002.02800, Appendix Table 7).
+# The PDF table layout was garbled, so the category-to-row mapping is a reconstruction.
+# Bathina et al. validated these at cohort level only: individual hits are noisy, read
+# them as rates or prevalence. No negation or first-person scoping (as in the paper).
+family: cd
+description: cognitive distortion n-grams (Bathina et al.)
+source: Bathina et al. 2021, Appendix Table 7 (cite)
+license: no explicit licence; short-phrase list, cited as academic work
+defaults: {requires_first_person: false, negatable: false}
+items:
+  catastrophizing:
+    terms:
+      - "will {fail|go wrong|end|be impossible|not happen|be terrible|be horrible|be a catastrophe|be a disaster|never end|not end}"
+  dichotomous:
+    terms:
+      - only
+      - "{every|everyone|everybody|everything|everywhere|always|perfect|the best|all|ever}"
+      - "{not a single|no one|nobody|nothing|nowhere|never|worthless|the worst|neither|nor}"
+      - either or
+      - black or white
+  disqualifying_positive:
+    terms:
+      - "{great|good|ok|okay|fine|acceptable} {but|yet}"
+      - "not {that great|that good|all that}"
+      - it was not
+  emotional_reasoning:
+    terms:
+      - "{but|since|because} {i feel|it feels}"
+      - still feels
+  fortune_telling:
+    terms:
+      - "{i|we|you|they|it|that|he|she} will not"
+  labeling:
+    terms:
+      - "{i am|he is|she is|they are|it is|that is} {a|an}"
+      - "{i|he|she|you|we|they} never"
+      - "{sucks|suck} at"
+      - "a {burden|complete|completely|huge|loser|major|total|totally|weak|bad|broken|damaged|helpless|hopeless|toxic|undesirable|unlovable|worthless|horrible|terrible}"
+      - "an {absolute|utter|incompetent|ugly}"
+  magnification:
+    terms:
+      - "{worst|best}"
+      - "not {important|count|matter}"
+      - no matter
+      - "the {only|one} thing"
+  mental_filter:
+    terms:
+      - "{i see only|all i see|all i can see|can only think}"
+      - "nothing {good|right}"
+      - "completely {bad|wrong}"
+      - "only the {bad|worst}"
+      - "if {i|it} {just|only}"
+  mindreading:
+    terms:
+      - "{everyone|nobody} {believes|knows|thinks|will believe|will know|will think}"
+      - "{he|she} {believes|knows|thinks|does not believe|does not know|does not think|will believe|will know|will think|will not believe|will not know|will not think}"
+      - "{they|we|you} {believe|know|think|do not believe|do not know|do not think|will believe|will know|will think|will not believe|will not know|will not think}"
+  overgeneralizing:
+    terms:
+      - "{all of the time|all of them|all the time|always happens|always like|happens every time|completely}"
+      - "{no one ever|nobody ever|every single one of them|every single one of you}"
+      - "{i|you|he|she|they} always"
+      - "{i am|you are|he is|she is|they are} always"
+  personalizing:
+    terms:
+      - "all {me|my}"
+      - "because {i|my|of my|of me}"
+      - "{i am responsible|blame me|i caused|i feel responsible}"
+      - "{all my doing|all my fault|my bad|my responsibility}"
+  should_statements:
+    terms:
+      - "{should|ought|must|have to|has to}"

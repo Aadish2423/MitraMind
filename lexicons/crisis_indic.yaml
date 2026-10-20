@@ -1,0 +1,57 @@
+# Hindi (Devanagari) and Hinglish (romanized) crisis phrases for the safety layer.
+# The English lexicon tokenizer only reads a-z, so these are matched as regexes on the
+# lowercased raw text by src/phase1/crisis.py. Same tiers as lexicons/crisis.yaml.
+#
+# DEVELOPER-AUTHORED, NOT VALIDATED. These must be reviewed by native Hindi speakers and the
+# clinical champion before use; spelling variants in romanized Hindi are endless, so treat this
+# list as a starting point that the Phase 2 pilot data will extend.
+# Hindi negation comes before the verb ("marna nahi chahta" = "don't want to die"), so the
+# ideation patterns below simply do not match the negated form.
+family: risk_indic
+license: proprietary to MitraMind (own work)
+items:
+  indicator:
+    tier: 1
+    patterns:
+      - "koi (fayda|faayda|matlab) nahi(n)?( hai)? (jeene|jine|zindagi)"
+      - "(main|mai|mein) (sab par |sabpe )?(bojh|bojha) (hoon|hu|hun|ban gaya|ban gayi)"
+      - "(bojh|bojha) ban (gaya|gayi|chuka|chuki) (hoon|hu|hun)"
+      - "(koi )?(umeed|ummeed|ummid) nahi(n)? (bachi|hai)"
+      - "sab (khatam|khtm) ho gaya"
+      - "जीने (का|की) (कोई )?(मतलब|फायदा|वजह) नहीं"
+      - "(मैं|मै) (सब पर )?बोझ (हूँ|हूं|हु|बन गया|बन गई)"
+      - "कोई (उम्मीद|आशा) नहीं"
+  ideation:
+    tier: 2
+    patterns:
+      - "mar(na|ne) (chahta|chahti|chahtha) (hoon|hu|hun|h)?"
+      - "mar (jana|jaana|jaun|jau|jaaun) (chahta|chahti|hai|hi better)"
+      - "marna hi (better|accha|achha|theek)"
+      - "jee(na|ne) (nahi|nahin|nhi) (chahta|chahti)"
+      - "jeene ka (mann|man) nahi(n)?"
+      - "khud ko (khatam|khtm|maar) (karna|kar|dena|du|dunga|dungi)"
+      - "(khudkushi|khud\\s?kushi|aatmahatya|atmahatya)"
+      - "(zindagi|jindagi|life) (khatam|khtm) (karna|kar|kar du|kar dunga|kar dungi)"
+      - "apni jaan (le|lena|de|dena)"
+      - "suicide (karna|kar lu|kar lunga|kar lungi|karne)"
+      - "मरना (चाहता|चाहती)"
+      - "मर (जाना|जाऊं|जाऊँ) (चाहता|चाहती|बेहतर)"
+      - "जी(ना|ने) नहीं (चाहता|चाहती)"
+      - "जीने का मन नहीं"
+      - "(आत्महत्या|ख़ुदकुशी|खुदकुशी)"
+      - "(खुद|ख़ुद) को (खत्म|ख़त्म|मार)"
+      - "अपनी जान (ले|लेना|दे|देना)"
+  behavior:
+    tier: 3
+    patterns:
+      - "(neend|nind) ki goli(yan|yaan|ya)"
+      - "(phaansi|phansi|fansi|fanda|phanda)"
+      - "(note|chitthi|letter) likh (diya|di|liya|li)"
+      - "नींद की गोलि(यां|याँ)"
+      - "(फांसी|फाँसी|फंदा)"
+  attempt:
+    tier: 4
+    patterns:
+      - "(pehle|pahle) bhi (try|koshish) (ki|kiya)"
+      - "mar(ne)? ki koshish"
+      - "मरने की कोशिश"

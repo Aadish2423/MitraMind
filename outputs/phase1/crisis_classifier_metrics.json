@@ -1,0 +1,106 @@
+{
+  "data": "Low et al. 2020 Reddit MH, Jan-Apr 2020; positive = r/suicidewatch",
+  "rows": {
+    "train": 112787,
+    "val": 24169,
+    "test": 24169
+  },
+  "test_roc_auc": 0.9178,
+  "test_average_precision": 0.6078,
+  "thresholds_from_validation": {
+    "watch (65% recall)": 0.2912,
+    "high (75% precision, >=20% recall)": null
+  },
+  "test_at_watch": {
+    "threshold": 0.2912,
+    "precision": 0.5894,
+    "recall": 0.6435,
+    "flag_rate": 0.1451
+  },
+  "test_at_high": null,
+  "validation_precision_recall_table": [
+    {
+      "threshold": 0.1,
+      "precision": 0.4326,
+      "recall": 0.8742,
+      "flag_rate": 0.2684
+    },
+    {
+      "threshold": 0.2,
+      "precision": 0.5409,
+      "recall": 0.7471,
+      "flag_rate": 0.1835
+    },
+    {
+      "threshold": 0.3,
+      "precision": 0.5971,
+      "recall": 0.6434,
+      "flag_rate": 0.1432
+    },
+    {
+      "threshold": 0.4,
+      "precision": 0.6364,
+      "recall": 0.5494,
+      "flag_rate": 0.1147
+    },
+    {
+      "threshold": 0.5,
+      "precision": 0.6695,
+      "recall": 0.4637,
+      "flag_rate": 0.092
+    },
+    {
+      "threshold": 0.6,
+      "precision": 0.6861,
+      "recall": 0.3743,
+      "flag_rate": 0.0725
+    },
+    {
+      "threshold": 0.7,
+      "precision": 0.721,
+      "recall": 0.2977,
+      "flag_rate": 0.0549
+    },
+    {
+      "threshold": 0.8,
+      "precision": 0.728,
+      "recall": 0.2009,
+      "flag_rate": 0.0367
+    },
+    {
+      "threshold": 0.9,
+      "precision": 0.7641,
+      "recall": 0.114,
+      "flag_rate": 0.0198
+    },
+    {
+      "threshold": 0.95,
+      "precision": 0.7857,
+      "recall": 0.0582,
+      "flag_rate": 0.0098
+    }
+  ],
+  "test_share_flagged_watch_by_subreddit": {
+    "COVID19_support": 0.0236,
+    "EDAnonymous": 0.0133,
+    "addiction": 0.0276,
+    "adhd": 0.0061,
+    "alcoholism": 0.0291,
+    "anxiety": 0.007,
+    "autism": 0.0064,
+    "bipolarreddit": 0.0345,
+    "bpd": 0.0293,
+    "depression": 0.1927,
+    "fitness": 0.002,
+    "healthanxiety": 0.0,
+    "lonely": 0.0532,
+    "meditation": 0.0034,
+    "mentalhealth": 0.0799,
+    "parenting": 0.0038,
+    "ptsd": 0.0207,
+    "schizophrenia": 0.0185,
+    "socialanxiety": 0.0085,
+    "suicidewatch": 0.6435,
+    "teaching": 0.0068
+  }
+}

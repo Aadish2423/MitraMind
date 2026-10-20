@@ -1,0 +1,16 @@
+{
+  "source": "synthetic",
+  "exported_at": "2026-10-20T04:18:22+00:00",
+  "consent_version": "2026-10-v1",
+  "patients_included": 172,
+  "patients_without_consent": 28,
+  "windows": 2064,
+  "windows_by_instrument": {
+    "PHQ-9": 1032,
+    "GAD-7": 1032
+  },
+  "worsened_rate": 0.089,
+  "shared_texts": 820,
+  "labelled_alerts": 188,
+  "summary_ratings": 53
+}

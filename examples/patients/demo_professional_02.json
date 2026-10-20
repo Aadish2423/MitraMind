@@ -1,0 +1,27 @@
+{
+  "_note": "FICTIONAL demo patient written for testing. Not real patient data.",
+  "patient_ref": "demo_professional_02",
+  "questionnaires": [
+    {"instrument": "PHQ-9", "date": "2026-09-25", "items": [1, 1, 1, 1, 1, 1, 1, 1, 0]},
+    {"instrument": "GAD-7", "date": "2026-09-25", "items": [2, 1, 1, 1, 1, 2, 1]},
+    {"instrument": "PHQ-9", "date": "2026-10-05", "items": [2, 2, 2, 2, 1, 1, 1, 1, 0]},
+    {"instrument": "PHQ-9", "date": "2026-10-15", "items": [2, 2, 3, 2, 2, 2, 2, 1, 1]},
+    {"instrument": "GAD-7", "date": "2026-10-15", "items": [2, 2, 2, 2, 2, 3, 2]}
+  ],
+  "entries": [
+    {"entry_id": "p01", "timestamp": "2026-09-26T22:00:00+05:30",
+     "text": "Aaj office mein boss ne sabke saamne daanta. Kaam ka pressure bahut hai, deadline kal hai."},
+    {"entry_id": "p02", "timestamp": "2026-09-30T23:30:00+05:30",
+     "text": "Neend nahi aati yaar, raat ko 3am tak jaagta rehta hoon. Subah exhausted feel hota hai."},
+    {"entry_id": "p03", "timestamp": "2026-10-03T21:45:00+05:30", "shared_with_clinician": true,
+     "text": "Weekend pe bhi laptop khol ke baitha tha. Wife se fight ho gayi kyunki main ghar pe time nahi deta."},
+    {"entry_id": "p04", "timestamp": "2026-10-07T22:20:00+05:30",
+     "text": "Drinking a bit more these days just to sleep. Kuch accha nahi lagta, no interest in anything."},
+    {"entry_id": "p05", "timestamp": "2026-10-10T20:05:00+05:30",
+     "text": "Salary late hai is month, EMI ka tension alag se. I'm so irritable, I snapped at my kid."},
+    {"entry_id": "p06", "timestamp": "2026-10-13T23:50:00+05:30",
+     "text": "Breathing exercise try kiya but it didn't help today. Mann bahut bhaari hai."},
+    {"entry_id": "p07", "timestamp": "2026-10-16T01:15:00+05:30",
+     "text": "Kabhi kabhi lagta hai marna hi better hai, sab ke liye bojh ban gaya hoon."}
+  ]
+}

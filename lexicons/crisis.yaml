@@ -1,0 +1,123 @@
+# Crisis / suicide-risk cues, tiered after the C-SSRS-based 5-level scheme used by
+# Gaur et al. 2019 (Indicator < Ideation < Behavior < Attempt). Seeded from the
+# suicidality lexicon of Low et al. 2020 (danielmlow/reddit, Apache-2.0; capitalised
+# entries fixed, whole-word matching) plus developer-authored terms.
+#
+# SAFETY: these are triage aids that route to a human, never a risk score. Any
+# non-negated hit at tier >= 2 (ideation) must go to human review in the product.
+family: risk
+description: crisis cues, highest tier = risk_tier
+source: Low et al. 2020 suicidality lexicon (Apache-2.0) + developer-authored seeds
+license: Apache-2.0 portions retain attribution (see NOTICE); rest MitraMind own work
+defaults: {requires_first_person: true, negatable: true}
+items:
+  indicator:
+    tier: 1
+    label: "Indicator: hopelessness, burden, entrapment"
+    terms:
+      # Low et al.'s bare "hopeless", "no point", "be dead", "life anymore" and "suicide"
+      # fired on everyday text ("this team is hopeless", "no point in getting rid of it"),
+      # so they are narrowed to self-referential frames below. A bare mention of suicide
+      # stays here (tier 1) rather than counting as ideation.
+      - "{i feel|i am|i felt|i was|feeling|i have been|so|life is|my life is|everything is|it all is} hopeless"   # Low et al.
+      - hopelessness
+      - "no point in {living|life|anything|trying|going on|being alive|existing}"   # Low et al. ("no point")
+      - "{there is|there is just|i see} no point {anymore|to life|to anything}"
+      - "{i am|i am such|i feel like|feel like} a burden"   # Low et al. ("i'm a burden")
+      - "{everyone|they|my family|people} {would be|is|are|will be} better off without me"
+      - "{there is|i have|i see|i can see} no {way out|escape|future|hope}"
+      - "no {hope|future} for me"
+      - "{feel|feeling} trapped"
+      - "{can|could} not {go on|do this anymore|keep going}"
+      - "{can|could} not take it anymore"  # Low et al. ("take it anymore")
+      - "i hate my life"   # Low et al.
+      - "no one will miss me"   # Low et al.
+      - "{nobody|no one} would {care|notice|miss me} if i {died|was gone|disappeared}"
+      - "{wish|wished} i {was|were|had} never {been born|born}"
+      - "what is the point of {living|life|being alive}"
+      - "think about death"   # Low et al.
+      - "{give|giving|gave} up on life"
+      - "{suicide|suicidal|suicidality}"   # Low et al. ("suicide"): a mention, not ideation
+  means_inquiry:
+    tier: 1
+    label: "Indicator: asking how much medicine is too much (red-team case selfharm_indirect_en)"
+    terms:
+      # No {m,n} counts inside re: terms: braces are expanded as {a|b} alternatives by the loader.
+      - "re:\\bhow (?:many|much) (?:[a-z]+ )?(?:[a-z]+ )?(?:pills|tablets|paracetamol|medicine|medicines|medication)\\b[a-z ]*?\\b(?:too many|too much|dangerous|harmful)\\b"
+      - "{what|how many|how much} {pills|tablets} {can|would|will} {kill|hurt|harm} {me|you|a person|someone}"
+  method_inquiry:
+    tier: 2
+    label: "Ideation: asking about lethal doses or ways to die"
+    terms:
+      - "{lethal|fatal|deadly} dose"
+      - "{painless|easiest|easy|quickest|quick|best} way to {die|end it|end my life|kill myself}"
+      - "how to {overdose|end my life|kill myself|die without pain}"
+  ideation:
+    tier: 2
+    label: "Ideation: wish to be dead, thoughts of suicide"
+    terms:
+      - "{want|wanted|wanting|wanna} to die"          # Low et al.
+      - "{want|wanted|wanting} to be dead"
+      - "{i would rather|i would|i should|i wish i could|i want to|rather} be dead"   # Low et al. ("be dead")
+      - "{wish|wished} i {was|were} dead"
+      - better off dead
+      - "{want|wanted|wanting|thinking about|think about|thought about|considering} {to kill|killing} myself"
+      - kill myself      # Low et al.
+      - killing myself   # Low et al.
+      - end my life      # Low et al.
+      - "{end|ending} it all"
+      - "re:\\b(?:do|did) not want to (?:wake up|be alive|live|exist)\\b(?! (?:to|in|with|like)\\b)"   # Low et al.
+      - never want to wake up   # Low et al.
+      - "{hope|wish} i {do|did|would} not wake up"   # Low et al. ("don't wake up")
+      - "want to be alive anymore"   # Low et al.
+      - "{do not want to|can not|no reason to} {live|go on living|keep living} anymore"   # Low et al. ("live anymore")
+      - "{done with|tired of|sick of} {life|living|being alive}"   # Low et al. ("done with living")
+      - wish it would all end   # Low et al.
+      - "{i just want|i want} {it|it all|everything} to end"   # Low et al. ("want it to end")
+      - "if i live or die"   # Low et al. (capitalised in source, never matched)
+      - "{i am|i feel|feeling|i felt|i have been|i was|been|getting|i became|so} suicidal"
+      - "{suicidal|suicide} {thoughts|ideation|urges|feelings}"
+      - "commit suicide"   # Low et al.
+      - "{thinking|thought|think} about suicide"
+      - "{jump|jumping} off a {bridge|building|roof}"   # Low et al.
+      - "{hang|hanging} myself"   # Low et al.
+      - "{want|wanted|wanting} to disappear forever"
+      - unalive
+  behavior:
+    tier: 3
+    label: "Behavior / plan / preparation"
+    terms:
+      - "{i want|i will|thinking about|i am going to} overdose"   # Low et al. (capitalised in source)
+      - thinking about overdose   # Low et al.
+      - "{have|made|making} a plan to {die|kill myself|end it}"
+      - "{wrote|writing|written} {a|my} {suicide|goodbye} note"
+      - suicide note
+      - "{bought|buying|got} {a rope|rope|pills|a gun|razor blades}"
+      - "{saving|saved|stockpiling|hoarding} {up pills|pills}"
+      - "{giving|gave} away my {things|stuff|belongings}"
+      - "it all ends tonight"   # Low et al.
+      - "{tonight is|today is} the night"
+      - "{saying|said} {my goodbyes|goodbye to everyone}"
+      - "{cut|cutting|hurt|hurting} myself"   # Low et al.
+  attempt:
+    tier: 4
+    label: "Attempt (current or past)"
+    terms:
+      - "{tried|try|trying|attempted} to {kill myself|end my life|end it|commit suicide|overdose}"
+      - "{my|a|last|previous|failed} suicide attempt*"
+      - "{attempted|attempting} suicide"
+      - overdosed
+      - "{survived|after} {an|my} overdose"
+      - "{woke|wake} up in {the|a} hospital"
+      - "{had my|got my} stomach pumped"
+  means:
+    tier: 0
+    label: "Means vocabulary (informational, does not set the tier). Low et al. guns lexicon + others"
+    requires_first_person: false
+    negatable: false
+    terms:
+      - "{gun|guns|pistol|revolver|rifle|firearm|firearms|semiautomatic|semi-automatic}"   # Low et al.
+      - "{rope|noose|razor|razors|blade|blades}"
+      - "{pills|overdose}"
+      - "{bridge|train tracks|rooftop|ledge}"
+      - "{pesticide|rat poison|poison}"

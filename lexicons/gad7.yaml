@@ -1,0 +1,94 @@
+# GAD-7 symptom-domain cues (Spitzer et al. 2006, 7 items). Developer-authored seeds,
+# not validated; needs clinician review. `panic_somatic` is an extra item, not GAD-7.
+family: gad
+description: GAD-7 anxiety domains mentioned about oneself
+source: developer-authored seeds (MitraMind), structure from GAD-7 items 1-7
+license: proprietary to MitraMind (own work)
+defaults: {requires_first_person: true, negatable: true}
+items:
+  nervous:
+    label: "Item 1: feeling nervous, anxious or on edge"
+    terms:
+      - anxious
+      - anxiety
+      - nervous
+      - on edge
+      - "{feel|feeling|felt} {uneasy|tense|jittery|jumpy|scared|frightened}"
+      - "{so|really|very} {scared|stressed|tense}"
+      - stressed out
+      - stressing
+      - "{am|feel|feeling|been} stressed"
+      - "{nerves|nerve} {are|is} shot"
+  uncontrollable_worry:
+    label: "Item 2: not being able to stop or control worrying"
+    terms:
+      - "{can|could} not stop {worrying|thinking about|overthinking}"
+      - "{can|could} not control {my|the} {worry|worrying|thoughts}"
+      - "{racing|intrusive|spiraling|spiralling} thoughts"
+      - overthink*
+      - ruminat*
+      - "{mind|brain|head} {will|does|would} not {stop|shut up|turn off|shut off}"
+      - spiral*
+  excessive_worry:
+    label: "Item 3: worrying too much about different things"
+    terms:
+      - "{worry|worried|worrying} {about everything|too much|so much|all the time|constantly|a lot}"
+      - "{constant|constantly|always} {worry|worried|worrying}"
+      - "{i|i am|i get} worried"
+      - "{i|i am|i get|i keep} worrying"
+      - what if
+  trouble_relaxing:
+    label: "Item 4: trouble relaxing"
+    terms:
+      - "{can|could} not {relax|calm down|unwind|switch off|chill}"
+      - "{trouble|hard|difficult|impossible} to {relax|calm down|unwind}"
+      - always tense
+      - "{wound|wound up} {tight|up}"
+  restless:
+    label: "Item 5: so restless that it is hard to sit still"
+    terms:
+      - restless
+      - restlessness
+      - "{can|could} not sit still"
+      - "{fidget|fidgety|fidgeting}"
+      - pacing
+      - "{jittery|antsy|on pins and needles}"
+  irritable:
+    label: "Item 6: becoming easily annoyed or irritable"
+    terms:
+      - irritable
+      - irritated
+      - "{easily|so easily} {annoyed|irritated|angered|frustrated}"
+      - "{snap|snapped|snapping} at"
+      - short temper*
+      - short-tempered
+      - "{lose|losing|lost} my temper"
+      - "{on|having} a short fuse"
+      - cranky
+      - agitated
+  dread:
+    label: "Item 7: feeling afraid as if something awful might happen"
+    terms:
+      - dread
+      - dreading
+      - "something {bad|terrible|awful|horrible} {will|is going to|might} happen"
+      - "{sense|feeling} of {doom|dread}"
+      - impending doom
+      - "{afraid|scared|terrified} {that|of what|something}"
+      - "{fear|fearing} the worst"
+      - catastrophiz*
+      - catastrophis*
+  panic_somatic:
+    label: "(extra, not GAD-7) panic and bodily anxiety signs"
+    terms:
+      - panic attack*
+      - panicking
+      - panicked
+      - "{heart|chest} {racing|pounding|tight|tightness|tightening}"
+      - "{heart is|heart was} racing"
+      - "{can|could} not breathe"
+      - "{short|shortness} of breath"
+      - hyperventilat*
+      - "{shaking|trembling|sweating} {uncontrollably|so much}"
+      - "{feel|feeling} {dizzy|lightheaded|light-headed|sick to my stomach}"
+      - nauseous

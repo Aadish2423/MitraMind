@@ -1,0 +1,290 @@
+{
+ "period": {
+  "start": "2026-09-27 23:40:00+05:30",
+  "end": "2026-10-16 21:00:00+05:30",
+  "days": 19,
+  "weeks": 3,
+  "n_checkins": 8
+ },
+ "questionnaires": {
+  "PHQ-9": {
+   "history": [
+    {
+     "date": "2026-09-26",
+     "total": 14,
+     "severity": "moderate"
+    },
+    {
+     "date": "2026-10-06",
+     "total": 11,
+     "severity": "moderate"
+    },
+    {
+     "date": "2026-10-16",
+     "total": 9,
+     "severity": "mild"
+    }
+   ],
+   "change": -5,
+   "direction": "improved"
+  },
+  "GAD-7": {
+   "history": [
+    {
+     "date": "2026-09-26",
+     "total": 12,
+     "severity": "moderate"
+    },
+    {
+     "date": "2026-10-16",
+     "total": 8,
+     "severity": "mild"
+    }
+   ],
+   "change": -4,
+   "direction": "improved"
+  }
+ },
+ "reported_in_checkins": {
+  "phq9_domains": {
+   "sleep problems": 2,
+   "guilt / worthlessness": 1,
+   "tiredness": 1,
+   "poor concentration": 1
+  },
+  "gad7_domains": {
+   "uncontrollable worry": 1,
+   "panic / bodily anxiety": 1,
+   "nervousness": 1
+  },
+  "sleep": {
+   "checkins_with_sleep_problems": 2,
+   "types_reported": {
+    "trouble falling/staying asleep": 2,
+    "awake at 1-4 am": 2
+   }
+  },
+  "stressor_domains": {
+   "school_exam": {
+    "label": "studies / exams",
+    "checkins": 6,
+    "words_used": [
+     "boards",
+     "class",
+     "coaching",
+     "exams",
+     "jee",
+     "results",
+     "studying"
+    ]
+   },
+   "family": {
+    "label": "family",
+    "checkins": 2,
+    "words_used": [
+     "parents",
+     "sister"
+    ]
+   }
+  },
+  "coping_reported_helpful": {
+   "breathing exercises": 2,
+   "talking to someone": 1
+  },
+  "coping_mentioned": {
+   "music / hobbies": 1,
+   "exercise / walking": 1
+  },
+  "coping_unhelpful_or_not_working": {}
+ },
+ "mood_signals": {
+  "emotion_model_distress_0_to_1": 0.827,
+  "distress_trend": "stable",
+  "top_emotion_cue_share": {
+   "anxious": 0.625,
+   "low_mood": 0.25,
+   "positive": 0.125
+  }
+ },
+ "weekly": [
+  {
+   "week_of": "2026-09-21",
+   "checkins": 1,
+   "domains": [
+    "family",
+    "guilt / worthlessness",
+    "sleep problems",
+    "studies / exams"
+   ]
+  },
+  {
+   "week_of": "2026-09-28",
+   "checkins": 3,
+   "domains": [
+    "poor concentration",
+    "studies / exams",
+    "tiredness"
+   ]
+  },
+  {
+   "week_of": "2026-10-05",
+   "checkins": 2,
+   "domains": [
+    "family",
+    "sleep problems"
+   ]
+  },
+  {
+   "week_of": "2026-10-12",
+   "checkins": 2,
+   "domains": [
+    "studies / exams"
+   ]
+  }
+ ],
+ "checkins": [
+  {
+   "entry_id": "s01",
+   "date": "2026-09-27",
+   "language": "en",
+   "modality": "text",
+   "phq9": [
+    "sleep",
+    "worthlessness_guilt"
+   ],
+   "gad7": [],
+   "sleep": [
+    "insomnia",
+    "small_hours"
+   ],
+   "stressors": [
+    "school_exam",
+    "family"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {},
+   "shared_text": "Can't sleep again, it's almost 2am. My JEE mock results were bad and my parents keep comparing me to my cousin. I feel like a failure."
+  },
+  {
+   "entry_id": "s02",
+   "date": "2026-09-29",
+   "language": "en",
+   "modality": "text",
+   "phq9": [
+    "fatigue",
+    "concentration"
+   ],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "school_exam"
+   ],
+   "top_emotion": "low_mood",
+   "coping": {
+    "creative_music": "mentioned"
+   }
+  },
+  {
+   "entry_id": "s03",
+   "date": "2026-10-01",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "school_exam"
+   ],
+   "top_emotion": "anxious",
+   "coping": {
+    "breathing": "helpful"
+   },
+   "shared_text": "Tried the breathing exercise from the app before studying. It actually helped me calm down a bit."
+  },
+  {
+   "entry_id": "s04",
+   "date": "2026-10-04",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [
+    "uncontrollable_worry",
+    "panic_somatic"
+   ],
+   "sleep": [],
+   "stressors": [
+    "school_exam"
+   ],
+   "top_emotion": "anxious",
+   "coping": {}
+  },
+  {
+   "entry_id": "s05",
+   "date": "2026-10-07",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "family"
+   ],
+   "top_emotion": "positive",
+   "coping": {
+    "social_support": "helpful"
+   }
+  },
+  {
+   "entry_id": "s06",
+   "date": "2026-10-10",
+   "language": "en",
+   "modality": "text",
+   "phq9": [
+    "sleep"
+   ],
+   "gad7": [],
+   "sleep": [
+    "insomnia",
+    "small_hours"
+   ],
+   "stressors": [],
+   "top_emotion": "anxious",
+   "coping": {
+    "breathing": "helpful"
+   }
+  },
+  {
+   "entry_id": "s07",
+   "date": "2026-10-13",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [
+    "nervous"
+   ],
+   "sleep": [],
+   "stressors": [
+    "school_exam"
+   ],
+   "top_emotion": "anxious",
+   "coping": {},
+   "shared_text": "Mock test went better today. Still nervous about the boards, but less than before."
+  },
+  {
+   "entry_id": "s08",
+   "date": "2026-10-16",
+   "language": "en",
+   "modality": "text",
+   "phq9": [],
+   "gad7": [],
+   "sleep": [],
+   "stressors": [
+    "school_exam"
+   ],
+   "top_emotion": "anxious",
+   "coping": {
+    "physical_activity": "mentioned"
+   }
+  }
+ ]
+}

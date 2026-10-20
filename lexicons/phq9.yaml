@@ -1,0 +1,142 @@
+# PHQ-9 symptom-domain cues (Kroenke et al. 2001; the 9 DSM depression criteria).
+# Seed terms are developer-authored, NOT a validated instrument. They must be reviewed
+# by the clinical champion before any clinical use. A hit means "the person talked
+# about this domain", never "the person has this symptom".
+#
+# Term syntax (all families): plain phrase, matched on whole words after lowercasing
+# and contraction expansion ("can't" == "can not" == "cant"); trailing * = prefix
+# wildcard; {a|b} = alternatives; "re:" prefix = raw regex on normalised text.
+family: phq
+description: PHQ-9 symptom domains mentioned about oneself
+source: developer-authored seeds (MitraMind), structure from PHQ-9 items 1-9
+license: proprietary to MitraMind (own work)
+defaults: {requires_first_person: true, negatable: true}
+items:
+  anhedonia:
+    label: "Item 1: little interest or pleasure in doing things"
+    terms:
+      - lost interest
+      - "no {interest|motivation|desire} in"
+      - "{do|can} not enjoy"
+      - "{do|can} not care about anything"
+      - nothing is fun
+      - nothing {interests|excites} me
+      - "{do|can} not find joy"
+      - no joy
+      - no longer enjoy
+      - "{stopped|stop} enjoying"
+      - "{do|did} not feel like doing anything"
+      - "{no|lack of} motivation"
+      - unmotivated
+      - anhedonia
+      - nothing makes me happy
+      - "{can|could} not be bothered"
+      - "{lost|losing} {my|all} passion"
+  depressed_mood:
+    label: "Item 2: feeling down, depressed or hopeless"
+    terms:
+      - "{feel|feeling|felt} {down|empty|numb|sad|miserable|depressed|low|hopeless|hollow}"
+      - "{am|was|been} {so|very|really|always} {sad|depressed|miserable|down}"
+      - depressed
+      - depressing
+      - depression
+      - hopeless
+      - hopelessness
+      - crying
+      - cried
+      - "{cry|cries} {all the time|every day|myself to sleep}"
+      - sad all the time
+      - "{feel|feeling} like {shit|crap|garbage}"
+      - despair
+      - heartbroken
+      - emptiness
+  sleep:
+    label: "Item 3: trouble falling or staying asleep, or sleeping too much"
+    include: [sleep.insomnia, sleep.hypersomnia]
+  fatigue:
+    label: "Item 4: feeling tired or having little energy"
+    terms:
+      - exhausted
+      - exhaustion
+      - "{no|zero|little|low} energy"
+      - "{do|can} not have {any|the} energy"
+      - tired all the time
+      - "{always|constantly|so|very|really} tired"
+      - "{feel|feeling|felt} {tired|drained|exhausted|fatigued|lethargic|sluggish|weak}"
+      - fatigue
+      - fatigued
+      - drained
+      - burnt out
+      - burned out
+      - burnout
+      - lethargic
+      - "{can|could} not get out of bed"
+      - "{hard|struggle|struggling} to get out of bed"
+  appetite:
+    label: "Item 5: poor appetite or overeating"
+    terms:
+      - "{no|lost|lost my|poor|loss of} appetite"
+      - "{not|have not been|have not} eating"
+      - "{can|could} not eat"
+      - "{forget|forgot|forgetting} to eat"
+      - "{skip|skipping|skipped} meals"
+      - "{binge|binged|binging|bingeing} {eat|eating|ate}*"
+      - "{lost|losing|gained|gaining} {so much|a lot of} weight"
+      - "{lost|gained} * {pounds|kg|kilos|lbs}"
+      - overeating
+      - "{stress|comfort|emotional} eating"
+      - eating too much
+      - "{stopped|stop} eating"
+  worthlessness_guilt:
+    label: "Item 6: feeling bad about yourself, a failure, letting others down"
+    terms:
+      - worthless
+      - "{i am|feel like} a {failure|disappointment|loser|burden|mess|fraud}"
+      - "{such|a complete|a total} failure"
+      - "{hate|hated|loathe|despise} myself"
+      - self hatred
+      - self-hatred
+      - "{my|all my} fault"
+      - "{feel|feeling} guilty"
+      - guilt
+      - ashamed of myself
+      - "{let|letting} {everyone|them|my family|my parents|people} down"
+      - "{not|never} good enough"
+      - useless
+      - "{i am|i feel} pathetic"
+      - "{i am|i feel} stupid"
+      - disgusted with myself
+      - "{i am|i feel like} a burden"
+  concentration:
+    label: "Item 7: trouble concentrating"
+    terms:
+      - "{can|could} not {focus|concentrate|think straight|think clearly}"
+      - "{trouble|difficulty|hard|struggle|struggling} {focusing|concentrating|to focus|to concentrate}"
+      - brain fog
+      - foggy
+      - "{mind|brain} {is|keeps} {wandering|blank}"
+      - "{can|could} not remember anything"
+      - "{zoning|zone|zoned} out"
+      - "{losing|lose|lost} focus"
+      - distracted
+      - "{read|reading} the same {line|page|sentence} * {times|again}"
+  psychomotor:
+    label: "Item 8: moving or speaking slowly, or being fidgety/restless"
+    terms:
+      - "{moving|move|talking|talk|speaking} {so|really|very} slow*"
+      - slowed down
+      - "{feel|feeling} {slow|heavy|sluggish}"
+      - fidget*
+      - "{can|could} not sit still"
+      - restless
+      - restlessness
+      - pacing
+  self_harm_thoughts:
+    label: "Item 9: thoughts of being better off dead or of hurting yourself"
+    include: [risk.ideation, risk.behavior, risk.attempt]
+    terms:
+      - "{cut|cutting|hurt|hurting|harm|harming|burn|burning} myself"
+      - self harm
+      - self-harm
+      - selfharm
+      - relapsed on {self harm|cutting}

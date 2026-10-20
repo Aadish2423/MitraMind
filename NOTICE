@@ -1,0 +1,29 @@
+MitraMind Phase 1 cue extractor: third-party material
+
+1. Low, D. M., Rumker, L., Talkar, T., Torous, J., Cecchi, G., & Ghosh, S. S. (2020).
+   Natural Language Processing Reveals Vulnerable Mental Health Support Groups and
+   Heightened Health Anxiety on Reddit During COVID-19. JMIR 22(10):e22635.
+   Lexicons (economic_stress, isolation, substance_use, guns, domestic_stress, suicidality,
+   covid19) adapted from https://github.com/danielmlow/reddit (Apache License 2.0).
+   Changes: whole-word matching instead of substring counting, fixed the missing comma
+   that merged "ignoring me" and "ugly", fixed capitalised entries that never matched,
+   narrowed several broad phrases, added negation and first-person scoping, added terms.
+   Used in lexicons/stressors.yaml and lexicons/crisis.yaml (marked "# Low et al.").
+
+2. Bathina, K. C., ten Thij, M., Lorenzo-Luaces, L., Rutter, L. A., & Bollen, J. (2021).
+   Individuals with depression express more distorted thinking on social media.
+   Nature Human Behaviour 5, 458-466. arXiv:2002.02800, Appendix Table 7.
+   Cognitive Distortion Schemata n-grams in lexicons/cognitive_distortions.yaml.
+
+3. Al-Mosaiwi, M., & Johnstone, T. (2018). In an Absolute State: Elevated Use of
+   Absolutist Words Is a Marker Specific to Anxiety, Depression, and Suicidal Ideation.
+   Clinical Psychological Science 6(4), 529-542. CC BY 4.0. Absolutist construct in
+   lexicons/linguistic.yaml (word list still to be verified against Table S2).
+
+4. Demszky et al. (2020) GoEmotions, google-research/google-research, Apache License 2.0.
+   ekman_mapping.json and sentiment_mapping.json are downloaded at run time.
+
+5. Mauriello et al. (2021) SAD: A Stress Annotated Dataset. Stressor category names only.
+
+Python dependencies: vaderSentiment (MIT), empath (MIT), textstat (MIT).
+Not used and not bundled: LIWC dictionaries (proprietary), NRC lexicons (non-commercial).

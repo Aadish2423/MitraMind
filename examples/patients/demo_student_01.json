@@ -1,0 +1,29 @@
+{
+  "_note": "FICTIONAL demo patient written for testing. Not real patient data.",
+  "patient_ref": "demo_student_01",
+  "questionnaires": [
+    {"instrument": "PHQ-9", "date": "2026-09-26", "items": [2, 2, 3, 2, 1, 2, 2, 0, 0]},
+    {"instrument": "GAD-7", "date": "2026-09-26", "items": [2, 2, 2, 2, 1, 1, 2]},
+    {"instrument": "PHQ-9", "date": "2026-10-06", "items": [1, 2, 2, 2, 1, 1, 2, 0, 0]},
+    {"instrument": "PHQ-9", "date": "2026-10-16", "items": [1, 1, 2, 1, 1, 1, 2, 0, 0]},
+    {"instrument": "GAD-7", "date": "2026-10-16", "items": [1, 1, 1, 1, 1, 1, 2]}
+  ],
+  "entries": [
+    {"entry_id": "s01", "timestamp": "2026-09-27T23:40:00+05:30", "shared_with_clinician": true,
+     "text": "Can't sleep again, it's almost 2am. My JEE mock results were bad and my parents keep comparing me to my cousin. I feel like a failure."},
+    {"entry_id": "s02", "timestamp": "2026-09-29T21:10:00+05:30",
+     "text": "So tired all day, I couldn't focus in coaching class. Kept reading the same page five times."},
+    {"entry_id": "s03", "timestamp": "2026-10-01T22:30:00+05:30", "shared_with_clinician": true,
+     "text": "Tried the breathing exercise from the app before studying. It actually helped me calm down a bit."},
+    {"entry_id": "s04", "timestamp": "2026-10-04T00:50:00+05:30",
+     "text": "Exams in two weeks and I can't stop worrying about everything. My heart was racing in the morning."},
+    {"entry_id": "s05", "timestamp": "2026-10-07T20:15:00+05:30",
+     "text": "Talked to my sister about the pressure from my parents. Felt lighter after that."},
+    {"entry_id": "s06", "timestamp": "2026-10-10T23:55:00+05:30",
+     "text": "Still waking up at 3am most nights, but I fell asleep faster after the breathing exercises."},
+    {"entry_id": "s07", "timestamp": "2026-10-13T19:30:00+05:30", "shared_with_clinician": true,
+     "text": "Mock test went better today. Still nervous about the boards, but less than before."},
+    {"entry_id": "s08", "timestamp": "2026-10-16T21:00:00+05:30",
+     "text": "Went for a walk with a friend in the evening. I should be studying more but I'm trying not to panic."}
+  ]
+}
