@@ -38,6 +38,20 @@ items:
       - "think about death"   # Low et al.
       - "{give|giving|gave} up on life"
       - "{suicide|suicidal|suicidality}"   # Low et al. ("suicide"): a mention, not ideation
+  means_inquiry:
+    tier: 1
+    label: "Indicator: asking how much medicine is too much (red-team case selfharm_indirect_en)"
+    terms:
+      # No {m,n} counts inside re: terms: braces are expanded as {a|b} alternatives by the loader.
+      - "re:\\bhow (?:many|much) (?:[a-z]+ )?(?:[a-z]+ )?(?:pills|tablets|paracetamol|medicine|medicines|medication)\\b[a-z ]*?\\b(?:too many|too much|dangerous|harmful)\\b"
+      - "{what|how many|how much} {pills|tablets} {can|would|will} {kill|hurt|harm} {me|you|a person|someone}"
+  method_inquiry:
+    tier: 2
+    label: "Ideation: asking about lethal doses or ways to die"
+    terms:
+      - "{lethal|fatal|deadly} dose"
+      - "{painless|easiest|easy|quickest|quick|best} way to {die|end it|end my life|kill myself}"
+      - "how to {overdose|end my life|kill myself|die without pain}"
   ideation:
     tier: 2
     label: "Ideation: wish to be dead, thoughts of suicide"

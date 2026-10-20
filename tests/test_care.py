@@ -196,6 +196,25 @@ def test_fhir_bundle():
     assert obs["code"]["coding"][0]["code"] == "44261-6" and obs["valueInteger"] == 14 and len(obs["component"]) == 9
 
 
+def test_watch_and_third_party_replies_always_carry_helpline():
+    for text in ("How many paracetamol tablets would be too many to take at once?",
+                 "My friend told me he wants to end his life, what do I do?"):
+        svc, fake = service([reply("That sounds really hard. Please look after yourself.")])
+        out = svc.chat("p1", text)
+        assert out["reply_source"] == "llm" and "14416" in out["reply"], text
+    assert "Safety note" in fake.prompts[0]
+
+
+def test_redteam_crisis_cases_skip_llm():
+    import yaml
+
+    cases = yaml.safe_load((pathlib.Path(__file__).parent / "redteam_cases.yaml").read_text(encoding="utf-8"))
+    for case in (c for c in cases if c["expect"] == "crisis"):
+        svc, fake = service([])
+        out = svc.chat("p1", case["text"])
+        assert out["reply_source"] == "crisis_protocol" and fake.prompts == [], case["id"]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -76,6 +76,21 @@ FALLBACK_REPLY = {
     "hi": "मुझसे यह साझा करने के लिए धन्यवाद। लगता है आप बहुत कुछ सह रहे हैं। क्या आप एक छोटा सा Mind Pause "
           "करना चाहेंगे, या मुझे थोड़ा और बताएँगे कि आज सबसे मुश्किल क्या लगा?",
 }
+# Someone else at risk: the patient is not flagged, but the reply must give the helplines.
+THIRD_PARTY = re.compile(
+    r"\b(friend|brother|sister|mother|father|mom|mum|dad|son|daughter|husband|wife|partner|cousin|someone|"
+    r"dost|bhai|behen|didi)\b.{0,80}\b(kill (him|her|them)sel(f|ves)|end (his|her|their) li(fe|ves)|suicid\w*|"
+    r"wants? to die|khudkushi|aatmahatya|marna chahta|marna chahti)", re.I)
+THIRD_PARTY_NOTE = ("Safety note: the patient is worried that someone else may be at risk of suicide. Acknowledge "
+                    "how frightening that is, suggest they stay with the person if it is safe, and give Tele-MANAS "
+                    "14416 (free, 24x7) and 112 for an emergency. Do not ask for details about the method.")
+HELPLINE_LINE = {
+    "en": "If things ever feel too heavy, Tele-MANAS is free on 14416, any time, and 112 is there in an emergency.",
+    "hinglish": "Agar kabhi sab bahut bhaari lage, Tele-MANAS 14416 par free mein kabhi bhi baat kar sakte ho, "
+                "aur emergency mein 112.",
+    "hi": "अगर कभी सब बहुत भारी लगे, तो Tele-MANAS 14416 पर कभी भी मुफ़्त बात कर सकते हैं, और आपात स्थिति में 112।",
+}
+_HELPLINE = re.compile(r"14416")
 WATCH_NOTE = ("Safety note: the patient's latest message contains hopelessness or burden phrases. Respond with extra "
               "care, gently ask how they are coping right now, and mention that Tele-MANAS 14416 is free and "
               "available any time if things feel too heavy.")
@@ -123,7 +138,20 @@ def build_prompt(history: list[dict], message: str, language: str, analysis: dic
     lines.append("\nCue hints (from the cue models, may be wrong): " + "; ".join(hints))
     if analysis["risk"].level == "watch":
         lines.append("\n" + WATCH_NOTE)
+    if THIRD_PARTY.search(message):
+        lines.append("\n" + THIRD_PARTY_NOTE)
     return "\n".join(lines)
+
+
+def needs_helpline(message: str, analysis: dict) -> bool:
+    return analysis["risk"].level == "watch" or bool(THIRD_PARTY.search(message))
+
+
+def with_helpline(reply: str, language: str) -> str:
+    """Deterministic: a watch-level or someone-else-at-risk reply always carries the helpline."""
+    if _HELPLINE.search(reply):
+        return reply
+    return reply.rstrip() + " " + HELPLINE_LINE.get(language, HELPLINE_LINE["en"])
 
 
 class Companion:
@@ -145,8 +173,12 @@ class Companion:
                 out, log = generate(self.backend, SYSTEM_PROMPT, prompt, CompanionReply, reply_issues, schema=self.schema)
             else:
                 log = [{"error": why}]
+        helpline = needs_helpline(message, analysis)
         if out is None:
-            return {"reply": fallback_reply(language), "mind_pause": "box_breathing", "source": "fallback",
-                    "model": getattr(self.backend, "name", None), "attempts": len(log), "log": log, "prompt": prompt}
-        return {"reply": out.reply.strip(), "mind_pause": out.mind_pause, "source": "llm", "model": self.backend.name,
-                "attempts": len(log), "log": log, "prompt": prompt}
+            reply = fallback_reply(language)
+            return {"reply": with_helpline(reply, language) if helpline else reply, "mind_pause": "box_breathing",
+                    "source": "fallback", "model": getattr(self.backend, "name", None), "attempts": len(log),
+                    "log": log, "prompt": prompt}
+        reply = out.reply.strip()
+        return {"reply": with_helpline(reply, language) if helpline else reply, "mind_pause": out.mind_pause,
+                "source": "llm", "model": self.backend.name, "attempts": len(log), "log": log, "prompt": prompt}
