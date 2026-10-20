@@ -17,7 +17,7 @@ Branch: `phase1-orchestrator` on github.com/Aadish2423/mitramind-cue-models.
 | 4 | Clinician side: alert queue (risk triage), dashboard, State Card from stored data | done |
 | 5 | Phase 2: de-identified pilot dataset export (conversations linked to PHQ/GAD change) | done (tested on synthetic data) |
 | 6 | Phase 3: train small models on the pilot dataset | done (pipeline; real models need pilot data) |
-| 7 | Integrations: WhatsApp Business webhook, FHIR export | todo |
+| 7 | Integrations: WhatsApp Business webhook, FHIR export | done (WhatsApp tested in dry-run only) |
 | 8 | Red-team suite, end-to-end test, docs | todo |
 
 ## How the strategy maps to code
@@ -119,3 +119,19 @@ Entries are added as each step finishes.
   (AUROC 0.49), as it should. Real numbers need the pilot.
 - Not wired into the dashboard on purpose: no prediction is shown to clinicians until a model trained on
   real pilot data is validated and approved.
+
+### Step 7: integrations (done; WhatsApp not yet tested against a real Meta account)
+
+- `src/care/whatsapp.py`: Meta Cloud API webhook at `/webhooks/whatsapp` (GET verification with
+  `WHATSAPP_VERIFY_TOKEN`; POST checks `X-Hub-Signature-256` with `WHATSAPP_APP_SECRET`, which is required
+  unless `MITRAMIND_ENV=dev`). It answers Meta at once and handles messages in the background. Retries are
+  de-duplicated by message id. Patients are matched by hashed phone number (enrol with `phone`); unknown
+  numbers get a fixed "ask your clinic" reply. Text → companion; voice notes → downloaded and transcribed;
+  `PHQ` / `GAD` runs the questionnaire one item at a time (0-3 answers, `stop` cancels); `share` shares the
+  previous message. Replies go out with `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID`; without them they
+  are only recorded (`GET /v1/whatsapp/outbox`).
+- `src/care/fhir.py` + `GET /v1/clinician/patients/{id}/fhir[?include_card=true]`: FHIR R4 collection
+  Bundle with Patient (pseudonymous id), Observation per PHQ-9 / GAD-7 total (LOINC 44261-6 / 70274-6,
+  items as components), Flag per open alert, DocumentReference with the pre-visit summary.
+- Checked live: the webhook answered in 0.04 s and the Hinglish companion reply appeared in the outbox.
+  Tests: `test_whatsapp_chat_and_questionnaire`, `test_fhir_bundle`.

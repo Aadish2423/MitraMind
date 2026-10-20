@@ -67,6 +67,11 @@ CREATE TABLE IF NOT EXISTS clinician_feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id TEXT NOT NULL, clinician_id TEXT,
     rating INTEGER CHECK (rating BETWEEN 1 AND 5), accurate INTEGER, minutes_saved REAL, comment TEXT,
     card_json TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS questionnaire_sessions (
+    patient_id TEXT PRIMARY KEY REFERENCES patients(id), instrument TEXT NOT NULL, answers_json TEXT NOT NULL,
+    channel TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS inbound_events (
+    event_id TEXT PRIMARY KEY, channel TEXT NOT NULL, received_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_messages_patient ON messages(patient_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 """
@@ -257,6 +262,31 @@ class Store:
 
     def feedback(self) -> list[dict]:
         return self._all("SELECT * FROM clinician_feedback ORDER BY id")
+
+    # ------------------------------------------------------------------ chat-channel questionnaires, dedup
+    def q_session(self, patient_id: str) -> dict | None:
+        row = self._one("SELECT * FROM questionnaire_sessions WHERE patient_id = ?", (patient_id,))
+        if row:
+            row["answers"] = json.loads(row.pop("answers_json"))
+        return row
+
+    def set_q_session(self, patient_id: str, instrument: str, answers: list[int], channel: str) -> None:
+        self._exec("INSERT INTO questionnaire_sessions (patient_id, instrument, answers_json, channel, updated_at) "
+                   "VALUES (?, ?, ?, ?, ?) ON CONFLICT(patient_id) DO UPDATE SET instrument = excluded.instrument, "
+                   "answers_json = excluded.answers_json, channel = excluded.channel, updated_at = excluded.updated_at",
+                   (patient_id, instrument, json.dumps(answers), channel, now()))
+
+    def end_q_session(self, patient_id: str) -> None:
+        self._exec("DELETE FROM questionnaire_sessions WHERE patient_id = ?", (patient_id,))
+
+    def first_time(self, event_id: str, channel: str) -> bool:
+        """True the first time an inbound event id is seen (webhooks are retried)."""
+        try:
+            self._exec("INSERT INTO inbound_events (event_id, channel, received_at) VALUES (?, ?, ?)",
+                       (event_id, channel, now()))
+            return True
+        except sqlite3.IntegrityError:
+            return False
 
     # ------------------------------------------------------------------ usage (what the clinician may see)
     def usage(self, patient_id: str) -> dict:

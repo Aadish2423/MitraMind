@@ -7,15 +7,19 @@ from __future__ import annotations
 
 import base64
 import binascii
+import json
+import os
 from datetime import date as Date
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
-from . import instruments, mind_pause
+from . import fhir, instruments, mind_pause
 from .service import CareService, ConsentRequired, NotFound
 from .store import CONSENT_PURPOSES, CONSENT_VERSION
+from .whatsapp import WhatsAppChannel, verify_signature
 
 
 class Enrollment(BaseModel):
@@ -23,6 +27,7 @@ class Enrollment(BaseModel):
     display_name: str | None = None
     preferred_language: Literal["auto", "en", "hinglish", "hi"] = "auto"
     clinician_id: str | None = None
+    phone: str | None = Field(None, description="WhatsApp number with country code, digits only (stored hashed)")
     consents: dict[str, bool] = {}
 
 
@@ -96,7 +101,7 @@ def build_router(svc: CareService) -> APIRouter:
     @r.post("/v1/patients", tags=["patient"])
     def enroll(body: Enrollment):
         return _call(svc.enroll, body.id, body.display_name, body.preferred_language, body.clinician_id,
-                     consents=body.consents)
+                     phone=body.phone, consents=body.consents)
 
     @r.get("/v1/patients/{pid}", tags=["patient"])
     def profile(pid: str):
@@ -178,6 +183,37 @@ def build_router(svc: CareService) -> APIRouter:
         _call(svc.profile, pid)
         return {"id": svc.store.add_feedback(pid, body.clinician_id, body.rating, body.accurate, body.minutes_saved,
                                              body.comment, None)}
+
+    @r.get("/v1/clinician/patients/{pid}/fhir", tags=["clinician"])
+    def fhir_export(pid: str, include_card: bool = False):
+        _call(svc._require_care_team, pid)
+        md = _call(svc.state_card, pid, False)["markdown"] if include_card else None
+        return fhir.patient_bundle(svc.store, pid, md)
+
+    # ---------------------------------------------------------------- WhatsApp Business webhook
+    wa = WhatsAppChannel(svc)
+
+    @r.get("/webhooks/whatsapp", tags=["whatsapp"])
+    def wa_verify(request: Request):
+        q = request.query_params
+        token = os.environ.get("WHATSAPP_VERIFY_TOKEN")
+        if q.get("hub.mode") == "subscribe" and token and q.get("hub.verify_token") == token:
+            return PlainTextResponse(q.get("hub.challenge", ""))
+        raise HTTPException(403, "verification failed")
+
+    @r.post("/webhooks/whatsapp", tags=["whatsapp"])
+    async def wa_inbound(request: Request, background: BackgroundTasks):
+        body = await request.body()
+        if not verify_signature(body, request.headers.get("X-Hub-Signature-256")):
+            raise HTTPException(403, "bad signature")
+        # Answer Meta at once; the companion reply (LLM, speech-to-text) can take tens of seconds.
+        background.add_task(wa.handle, json.loads(body or b"{}"))
+        return {"status": "accepted"}
+
+    @r.get("/v1/whatsapp/outbox", tags=["whatsapp"])
+    def wa_outbox(limit: int = 20):
+        """Replies the WhatsApp channel sent or, without credentials, would have sent (testing)."""
+        return wa.sender.outbox[-limit:]
 
     @r.get("/v1/audit", tags=["clinician"])
     def audit(patient_id: str | None = None, limit: int = 100):

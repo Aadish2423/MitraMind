@@ -156,6 +156,46 @@ def test_pilot_export_respects_consent(tmp_path=None):
     assert "p1" not in (out / "windows.csv").read_text() and not (out / "shared_texts.jsonl").exists()
 
 
+def wa_payload(msg_id, phone, text):
+    return {"entry": [{"changes": [{"value": {"messages": [
+        {"id": msg_id, "from": phone, "type": "text", "text": {"body": text}}]}}]}]}
+
+
+def test_whatsapp_chat_and_questionnaire():
+    from care.whatsapp import NOT_ENROLLED, WhatsAppChannel, WhatsAppSender
+
+    svc, _ = service([reply("That sounds tiring. Want to try a short breathing pause?", "box_breathing")])
+    svc.enroll("wa1", consents={"companion": True, "care_team": True}, phone="919800000001")
+    sender = WhatsAppSender()
+    sender.token = sender.phone_id = None  # dry run
+    wa = WhatsAppChannel(svc, sender)
+    wa.handle(wa_payload("x0", "910000000000", "hello"))
+    assert sender.outbox[-1]["text"] == NOT_ENROLLED
+    wa.handle(wa_payload("x1", "919800000001", "I am so tired after work every day"))
+    assert "breathing" in sender.outbox[-1]["text"] and svc.history("wa1")[0]["text"].startswith("I am so tired")
+    n = len(sender.outbox)
+    wa.handle(wa_payload("x1", "919800000001", "I am so tired after work every day"))  # Meta retry
+    assert len(sender.outbox) == n
+    wa.handle(wa_payload("q0", "919800000001", "PHQ"))
+    for i, ans in enumerate(["1", "5", "1", "1", "2", "1", "1", "0", "0", "1"]):
+        wa.handle(wa_payload(f"q{i + 1}", "919800000001", ans))
+    assert "0 to 3" in sender.outbox[-9]["text"]  # the "5" was rejected, then 7 item prompts and the score
+    assert "PHQ-9 score is 8" in sender.outbox[-1]["text"]
+    assert svc.store.questionnaires("wa1")[0]["channel"] == "whatsapp"
+
+
+def test_fhir_bundle():
+    from care import fhir
+
+    svc, _ = service([])
+    svc.submit_questionnaire("p1", "PHQ-9", [2, 2, 2, 2, 1, 2, 1, 1, 1])
+    b = fhir.patient_bundle(svc.store, "p1", "# summary")
+    kinds = [e["resource"]["resourceType"] for e in b["entry"]]
+    assert kinds == ["Patient", "Observation", "Flag", "DocumentReference"]
+    obs = b["entry"][1]["resource"]
+    assert obs["code"]["coding"][0]["code"] == "44261-6" and obs["valueInteger"] == 14 and len(obs["component"]) == 9
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
