@@ -13,8 +13,8 @@ Branch: `phase1-orchestrator` on github.com/Aadish2423/mitramind-cue-models.
 | 0 | Phase 1: cue models m1-m5, safety layer, PHQ-9/GAD-7, LLM State Card, API, test page | done |
 | 1 | Storage: patients, DPDP consent, messages, questionnaires, alerts, audit log of every AI reply | done |
 | 2 | Text chat companion: safety first, LLM reply with guardrails, Mind Pause, Reflection Share | done |
-| 3 | Voice: speech-to-text, voice emotion (m3/m4), spoken replies | todo |
-| 4 | Clinician side: alert queue (risk triage), dashboard, State Card from stored data | todo |
+| 3 | Voice: speech-to-text, voice emotion (m3/m4), spoken replies | done (m3 needs training, see Remaining) |
+| 4 | Clinician side: alert queue (risk triage), dashboard, State Card from stored data | done |
 | 5 | Phase 2: de-identified pilot dataset export (conversations linked to PHQ/GAD change) | todo |
 | 6 | Phase 3: train small models on the pilot dataset | todo |
 | 7 | Integrations: WhatsApp Business webhook, FHIR export | todo |
@@ -58,3 +58,34 @@ Entries are added as each step finishes.
   clinician sees only shared text, questionnaire alerts, State Card from stored chats).
 - Checked live with Ollama qwen3.5: a Hinglish message got a Hinglish reply with a Mind Pause offer
   (31 s); "I want to die" got the crisis reply, an alert and an audit row without calling the LLM.
+
+### Step 3: voice (done)
+
+- `src/care/voice.py`: the clip is saved under `var/audio/<patient>/`, converted to 16 kHz mono WAV with
+  ffmpeg (any browser/WhatsApp format), and transcribed. STT backends: local Whisper
+  (`MITRAMIND_STT=whisper`, default `openai/whisper-small`, multilingual, runs on the GPU; set
+  `MITRAMIND_STT_MODEL` for an IndicWhisper / Hindi fine-tune) or Sarvam saarika over HTTPS
+  (`MITRAMIND_STT=sarvam` + `SARVAM_API_KEY`, written but not tested: no key).
+- `POST /v1/patients/{id}/voice` (`audio_base64`, `mime`, `share`, optional `language` hint): transcript ?
+  the same safety-first companion path as text, with `modality=voice`. The saved WAV goes to the voice
+  emotion models m3 / m4 through the orchestrator.
+- Patient app: a Voice button records 16 kHz WAV in the browser (no ffmpeg needed for app uploads) and
+  "Read replies aloud" uses the browser's speech synthesis (hi-IN / en-IN voices).
+- Checked: a Windows-TTS English clip was transcribed exactly by Whisper-small and got a companion reply
+  (59 s on the first call, which includes loading Whisper).
+- m4 (MSP-Podcast WavLM) runs once its two MIT-licensed models are in the Hugging Face cache:
+  `python src/run_msp.py` once, or the `snapshot_download` of `3loi/SER-Odyssey-Baseline-WavLM-Categorical`
+  and `...-Multi-Attributes`. m3 needs `src/prepare_cremad.py` + `src/train_cremad.py` (see README).
+
+### Step 4: clinician side (done)
+
+- Alerts: any message or questionnaire with risk above "none" opens an alert (watch / high / urgent),
+  with the recommended action from the crisis layer. `GET /v1/clinician/alerts`,
+  `POST /v1/clinician/alerts/{id}` (acknowledged / resolved, who, outcome note).
+- `GET /v1/clinician/dashboard`: patients sorted by open-alert level, PHQ-9 / GAD-7 latest, severity and
+  change, companion usage (messages, voice, shared, Mind Pauses). Nothing beyond the alert count is
+  shown without the patient's `care_team` consent.
+- `GET /v1/clinician/patients/{id}/state-card`: the Phase 1 User State Card built from the stored chats and
+  questionnaires (only shared texts reach the LLM). `.../shared`: the reflections the patient shared.
+  `.../feedback`: clinician rating, accuracy, minutes saved (pilot outcome data).
+- `src/web/clinician.html` at `/clinician`. Checked live: alert acknowledge, summary from stored chats.

@@ -28,6 +28,7 @@ from pydantic import BaseModel
 from care.routes import build_router
 from care.service import CareService
 from care.store import Store
+from care.voice import make_stt
 from phase1.llm import OllamaBackend, OpenAICompatBackend
 from phase1.orchestrator import Phase1Orchestrator
 from phase1.questionnaires import trends
@@ -48,7 +49,7 @@ def _backend(var: str = "MITRAMIND_LLM"):
 
 app = FastAPI(title="MitraMind Care", version="1.1")
 orch = Phase1Orchestrator(backend=_backend(), enable_neural=os.environ.get("MITRAMIND_NEURAL", "1") == "1")
-svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM"))
+svc = CareService(Store(), orch, _backend("MITRAMIND_CHAT_LLM"), make_stt())
 app.include_router(build_router(svc))
 WEB = Path(__file__).resolve().parent / "web"
 DEMO = Path(__file__).resolve().parents[1] / "examples" / "patients"

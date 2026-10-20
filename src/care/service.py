@@ -34,8 +34,8 @@ def _jsonable_analysis(a: dict) -> dict:
 
 
 class CareService:
-    def __init__(self, store: Store, orchestrator, chat_backend=None):
-        self.store, self.orch = store, orchestrator
+    def __init__(self, store: Store, orchestrator, chat_backend=None, stt=None):
+        self.store, self.orch, self.stt = store, orchestrator, stt
         self.companion = Companion(chat_backend)
 
     # ------------------------------------------------------------------ patients
@@ -90,6 +90,26 @@ class CareService:
                 "escalate": risk.level in ("high", "urgent"), "helplines": HELPLINES if risk.level != "none" else [],
                 "alert_id": alert_id, "models_used": analysis["models_used"], "emotion": analysis["emotion"],
                 "llm_attempts": out["attempts"]}
+
+    def voice(self, patient_id: str, audio: bytes, mime: str = "audio/wav", *, share: bool = False,
+              channel: str = "app", language: str | None = None) -> dict:
+        """Voice message: transcribe, then the same path as text, plus voice emotion models on the clip."""
+        from .voice import VoiceError, save_clip
+
+        self._patient(patient_id)
+        if not self.store.has_consent(patient_id, "companion"):
+            raise ConsentRequired("the patient has not consented to the companion")
+        if self.stt is None:
+            raise ValueError("speech-to-text is disabled on this server (MITRAMIND_STT=none)")
+        try:
+            wav = save_clip(patient_id, audio, mime)
+            stt = self.stt.transcribe(wav, language)
+        except VoiceError as e:
+            raise ValueError(str(e)) from e
+        if not stt["text"]:
+            raise ValueError("no speech was recognised in the recording")
+        out = self.chat(patient_id, stt["text"], share=share, modality="voice", channel=channel, audio_path=str(wav))
+        return {**out, "transcript": stt["text"], "stt_engine": stt["engine"], "audio_seconds": stt["seconds"]}
 
     def history(self, patient_id: str, limit: int = 50) -> list[dict]:
         self._patient(patient_id)

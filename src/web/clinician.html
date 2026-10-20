@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MitraMind Clinician Dashboard</title>
+<link rel="stylesheet" href="/static/common.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .scroll { overflow-x: auto; }
+  td .row { gap: 4px; } td button { padding: 3px 9px; font-size: 13px; }
+  tr.sel td { background: var(--code); }
+  .card-md { overflow-x: auto; } .card-md table { width: auto; margin: 8px 0; }
+  .card-md th, .card-md td { border: 1px solid var(--border); padding: 4px 8px; }
+  .card-md h1 { font-size: 19px; } .card-md h2 { font-size: 16px; margin-top: 16px; }
+  .quote { border-left: 3px solid var(--accent); padding: 4px 10px; margin: 6px 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .fb { display: grid; gap: 8px; }
+  .fb label { font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>MitraMind Care: clinician dashboard</h1>
+    <span class="small muted">Prototype: no login yet. Fictional test data only.</span>
+  </header>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Alerts</h2>
+      <select id="astatus"><option value="open">Open</option><option value="acknowledged">Acknowledged</option>
+        <option value="resolved">Resolved</option><option value="all">All</option></select></div>
+    <div class="scroll"><table id="alerts"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Patients</h2>
+    <div class="scroll"><table id="patients"></table></div>
+  </section>
+
+  <section class="panel" id="detail" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0" id="d-title"></h2>
+      <div class="row"><label class="small"><input type="checkbox" id="use-llm" checked> LLM summary (20-60 s)</label>
+        <button class="primary" id="build">Build pre-visit summary</button></div>
+    </div>
+    <div id="card" class="card-md"></div>
+    <div class="grid2" style="margin-top:12px">
+      <div><h3>Reflections the patient shared</h3><div id="shared" class="small"></div></div>
+      <div><h3>Rate this summary (helps the pilot)</h3>
+        <div class="fb">
+          <label>Usefulness <select id="fb-rating"><option value="">-</option><option>1</option><option>2</option>
+            <option>3</option><option>4</option><option>5</option></select></label>
+          <label><input type="checkbox" id="fb-accurate"> Matches what the patient told me in the visit</label>
+          <label>Minutes saved <input type="text" id="fb-min" size="4" inputmode="decimal"></label>
+          <textarea id="fb-comment" rows="2" placeholder="Anything wrong or missing?"></textarea>
+          <div class="row"><button id="fb-send">Save rating</button><span class="small muted" id="fb-out"></span></div>
+        </div></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const when = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "-";
+let CURRENT = null, LAST_CARD = null;
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} :
+    {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data));
+  return data;
+}
+
+async function loadAlerts() {
+  const rows = await api(`/v1/clinician/alerts?status=${$("astatus").value}`);
+  $("alerts").innerHTML = rows.length ? `<tr><th>Level</th><th>Patient</th><th>Why</th><th>From</th><th>When</th>
+    <th>What to do</th><th></th></tr>` + rows.map((a) => `<tr>
+      <td><span class="badge lvl-${a.level}">${esc(a.level)}</span></td><td><a href="#" data-p="${esc(a.patient_id)}">${esc(a.patient_id)}</a></td>
+      <td>${esc(a.reasons.join("; "))}</td><td>${esc(a.source)}</td><td class="small">${when(a.created_at)}</td>
+      <td class="small">${esc(a.recommended_action)}</td>
+      <td>${a.status === "resolved" ? `<span class="small muted">${esc(a.handled_by || "")} ${esc(a.note || "")}</span>` : `<div class="row">
+        ${a.status === "open" ? `<button data-a="${a.id}" data-s="acknowledged">Acknowledge</button>` : ""}
+        <button data-a="${a.id}" data-s="resolved">Resolve</button></div>`}</td></tr>`).join("")
+    : `<tr><td class="muted">No ${$("astatus").value === "all" ? "" : $("astatus").value} alerts.</td></tr>`;
+  $("alerts").querySelectorAll("button[data-a]").forEach((b) => b.onclick = async () => {
+    const note = b.dataset.s === "resolved" ? prompt("Outcome note (e.g. 'called patient, safety plan done')") : null;
+    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, handled_by: "clinician", note});
+    loadAlerts(); loadPatients();
+  });
+  $("alerts").querySelectorAll("a[data-p]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openPatient(a.dataset.p); });
+}
+
+function q(t) { return t ? `${t.latest} <span class="small muted">${esc(t.severity)}${t.direction !== "baseline_only" ?
+  `, ${t.change > 0 ? "+" : ""}${t.change}` : ""}</span>` : `<span class="muted">-</span>`; }
+
+async function loadPatients() {
+  const rows = await api("/v1/clinician/dashboard");
+  $("patients").innerHTML = `<tr><th>Patient</th><th>Open alerts</th><th>PHQ-9</th><th>GAD-7</th><th>Companion use</th>
+    <th>Last message</th><th></th></tr>` + rows.map((p) => `<tr class="${p.id === CURRENT ? "sel" : ""}">
+      <td>${esc(p.id)}</td>
+      <td>${p.open_alerts ? `<span class="badge lvl-${p.highest_open_alert}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>` : "0"}</td>
+      ${p.consents.care_team ? `<td>${q(p["PHQ-9"])}</td><td>${q(p["GAD-7"])}</td>
+        <td class="small">${p.usage.user_messages} messages (${p.usage.voice_messages} voice), ${p.usage.shared_reflections} shared,
+          ${p.usage.mind_pause_completed}/${p.usage.mind_pause_started} Mind Pauses</td><td class="small">${when(p.usage.last_message)}</td>
+        <td><button data-p="${esc(p.id)}">Open</button></td>`
+      : `<td colspan="5" class="small muted">Patient has not agreed to share with the care team</td>`}</tr>`).join("");
+  $("patients").querySelectorAll("button[data-p]").forEach((b) => b.onclick = () => openPatient(b.dataset.p));
+}
+
+async function openPatient(pid) {
+  CURRENT = pid; LAST_CARD = null;
+  $("detail").style.display = "block"; $("d-title").textContent = pid; $("card").innerHTML = ""; $("fb-out").textContent = "";
+  loadPatients();
+  try {
+    const shared = await api(`/v1/clinician/patients/${encodeURIComponent(pid)}/shared`);
+    $("shared").innerHTML = shared.length ? shared.map((m) => `<div class="quote">${esc(m.text)}
+      <div class="muted">${when(m.created_at)} · ${esc(m.modality)}</div></div>`).join("") : `<span class="muted">Nothing shared yet.</span>`;
+  } catch (e) { $("shared").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  $("detail").scrollIntoView({behavior: "smooth"});
+}
+
+$("build").onclick = async () => {
+  const b = $("build"); b.disabled = true; b.textContent = "Building…";
+  try {
+    const res = await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/state-card?use_llm=${$("use-llm").checked}`);
+    LAST_CARD = res.card;
+    const md = window.marked ? marked.parse(esc(res.markdown).replace(/&gt;/g, ">")) : `<pre>${esc(res.markdown)}</pre>`;
+    $("card").innerHTML = `<p class="small muted">Summary by ${res.card.narrative_source === "llm" ? esc(res.card.llm_model) :
+      "rule-based fallback"}.</p>${md}`;
+  } catch (e) { $("card").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  finally { b.disabled = false; b.textContent = "Build pre-visit summary"; }
+};
+
+$("fb-send").onclick = async () => {
+  const min = parseFloat($("fb-min").value);
+  await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/feedback`, {
+    clinician_id: "clinician", rating: $("fb-rating").value ? +$("fb-rating").value : null,
+    accurate: $("fb-accurate").checked, minutes_saved: isNaN(min) ? null : min, comment: $("fb-comment").value || null});
+  $("fb-out").textContent = "Saved. Thank you.";
+};
+
+$("astatus").onchange = loadAlerts;
+loadAlerts(); loadPatients();
+setInterval(loadAlerts, 30000);
+</script>
+</body>
+</html>

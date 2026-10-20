@@ -5,6 +5,8 @@ hospital SSO / OTP login with patient and clinician roles (see task.md, "Remaini
 """
 from __future__ import annotations
 
+import base64
+import binascii
 from datetime import date as Date
 from typing import Literal
 
@@ -32,6 +34,13 @@ class ConsentChange(BaseModel):
 class ChatIn(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
     share: bool = Field(False, description="Reflection Share: let the care team read this message")
+
+
+class VoiceIn(BaseModel):
+    audio_base64: str = Field(description="the recording, base64-encoded")
+    mime: str = "audio/wav"
+    share: bool = False
+    language: Literal["hi", "en"] | None = Field(None, description="speech language hint; omit to auto-detect")
 
 
 class ShareIn(BaseModel):
@@ -100,6 +109,16 @@ def build_router(svc: CareService) -> APIRouter:
     @r.post("/v1/patients/{pid}/chat", tags=["patient"])
     def chat(pid: str, body: ChatIn):
         return _call(svc.chat, pid, body.text, share=body.share)
+
+    @r.post("/v1/patients/{pid}/voice", tags=["patient"])
+    def voice(pid: str, body: VoiceIn):
+        try:
+            audio = base64.b64decode(body.audio_base64, validate=True)
+        except binascii.Error as e:
+            raise HTTPException(422, "audio_base64 is not valid base64") from e
+        if len(audio) > 15 * 1024 * 1024:
+            raise HTTPException(413, "voice message too long (max 15 MB)")
+        return _call(svc.voice, pid, audio, body.mime, share=body.share, language=body.language)
 
     @r.get("/v1/patients/{pid}/messages", tags=["patient"])
     def messages(pid: str, limit: int = 50):
