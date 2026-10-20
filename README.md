@@ -136,8 +136,21 @@ Data checks:
 
 ## How to run
 
-This repo holds code and results only. Datasets and trained weights are not included; the steps below
-re-download the data and retrain (about 1.5 hours on a 4 GB RTX 3050).
+This repo holds code and results only. Datasets and trained weights are not in Git. To run the app you can
+download the trained weights (below); to reproduce them, re-download the data and retrain (steps 1-3, about
+1.5 hours on a 4 GB RTX 3050).
+
+**Download the trained models (m1-m3)** instead of training them. They are published as a GitHub Release
+([models-v1](https://github.com/Aadish2423/mitramind-cue-models/releases/tag/models-v1), about 2.6 GB). The script
+uses only Python's standard library, checks each file's SHA-256 before unpacking, and fills `models/`:
+
+```bash
+python src/download_models.py                    # all three
+python src/download_models.py m3_cremad_speech   # or only the ones you need
+```
+
+Using them needs PyTorch (step 1). Without the weights or PyTorch the app still runs: the Phase 1 pipeline falls
+back to the lexicon cues (m5) and lists the missing models under `models_unavailable` in `/health`.
 
 **1. Environment** (Python 3.11). On Windows, keep the virtual environment at a short path such as
 `C:\venvs\mitramind_cues`: Windows cannot load DLLs from paths longer than 260 characters.
