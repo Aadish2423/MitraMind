@@ -95,6 +95,28 @@ uvicorn api:app --app-dir src --port 8080           # REST API
 python -m pytest tests
 ```
 
+## MitraMind Care: companion, clinician dashboard, Phases 2-3
+
+`src/care/` builds the product around Phase 1 (details in [docs/CARE.md](docs/CARE.md), build log and open
+work in [task.md](task.md)):
+
+- **Companion (chat + voice):** every patient message goes through the Phase 1 safety layer first. High or
+  urgent risk gets a fixed crisis reply with Tele-MANAS 14416 and 112 and an alert, and never reaches the LLM.
+  Other messages get an LLM reply with guardrails, plus Mind Pause exercises and Reflection Share. Voice
+  messages are transcribed by local Whisper and also scored by the voice emotion models.
+- **Clinician side:** alert queue, dashboard (scores, usage, open alerts), pre-visit summary from the stored
+  chats, summary ratings. All of it is gated by the patient's consent (DPDP), and every AI reply is audit-logged.
+- **Phase 2 / 3:** de-identified pilot export linking message cues to PHQ-9 / GAD-7 change, a synthetic
+  pilot simulator, and a small deterioration model trainer with patient-grouped CV.
+- **Integrations:** WhatsApp Business webhook (chat, voice notes, PHQ-9 / GAD-7) and a FHIR R4 export.
+
+```bash
+uvicorn api:app --app-dir src --port 8080   # / patient app, /clinician dashboard, /tester, /docs
+python src/redteam_companion.py --models qwen3.5
+python src/simulate_pilot.py && python src/export_pilot_dataset.py --db var/pilot_sim.db --out outputs/phase2_synthetic --source synthetic
+python src/train_outcome_model.py --data outputs/phase2_synthetic
+```
+
 ## Datasets
 
 | Dataset | Type | Licence / access | Used as |
