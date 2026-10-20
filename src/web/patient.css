@@ -304,9 +304,11 @@ button.chip:hover { border-color: var(--sage); color: var(--sage-deep); }
 .feat:hover .ico, .feat.perched .ico { transform: rotate(-8deg) scale(1.08); }
 .feat:hover .arr, .feat.perched .arr { transform: translateX(5px); }
 
-.team-row { display: grid; grid-template-columns: repeat(2, minmax(0, 340px)); gap: 18px; margin-top: 24px; }
+.team-row { display: grid; grid-template-columns: repeat(2, minmax(0, 340px)); justify-content: center; gap: 22px; margin-top: 28px; }
+#team { text-align: center; }
+#team h2, #team .sec-lead { margin-left: auto; margin-right: auto; }
 .member { background: var(--surface); border-radius: 26px; box-shadow: var(--shadow); padding: 26px 22px; text-align: center;
-  display: grid; justify-items: center; gap: 6px; }
+  display: grid; justify-items: center; align-content: start; gap: 6px; }
 .member .face { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; margin-bottom: 6px;
   background: linear-gradient(140deg, var(--sage-soft), var(--lavender-soft)); color: var(--sage-deep); font-weight: 800; font-size: 32px;
   box-shadow: 0 0 0 6px #fff, 0 0 0 7px var(--line); }
@@ -332,7 +334,7 @@ button.chip:hover { border-color: var(--sage); color: var(--sage-deep); }
   .hero-glow { width: 230px; height: 230px; }
   #mitra-home { width: 170px; height: 186px; }
   .why-grid, .feat-row { grid-template-columns: 1fr; }
-  .team-row { grid-template-columns: 1fr; }
+  .team-row { grid-template-columns: minmax(0, 360px); }
   .h-sec { padding-top: 40px; }
 }
 
