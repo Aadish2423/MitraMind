@@ -45,7 +45,7 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
    the official Hindi and regional versions (phqscreeners.com); never self-translate a validated scale.
 5. **Alert delivery.** Alerts only show on the dashboard. Urgent alerts need an SMS or call to the on-call
    staff and an escalation timer (e.g. not acknowledged in 15 minutes → next person), per hospital protocol.
-6. **Grow the red-team suite** (`tests/redteam_cases.yaml`, 19 cases now) with the clinical champion and
+6. **Grow the red-team suite** (`tests/redteam_cases.yaml`, 22 cases now) with the clinical champion and
    every pilot incident, and re-run `src/redteam_companion.py` before any prompt or model change.
    Known issue: Hindi/Hinglish crisis phrases do not check who the sentence is about, so "mera dost
    suicide karna chahta hai" (my friend…) gives the patient the crisis reply and a high alert.

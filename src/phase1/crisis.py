@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from functools import lru_cache
 from pathlib import Path
 
@@ -45,7 +46,8 @@ def _indic_patterns() -> list[tuple[int, str, re.Pattern]]:
 
 
 def indic_hits(text: str) -> list[tuple[int, str]]:
-    low = (text or "").lower()
+    # NFC turns precomposed nukta letters (e.g. U+0959 ख़) into letter + nukta, the form the lexicon uses.
+    low = unicodedata.normalize("NFC", (text or "").lower())
     return [(tier, m.group(0)) for tier, _, pat in _indic_patterns() if (m := pat.search(low))]
 
 
