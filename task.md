@@ -29,10 +29,16 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
 
 ### Must be done before any real patient uses it
 
-1. **Login and roles.** There is no authentication: anyone who can reach the server can read any patient.
-   Add patient login (OTP to phone) and clinician login (hospital SSO), and check in `CareService` that a
-   patient only reaches their own data and a clinician only their clinic's patients (`clinician_id` is
-   stored but not used yet).
+1. **Login and roles (partly done).** Patients log in with email + password (branch `feature/patient-portal`).
+   Clinicians have separate accounts (branch `feature/clinician-login`): the sign-up page asks "I am a Patient /
+   Clinician"; clinicians must use a Gmail address, confirm it with a 6-digit code sent to that Gmail, and
+   land on `/clinician`; every `/v1/clinician/...`, `/v1/audit` and `/v1/whatsapp/outbox` route needs a verified
+   clinician's token. Still to do:
+   - set `MITRAMIND_SMTP_*` (a Gmail sender with an app password) and `MITRAMIND_ENV=production` on the real
+     server; until then the code is shown on screen (developer mode only);
+   - every verified clinician still sees every patient: link clinicians to clinics/patients (`clinician_id`
+     is stored but not used) and approve new clinician accounts (an admin role), or move to hospital SSO;
+   - patient login by phone OTP for patients without email.
 2. **Security of stored data.** Move SQLite to Postgres (the schema in `src/care/store.py` maps 1:1), encrypt
    the database and `var/audio/` at rest, use TLS, back up, and set a retention period for voice clips
    (they are kept forever now). Host in an Indian region or on the hospital's own servers.

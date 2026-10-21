@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="/static/patient.css?v=5">
+<link rel="stylesheet" href="/static/patient.css?v=6">
 </head>
 <body>
 
@@ -34,7 +34,14 @@
         <h1 id="auth-title">Welcome back</h1>
         <p class="sub" id="auth-sub">Take a slow breath. We're glad you're here.</p>
       </div>
-      <div class="seg" role="tablist">
+      <div class="role-pick">
+        <span class="small muted" id="role-label">I am a</span>
+        <div class="seg role-seg" role="radiogroup" aria-labelledby="role-label">
+          <button type="button" data-role="patient" class="on" role="radio" aria-checked="true">Patient</button>
+          <button type="button" data-role="clinician" role="radio" aria-checked="false">Clinician</button>
+        </div>
+      </div>
+      <div class="seg" role="tablist" id="mode-seg">
         <button type="button" data-mode="login" class="on">Log in</button>
         <button type="button" data-mode="signup">Sign up</button>
       </div>
@@ -51,13 +58,16 @@
       </form>
 
       <form class="stack" id="signup-form" novalidate hidden>
+        <label class="field" id="su-name-wrap" hidden><span class="lead" data-icon="users"></span>
+          <input type="text" id="su-name" placeholder="Your name, e.g. Dr. A. Sharma" autocomplete="name" maxlength="80"></label>
         <label class="field"><span class="lead" data-icon="mail"></span>
           <input type="email" id="su-email" placeholder="Email address" autocomplete="email" required></label>
+        <div class="hint" id="su-gmail-hint" hidden>Clinicians sign up with a Gmail address. We'll email you a 6-digit code to confirm it.</div>
         <label class="field"><span class="lead" data-icon="lock"></span>
           <input type="password" id="su-pass" placeholder="Create a password" autocomplete="new-password" minlength="8" required>
           <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
-        <div class="hint">At least 8 characters.</div>
-        <div class="grid2" style="grid-template-columns:1fr 1fr; gap:10px">
+        <div class="hint" id="su-pass-hint">At least 8 characters.</div>
+        <div class="grid2 patient-only" style="grid-template-columns:1fr 1fr; gap:10px">
           <label class="field"><span class="lead" data-icon="globe"></span>
             <select id="su-lang" aria-label="Language">
               <option value="auto">Any language</option><option value="en">English</option>
@@ -66,10 +76,24 @@
           <label class="field"><span class="lead" data-icon="hash"></span>
             <input type="text" id="su-code" placeholder="Care-team code (optional)" autocomplete="off"></label>
         </div>
-        <div class="consents" id="su-consents"></div>
+        <div class="consents patient-only" id="su-consents"></div>
         <div class="err" id="su-err" role="alert"></div>
         <button class="btn-primary" id="su-btn">Create account</button>
-        <p class="small muted" style="margin:0">We use your email only to sign you in. Your chats stay private unless you choose to share them.</p>
+        <p class="small muted patient-only" style="margin:0">We use your email only to sign you in. Your chats stay private unless you choose to share them.</p>
+        <p class="small muted clinician-only" style="margin:0" hidden>Clinician accounts see alerts, scores and only the reflections patients choose to share.</p>
+      </form>
+
+      <form class="stack" id="verify-form" novalidate hidden>
+        <p style="margin:0">We sent a 6-digit code to <b id="vf-email"></b>. Enter it to confirm your Gmail.</p>
+        <div class="dev-code" id="vf-dev" hidden></div>
+        <label class="field"><span class="lead" data-icon="hash"></span>
+          <input type="text" id="vf-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code"
+                 maxlength="6" pattern="\d{6}" required></label>
+        <div class="err" id="vf-err" role="alert"></div>
+        <button class="btn-primary" id="vf-btn">Confirm and continue</button>
+        <p class="small muted" style="margin:0">No email? Check spam, or
+          <button type="button" class="linkish" id="vf-resend">send a new code</button>.
+          <button type="button" class="linkish" data-mode="login">Back to log in</button></p>
       </form>
 
       <div class="auth-foot"><span data-icon="phone" data-size="16"></span>
@@ -369,18 +393,97 @@ async function api(path, body, method) {
   return data;
 }
 
-// ------------------------------------------------------------------ login / sign up
+// ------------------------------------------------------------------ login / sign up (patient or clinician)
+let ROLE = "patient", MODE = "login", VERIFY_EMAIL = "";
+const CLINICIAN_TOKEN = "mm_clinician_token";
+const AUTH_TEXT = {
+  patient: {login: ["Welcome back", "Take a slow breath. We're glad you're here."],
+            signup: ["Create your account", "A private, calm space for the days between your visits."]},
+  clinician: {login: ["Clinician log in", "Alerts, scores and pre-visit summaries for your patients."],
+              signup: ["Create a clinician account", "Use your Gmail address. We'll confirm it with a 6-digit code."],
+              verify: ["Confirm your Gmail", "One last step before your dashboard."]},
+};
+
 function setMode(mode) {
+  MODE = mode;
   document.querySelectorAll(".seg [data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
+  $("mode-seg").hidden = document.querySelector(".role-pick").hidden = mode === "verify";
   $("login-form").hidden = mode !== "login";
   $("signup-form").hidden = mode !== "signup";
-  $("auth-title").textContent = mode === "login" ? "Welcome back" : "Create your account";
-  $("auth-sub").textContent = mode === "login" ? "Take a slow breath. We're glad you're here."
-                                               : "A private, calm space for the days between your visits.";
-  $("li-err").textContent = $("su-err").textContent = "";
-  (mode === "login" ? $("li-email") : $("su-email")).focus();
+  $("verify-form").hidden = mode !== "verify";
+  const [title, sub] = AUTH_TEXT[ROLE][mode] || AUTH_TEXT.clinician.verify;
+  $("auth-title").textContent = title;
+  $("auth-sub").textContent = sub;
+  $("li-err").textContent = $("su-err").textContent = $("vf-err").textContent = "";
+  ({login: $("li-email"), signup: ROLE === "clinician" ? $("su-name") : $("su-email"), verify: $("vf-code")})[mode].focus();
 }
 document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+
+function setRole(role) {
+  ROLE = role;
+  const clin = role === "clinician";
+  document.querySelectorAll(".role-seg [data-role]").forEach((b) => {
+    b.classList.toggle("on", b.dataset.role === role);
+    b.setAttribute("aria-checked", String(b.dataset.role === role));
+  });
+  document.querySelectorAll(".patient-only").forEach((el) => el.hidden = clin);
+  document.querySelectorAll(".clinician-only").forEach((el) => el.hidden = !clin);
+  $("su-name-wrap").hidden = $("su-gmail-hint").hidden = !clin;
+  $("su-email").placeholder = $("li-email").placeholder = clin ? "Gmail address (you@gmail.com)" : "Email address";
+  $("su-pass").minLength = clin ? 10 : 8;
+  $("su-pass-hint").textContent = clin ? "At least 10 characters." : "At least 8 characters.";
+  setMode(MODE === "verify" ? "login" : MODE);
+}
+document.querySelectorAll(".role-seg [data-role]").forEach((b) => b.onclick = () => setRole(b.dataset.role));
+
+// Clinician calls need the raw response: a 403 "verification_required" carries the next step.
+async function authPost(path, body) {
+  let r;
+  try {
+    r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
+  return {ok: r.ok, status: r.status, data: await r.json().catch(() => ({}))};
+}
+
+function showVerify(email, devCode) {
+  VERIFY_EMAIL = email;
+  $("vf-email").textContent = email;
+  $("vf-code").value = "";
+  $("vf-dev").hidden = !devCode;
+  $("vf-dev").innerHTML = devCode ? `<b>Developer mode:</b> email isn't set up on this server, so here is your code:
+    <b>${esc(devCode)}</b>. On a real server it only arrives in your Gmail.` : "";
+  setMode("verify");
+}
+
+function enterClinician(s) {
+  try { localStorage.setItem(CLINICIAN_TOKEN, s.token); } catch {}
+  location.href = "/clinician";
+}
+
+async function clinicianLogin(email, password) {
+  const res = await authPost("/v1/auth/clinician/login", {email, password});
+  if (res.ok) return enterClinician(res.data);
+  if (res.status === 403 && res.data.verification_required) return showVerify(email.trim().toLowerCase(), res.data.dev_code);
+  throw new Error(friendly(res.data.detail));
+}
+
+$("verify-form").onsubmit = (e) => {
+  e.preventDefault();
+  const code = $("vf-code").value.trim();
+  if (!/^\d{6}$/.test(code)) { $("vf-err").textContent = "Please enter the 6 digits from the email."; return; }
+  withButton($("vf-btn"), "Checking…", async () => {
+    const res = await authPost("/v1/auth/clinician/verify", {email: VERIFY_EMAIL, code});
+    if (res.ok) return enterClinician(res.data);
+    $("vf-err").textContent = friendly(res.data.detail);
+  });
+};
+
+$("vf-resend").onclick = async () => {
+  const res = await authPost("/v1/auth/clinician/resend", {email: VERIFY_EMAIL});
+  if (!res.ok) { $("vf-err").textContent = friendly(res.data.detail); return; }
+  showVerify(VERIFY_EMAIL, res.data.dev_code);
+  $("vf-err").textContent = "A new code is on its way.";
+};
 
 document.querySelectorAll(".pw-eye").forEach((b) => b.onclick = () => {
   const input = b.parentElement.querySelector("input");
@@ -407,13 +510,16 @@ $("login-form").onsubmit = (e) => {
   const email = $("li-email").value.trim(), password = $("li-pass").value;
   if (!email || !password) { $("li-err").textContent = "Please enter your email and password."; return; }
   withButton($("li-btn"), "Logging in…", async () => {
-    try { startSession(await api("/v1/auth/login", {email, password})); }
-    catch (err) { $("li-err").textContent = err.message; }
+    try {
+      if (ROLE === "clinician") await clinicianLogin(email, password);
+      else startSession(await api("/v1/auth/login", {email, password}));
+    } catch (err) { $("li-err").textContent = err.message; }
   });
 };
 
 $("signup-form").onsubmit = (e) => {
   e.preventDefault();
+  if (ROLE === "clinician") return clinicianSignup();
   const email = $("su-email").value.trim(), password = $("su-pass").value, consents = {};
   $("su-consents").querySelectorAll("input").forEach((i) => consents[i.dataset.purpose] = i.checked);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("su-err").textContent = "Please enter a valid email address."; return; }
@@ -426,6 +532,18 @@ $("signup-form").onsubmit = (e) => {
     } catch (err) { $("su-err").textContent = err.message; }
   });
 };
+
+function clinicianSignup() {
+  const email = $("su-email").value.trim().toLowerCase(), password = $("su-pass").value, name = $("su-name").value.trim();
+  if (!/^[^@\s]+@(gmail|googlemail)\.com$/.test(email)) { $("su-err").textContent = "Please use your Gmail address (…@gmail.com)."; return; }
+  if (password.length < 10) { $("su-err").textContent = "Clinician passwords need at least 10 characters."; return; }
+  withButton($("su-btn"), "Sending your code…", async () => {
+    const res = await authPost("/v1/auth/clinician/signup", {email, password, name: name || null});
+    if (!res.ok) { $("su-err").textContent = friendly(res.data.detail); return; }
+    $("su-pass").value = "";
+    showVerify(res.data.email, res.data.dev_code);
+  });
+}
 
 function startSession(s) {
   TOKEN = s.token; ls.set("mm_token", TOKEN);
@@ -1111,6 +1229,18 @@ async function boot() {
   setVoice(ls.get("mm_voice") === "1");
   PURPOSES = (await api("/v1/consent-purposes")).purposes;
   renderSignupConsents();
+  if (new URLSearchParams(location.search).get("as") === "clinician") {
+    // Coming from /clinician (or a clinician link): skip straight to the dashboard if still logged in.
+    let ctok = null;
+    try { ctok = localStorage.getItem(CLINICIAN_TOKEN); } catch {}
+    if (ctok) {
+      const r = await fetch("/v1/auth/clinician/me", {headers: {Authorization: `Bearer ${ctok}`}}).catch(() => null);
+      if (r && r.ok) { location.replace("/clinician"); return; }
+    }
+    $("auth").hidden = false; $("app").hidden = true;
+    setRole("clinician");
+    return;
+  }
   if (TOKEN) {
     try { return showApp(await api("/v1/auth/me")); }
     catch { TOKEN = null; ls.set("mm_token", null); }

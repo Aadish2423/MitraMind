@@ -84,6 +84,15 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE TABLE IF NOT EXISTS sessions (
     token_hash TEXT PRIMARY KEY, account_id INTEGER NOT NULL REFERENCES accounts(id),
     created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS clinicians (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT,
+    verified_at TEXT, created_at TEXT NOT NULL, last_login_at TEXT);
+CREATE TABLE IF NOT EXISTS clinician_sessions (
+    token_hash TEXT PRIMARY KEY, clinician_id INTEGER NOT NULL REFERENCES clinicians(id),
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS email_codes (
+    email TEXT PRIMARY KEY, code_hash TEXT NOT NULL, expires_at TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0, sent_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_messages_patient ON messages(patient_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 """
@@ -96,6 +105,8 @@ MIGRATIONS = [
 ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
 LEVEL_ORDER = {"none": 0, "watch": 1, "high": 2, "urgent": 3}
 SESSION_DAYS = 30
+CLINICIAN_SESSION_HOURS = 12  # one working day; clinicians see many patients' data
+CODE_MINUTES, CODE_MAX_ATTEMPTS = 10, 5
 _SCRYPT = {"n": 2 ** 14, "r": 8, "p": 1}
 
 
@@ -227,6 +238,74 @@ class Store:
 
     def end_session(self, token: str) -> None:
         self._exec("DELETE FROM sessions WHERE token_hash = ?", (sha256(token),))
+
+    # ------------------------------------------------------------------ clinician accounts (Gmail-verified)
+    def create_clinician(self, email: str, password: str, name: str | None) -> dict:
+        self._exec("INSERT INTO clinicians (email, password_hash, name, created_at) VALUES (?, ?, ?, ?)",
+                   (email, hash_password(password), name, now()))
+        return self.clinician_by_email(email)
+
+    def reset_unverified_clinician(self, email: str, password: str, name: str | None) -> dict:
+        """Signing up again before verifying replaces the password and name (the old code is replaced too)."""
+        self._exec("UPDATE clinicians SET password_hash = ?, name = ? WHERE email = ? AND verified_at IS NULL",
+                   (hash_password(password), name, email))
+        return self.clinician_by_email(email)
+
+    def clinician_by_email(self, email: str) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE email = ?", (email,))
+
+    def check_clinician_login(self, email: str, password: str) -> dict | None:
+        acc = self.clinician_by_email(email)
+        if acc is None:
+            verify_password(password, _dummy_hash())
+            return None
+        if not verify_password(password, acc["password_hash"]):
+            return None
+        return acc
+
+    def mark_clinician_verified(self, email: str) -> None:
+        self._exec("UPDATE clinicians SET verified_at = COALESCE(verified_at, ?) WHERE email = ?", (now(), email))
+
+    def new_clinician_session(self, clinician_id: int, hours: int = CLINICIAN_SESSION_HOURS) -> str:
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO clinician_sessions (token_hash, clinician_id, created_at, expires_at) "
+                   "VALUES (?, ?, ?, ?)", (sha256(token), clinician_id, now(), expires))
+        self._exec("UPDATE clinicians SET last_login_at = ? WHERE id = ?", (now(), clinician_id))
+        return token
+
+    def clinician_session(self, token: str) -> dict | None:
+        return self._one("SELECT c.* FROM clinician_sessions s JOIN clinicians c ON c.id = s.clinician_id "
+                         "WHERE s.token_hash = ? AND s.expires_at > ? AND c.verified_at IS NOT NULL",
+                         (sha256(token), now()))
+
+    def end_clinician_session(self, token: str) -> None:
+        self._exec("DELETE FROM clinician_sessions WHERE token_hash = ?", (sha256(token),))
+
+    def set_email_code(self, email: str, code: str, minutes: int = CODE_MINUTES) -> None:
+        expires = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO email_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?) "
+                   "ON CONFLICT(email) DO UPDATE SET code_hash = excluded.code_hash, expires_at = excluded.expires_at, "
+                   "attempts = 0, sent_at = excluded.sent_at", (email, sha256(f"{email}:{code}"), expires, now()))
+
+    def code_sent_at(self, email: str) -> str | None:
+        row = self._one("SELECT sent_at FROM email_codes WHERE email = ?", (email,))
+        return row["sent_at"] if row else None
+
+    def check_email_code(self, email: str, code: str) -> str:
+        """'ok' (and the code is used up), 'wrong', 'expired', 'too_many' or 'missing'."""
+        row = self._one("SELECT * FROM email_codes WHERE email = ?", (email,))
+        if row is None:
+            return "missing"
+        if row["expires_at"] <= now():
+            return "expired"
+        if row["attempts"] >= CODE_MAX_ATTEMPTS:
+            return "too_many"
+        if not hmac.compare_digest(row["code_hash"], sha256(f"{email}:{code}")):
+            self._exec("UPDATE email_codes SET attempts = attempts + 1 WHERE email = ?", (email,))
+            return "wrong"
+        self._exec("DELETE FROM email_codes WHERE email = ?", (email,))
+        return "ok"
 
     # ------------------------------------------------------------------ messages
     def add_message(self, patient_id: str, role: str, text: str, *, modality: str = "text", channel: str = "app",

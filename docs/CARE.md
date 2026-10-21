@@ -50,6 +50,10 @@ In the patient app, replies are read aloud with the browser's speech synthesis.
 
 ## Clinician side
 
+Clinicians log in separately: on the sign-up page they pick **Clinician**, use a Gmail address and confirm
+it with a 6-digit code sent to it (`/v1/auth/clinician/signup`, `/verify`, `/resend`, `/login`, `/logout`,
+`/me`). Every clinician route needs that verified clinician's token, and after login the page opens `/clinician`.
+
 `/v1/clinician/alerts` (acknowledge, resolve with an outcome label), `/v1/clinician/dashboard`,
 `/v1/clinician/patients/{id}/state-card`, `/shared`, `/feedback`, `/fhir`. Page: `/clinician`.
 
@@ -85,3 +89,5 @@ before changing a prompt or model.
 | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | | WhatsApp Cloud API |
 | `MITRAMIND_ENV` | `dev` | anything else requires `WHATSAPP_APP_SECRET` |
 | `MITRAMIND_EXPORT_SALT` | | secret salt for pilot pseudonyms (16+ chars) |
+| `MITRAMIND_CLINICIAN_DOMAINS` | `gmail.com,googlemail.com` | email domains allowed for clinician sign-up |
+| `MITRAMIND_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | | sends clinician codes (Gmail: `smtp.gmail.com`, `587`, an app password); without them codes show on screen in dev mode only |

@@ -9,22 +9,32 @@ Used by the API, the WhatsApp webhook and the tests, so all channels follow the 
 """
 from __future__ import annotations
 
+import os
 import re
 import secrets
 from datetime import date as Date
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from phase1.crisis import ACTIONS, HELPLINES, combine
 from phase1.questionnaires import score, trends
 from phase1.render import card_to_markdown
 from phase1.schema import Entry, PatientBundle, QuestionnaireResponse
 
+from . import mailer
 from .companion import Companion, history_offset
 from .photos import MIME, as_base64, save_photo
-from .store import LEVEL_ORDER, Store
+from .store import CODE_MINUTES, LEVEL_ORDER, Store
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MIN_PASSWORD = 8
+MIN_CLINICIAN_PASSWORD = 10
+RESEND_SECONDS = 60
+
+
+def clinician_domains() -> set[str]:
+    """Email domains a clinician may sign up with (Gmail only by default)."""
+    raw = os.environ.get("MITRAMIND_CLINICIAN_DOMAINS", "gmail.com,googlemail.com")
+    return {d.strip().lower() for d in raw.split(",") if d.strip()}
 PHOTO_ALERT_REASON = "photo may show self-harm or danger (flagged by the companion's image check; please review)"
 
 
@@ -38,6 +48,14 @@ class NotFound(Exception):
 
 class AuthError(Exception):
     pass
+
+
+class VerificationRequired(Exception):
+    """The clinician has not confirmed their Gmail yet; a code was (re)sent."""
+
+    def __init__(self, message: str, dev_code: str | None = None):
+        super().__init__(message)
+        self.dev_code = dev_code
 
 
 def normalise_email(email: str) -> str:
@@ -108,6 +126,90 @@ class CareService:
     def _session(self, acc: dict) -> dict:
         return {"token": self.store.new_session(acc["id"]), "email": acc["email"],
                 "profile": self.profile(acc["patient_id"])}
+
+    # ------------------------------------------------------------------ clinician accounts (Gmail-verified)
+    def clinician_signup(self, email: str, password: str, name: str | None = None) -> dict:
+        """Create (or, if never verified, restart) a clinician account and email a 6-digit code to the Gmail."""
+        email = normalise_email(email)
+        if not EMAIL_RE.match(email):
+            raise ValueError("please enter a valid email address")
+        domains = clinician_domains()
+        if email.rsplit("@", 1)[1] not in domains:
+            raise ValueError("clinician accounts need a Gmail address (" + ", ".join(sorted(domains)) + ")")
+        if len(password or "") < MIN_CLINICIAN_PASSWORD:
+            raise ValueError(f"clinician passwords need at least {MIN_CLINICIAN_PASSWORD} characters")
+        name = (name or "").strip()[:80] or None
+        existing = self.store.clinician_by_email(email)
+        if existing and existing["verified_at"]:
+            raise ValueError("a clinician account with this email already exists; please log in")
+        if existing:
+            self.store.reset_unverified_clinician(email, password, name)
+        else:
+            self.store.create_clinician(email, password, name)
+        return self._send_code(email, force=True)
+
+    def resend_clinician_code(self, email: str) -> dict:
+        email = normalise_email(email)
+        acc = self.store.clinician_by_email(email)
+        if acc is None or acc["verified_at"]:
+            # Same answer either way, so this endpoint does not reveal which emails have accounts.
+            return {"status": "verification_sent", "email": email, "emailed": mailer.configured()}
+        return self._send_code(email)
+
+    def _send_code(self, email: str, force: bool = False) -> dict:
+        sent = self.store.code_sent_at(email)
+        if not force and sent and datetime.fromisoformat(sent) > datetime.now(timezone.utc) - timedelta(
+                seconds=RESEND_SECONDS):
+            raise ValueError("please wait a minute before asking for another code")
+        code = f"{secrets.randbelow(10 ** 6):06d}"
+        self.store.set_email_code(email, code)
+        emailed = mailer.send_verification_code(email, code, CODE_MINUTES)
+        out = {"status": "verification_sent", "email": email, "emailed": emailed}
+        if not emailed:
+            out["dev_code"] = code  # dev mode without SMTP only (see mailer.py)
+        return out
+
+    def verify_clinician(self, email: str, code: str) -> dict:
+        email = normalise_email(email)
+        acc = self.store.clinician_by_email(email)
+        if acc is None:
+            raise AuthError("that code is not right; please check it or ask for a new one")
+        result = self.store.check_email_code(email, (code or "").strip())
+        if result != "ok":
+            raise AuthError({"wrong": "that code is not right; please check it or ask for a new one",
+                             "expired": "that code has expired; please ask for a new one",
+                             "too_many": "too many wrong codes; please ask for a new one",
+                             "missing": "please ask for a new code"}[result])
+        self.store.mark_clinician_verified(email)
+        return self._clinician_session(self.store.clinician_by_email(email))
+
+    def clinician_login(self, email: str, password: str) -> dict:
+        email = normalise_email(email)
+        acc = self.store.check_clinician_login(email, password or "")
+        if acc is None:
+            raise AuthError("wrong email or password")
+        if not acc["verified_at"]:
+            try:
+                sent = self._send_code(email)
+            except ValueError:  # a code went out less than a minute ago: keep using that one
+                sent = {"emailed": mailer.configured()}
+            raise VerificationRequired("please confirm your Gmail first; we sent you a 6-digit code",
+                                       sent.get("dev_code"))
+        return self._clinician_session(acc)
+
+    def clinician(self, token: str | None) -> dict | None:
+        return self.store.clinician_session(token) if token else None
+
+    def clinician_logout(self, token: str) -> None:
+        self.store.end_clinician_session(token)
+
+    def _clinician_session(self, acc: dict) -> dict:
+        return {"token": self.store.new_clinician_session(acc["id"]), "role": "clinician",
+                "clinician": self.clinician_profile(acc)}
+
+    @staticmethod
+    def clinician_profile(acc: dict) -> dict:
+        return {"id": acc["id"], "email": acc["email"], "name": acc["name"], "verified_at": acc["verified_at"]}
 
     def _new_patient_id(self) -> str:
         while True:

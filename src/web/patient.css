@@ -47,6 +47,10 @@ button { cursor: pointer; }
   color: var(--muted); transition: background .25s, color .25s, box-shadow .25s; }
 .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 2px 10px rgba(47, 58, 61, .08); }
 form.stack { display: grid; gap: 14px; }
+.role-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.role-seg button.on[data-role="clinician"] { background: var(--sage-deep); color: #fff; }
+.dev-code { background: #fff6e5; border: 1px dashed #e0b25a; color: #6b4a10; border-radius: 14px; padding: 10px 14px;
+  font-size: 13.5px; line-height: 1.45; }
 .field { position: relative; display: block; }
 .field .lead { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted);
   display: grid; pointer-events: none; }

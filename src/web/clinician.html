@@ -25,7 +25,8 @@
 <main>
   <header>
     <h1>MitraMind Care: clinician dashboard</h1>
-    <span class="small muted">Prototype: no login yet. Fictional test data only.</span>
+    <div class="row small"><span class="muted" id="who">Checking your login…</span>
+      <button id="logout" style="padding:4px 10px">Log out</button></div>
   </header>
 
   <section class="panel">
@@ -67,14 +68,25 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const when = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "-";
 let CURRENT = null, LAST_CARD = null;
+const TOKEN_KEY = "mm_clinician_token";
+const token = { get() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
+                clear() { try { localStorage.removeItem(TOKEN_KEY); } catch {} } };
+const toLogin = () => location.replace("/?as=clinician");
 
 async function api(path, body) {
-  const r = await fetch(path, body === undefined ? {} :
-    {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const headers = {Authorization: `Bearer ${token.get()}`};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const r = await fetch(path, body === undefined ? {headers} : {method: "POST", headers, body: JSON.stringify(body)});
   const data = await r.json().catch(() => ({}));
+  if (r.status === 401) { token.clear(); toLogin(); throw new Error("Please log in again."); }
   if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data));
   return data;
 }
+
+$("logout").onclick = async () => {
+  await fetch("/v1/auth/clinician/logout", {method: "POST", headers: {Authorization: `Bearer ${token.get()}`}}).catch(() => {});
+  token.clear(); toLogin();
+};
 
 async function loadAlerts() {
   const rows = await api(`/v1/clinician/alerts?status=${$("astatus").value}`);
@@ -95,7 +107,7 @@ async function loadAlerts() {
       const ans = (prompt("Was the risk real? Type yes, no or unclear") || "").trim().toLowerCase();
       outcome = {yes: "confirmed_risk", no: "false_alarm", unclear: "unclear"}[ans] || null;
     }
-    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, handled_by: "clinician", note, outcome});
+    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, note, outcome});
     loadAlerts(); loadPatients();
   });
   $("alerts").querySelectorAll("a[data-p]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openPatient(a.dataset.p); });
@@ -145,14 +157,20 @@ $("build").onclick = async () => {
 $("fb-send").onclick = async () => {
   const min = parseFloat($("fb-min").value);
   await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/feedback`, {
-    clinician_id: "clinician", rating: $("fb-rating").value ? +$("fb-rating").value : null,
+    rating: $("fb-rating").value ? +$("fb-rating").value : null,
     accurate: $("fb-accurate").checked, minutes_saved: isNaN(min) ? null : min, comment: $("fb-comment").value || null});
   $("fb-out").textContent = "Saved. Thank you.";
 };
 
 $("astatus").onchange = loadAlerts;
-loadAlerts(); loadPatients();
-setInterval(loadAlerts, 30000);
+
+(async () => {
+  if (!token.get()) return toLogin();
+  const me = (await api("/v1/auth/clinician/me")).clinician;
+  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email}`;
+  loadAlerts(); loadPatients();
+  setInterval(loadAlerts, 30000);
+})().catch(() => {});
 </script>
 </body>
 </html>
