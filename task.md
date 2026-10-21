@@ -36,8 +36,11 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
    clinician's token. Still to do:
    - set `MITRAMIND_SMTP_*` (a Gmail sender with an app password) and `MITRAMIND_ENV=production` on the real
      server; until then the code is shown on screen (developer mode only);
-   - every verified clinician still sees every patient: link clinicians to clinics/patients (`clinician_id`
-     is stored but not used) and approve new clinician accounts (an admin role), or move to hospital SSO;
+   - clinicians now see only patients linked to them (care code or superuser assignment), and a superuser
+     (`src/create_superuser.py`, `/admin`) sees everyone plus a per-clinician report. Still open: approving new
+     clinician accounts before they can be linked, several clinics, and hospital SSO;
+   - the clinician report compares raw score change between caseloads; adjust for baseline severity before
+     using it for anything beyond a conversation with the clinician;
    - patient login by phone OTP for patients without email.
 2. **Security of stored data.** Move SQLite to Postgres (the schema in `src/care/store.py` maps 1:1), encrypt
    the database and `var/audio/` at rest, use TLS, back up, and set a retention period for voice clips

@@ -8,7 +8,7 @@
     MITRAMIND_WARMUP=1                    # load the companion model and text cue models when the server starts
 
 Patient app and clinician routes: src/care/routes.py (see /docs). Pages: / (patient app),
-/clinician (dashboard), /tester (Phase 1 tester).
+/clinician (dashboard), /admin (superuser), /tester (Phase 1 tester).
 
 POST /v1/checkins/analyze   one check-in -> cues + real-time crisis triage (no LLM)
 POST /v1/state-card         patient bundle -> User State Card (JSON) and pre-visit summary (Markdown)
@@ -102,7 +102,12 @@ def patient_app():
 
 @app.get("/clinician", include_in_schema=False)
 def clinician_page():
-    return FileResponse(WEB / "clinician.html")
+    return FileResponse(WEB / "clinician.html", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/admin", include_in_schema=False)
+def superuser_page():
+    return FileResponse(WEB / "admin.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/tester", include_in_schema=False)

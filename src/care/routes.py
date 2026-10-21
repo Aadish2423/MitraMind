@@ -26,7 +26,8 @@ from pydantic import BaseModel, Field
 from . import fhir, instruments, mind_pause
 from .mailer import MailNotConfigured
 from .photos import MAX_BYTES as MAX_PHOTO_BYTES
-from .service import AuthError, CareService, ConsentRequired, NotFound, VerificationRequired, normalise_email
+from .service import (AuthError, CareService, ConsentRequired, Forbidden, NotFound, VerificationRequired,
+                      normalise_email)
 from .store import CONSENT_PURPOSES, CONSENT_VERSION
 from .whatsapp import WhatsAppChannel, verify_signature
 
@@ -52,6 +53,15 @@ class SignupIn(BaseModel):
     consents: dict[str, bool] = {}
     patient_code: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{2,40}$",
                                      description="code from the care team, if they gave one")
+    clinician_code: str | None = Field(None, max_length=20, description="the clinician's care code, e.g. MM-7K3P9Q")
+
+
+class ClinicianCodeIn(BaseModel):
+    code: str = Field(min_length=3, max_length=20)
+
+
+class AssignIn(BaseModel):
+    clinician_id: int | None = Field(None, description="verified clinician to link; null unlinks")
 
 
 class LoginIn(BaseModel):
@@ -123,7 +133,7 @@ def _call(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except NotFound as e:
         raise HTTPException(404, str(e)) from e
-    except ConsentRequired as e:
+    except (ConsentRequired, Forbidden) as e:
         raise HTTPException(403, str(e)) from e
     except AuthError as e:
         raise HTTPException(401, str(e)) from e
@@ -172,7 +182,8 @@ def build_router(svc: CareService) -> APIRouter:
     @r.post("/v1/auth/signup", tags=["auth"])
     def signup(body: SignupIn):
         return _call(svc.signup, body.email, body.password, consents=body.consents,
-                     preferred_language=body.preferred_language, patient_code=body.patient_code)
+                     preferred_language=body.preferred_language, patient_code=body.patient_code,
+                     clinician_code=body.clinician_code)
 
     @r.post("/v1/auth/login", tags=["auth"])
     def login(body: LoginIn):
@@ -263,9 +274,28 @@ def build_router(svc: CareService) -> APIRouter:
             raise HTTPException(401, "clinician login required")
         return acc
 
+    def superuser_only(acc: dict = Depends(clinician_only)) -> dict:
+        if not acc["is_superuser"]:
+            raise HTTPException(403, "superuser only")
+        return acc
+
     @r.get("/v1/auth/clinician/me", tags=["auth"])
     def clinician_me(acc: dict = Depends(clinician_only)):
-        return {"role": "clinician", "clinician": svc.clinician_profile(acc)}
+        return {"role": svc.role(acc), "clinician": svc.clinician_profile(svc.ensure_care_code(acc))}
+
+    # ---------------------------------------------------------------- superuser
+    @r.get("/v1/admin/overview", tags=["superuser"])
+    def admin_overview(acc: dict = Depends(superuser_only)):
+        return svc.overview()
+
+    @r.get("/v1/admin/clinicians", tags=["superuser"])
+    def admin_clinicians(acc: dict = Depends(superuser_only)):
+        """Each clinician's caseload, patient engagement, score change and alert response times."""
+        return svc.clinician_report()
+
+    @r.post("/v1/admin/patients/{pid}/clinician", tags=["superuser"])
+    def admin_assign(pid: str, body: AssignIn, acc: dict = Depends(superuser_only)):
+        return _call(svc.assign_clinician, pid, body.clinician_id)
 
     # ---------------------------------------------------------------- patient app
     @r.get("/v1/consent-purposes", tags=["patient"])
@@ -281,6 +311,17 @@ def build_router(svc: CareService) -> APIRouter:
     def profile(pid: str, request: Request):
         guard(request, pid)
         return _call(svc.profile, pid)
+
+    @r.get("/v1/patients/{pid}/summary", tags=["patient"])
+    def my_summary(pid: str, request: Request):
+        """The patient's own summary card: scores over time, what came up, what helped."""
+        guard(request, pid)
+        return _call(svc.patient_summary, pid)
+
+    @r.post("/v1/patients/{pid}/clinician", tags=["patient"])
+    def link_my_clinician(pid: str, body: ClinicianCodeIn, request: Request):
+        guard(request, pid)
+        return _call(svc.link_clinician, pid, body.code)
 
     @r.post("/v1/patients/{pid}/consents", tags=["patient"])
     def change_consent(pid: str, body: ConsentChange, request: Request):
@@ -374,38 +415,45 @@ def build_router(svc: CareService) -> APIRouter:
     def who(acc: dict) -> str:
         return acc["name"] or acc["email"]
 
+    # A clinician sees only the patients linked to them; a superuser sees everyone.
     @r.get("/v1/clinician/dashboard", tags=["clinician"])
     def dashboard(acc: dict = Depends(clinician_only)):
-        return svc.dashboard()
+        return svc.dashboard(acc)
 
     @r.get("/v1/clinician/alerts", tags=["clinician"])
     def alerts(status: Literal["open", "acknowledged", "resolved", "all"] = "open",
                acc: dict = Depends(clinician_only)):
-        return svc.alerts(None if status == "all" else status)
+        return svc.alerts(None if status == "all" else status, acc)
 
     @r.post("/v1/clinician/alerts/{aid}", tags=["clinician"])
     def update_alert(aid: int, body: AlertUpdate, acc: dict = Depends(clinician_only)):
-        # The person who handled the alert is the logged-in clinician, not whatever the page sends.
-        if not svc.store.update_alert(aid, body.status, who(acc), body.note, body.outcome):
+        pid = svc.alert_patient(aid)
+        if pid is None:
             raise HTTPException(404, "no such alert")
+        _call(svc.require_access, acc, pid)
+        # The person who handled the alert is the logged-in clinician, not whatever the page sends.
+        svc.store.update_alert(aid, body.status, who(acc), body.note, body.outcome)
         return {"id": aid, "status": body.status, "handled_by": who(acc)}
 
     @r.get("/v1/clinician/patients/{pid}/state-card", tags=["clinician"])
     def clinician_card(pid: str, use_llm: bool = True, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         return _call(svc.state_card, pid, use_llm)
 
     @r.get("/v1/clinician/patients/{pid}/shared", tags=["clinician"])
     def shared_reflections(pid: str, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         return _call(svc.clinician_messages, pid)
 
     @r.post("/v1/clinician/patients/{pid}/feedback", tags=["clinician"])
     def feedback(pid: str, body: FeedbackIn, acc: dict = Depends(clinician_only)):
-        _call(svc.profile, pid)
+        _call(svc.require_access, acc, pid)
         return {"id": svc.store.add_feedback(pid, f"clinician:{acc['id']}", body.rating, body.accurate,
                                              body.minutes_saved, body.comment, None)}
 
     @r.get("/v1/clinician/patients/{pid}/fhir", tags=["clinician"])
     def fhir_export(pid: str, include_card: bool = False, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         _call(svc._require_care_team, pid)
         md = _call(svc.state_card, pid, False)["markdown"] if include_card else None
         return fhir.patient_bundle(svc.store, pid, md)
@@ -431,12 +479,16 @@ def build_router(svc: CareService) -> APIRouter:
         return {"status": "accepted"}
 
     @r.get("/v1/whatsapp/outbox", tags=["whatsapp"])
-    def wa_outbox(limit: int = 20, acc: dict = Depends(clinician_only)):
+    def wa_outbox(limit: int = 20, acc: dict = Depends(superuser_only)):
         """Replies the WhatsApp channel sent or, without credentials, would have sent (testing)."""
         return wa.sender.outbox[-limit:]
 
     @r.get("/v1/audit", tags=["clinician"])
     def audit(patient_id: str | None = None, limit: int = 100, acc: dict = Depends(clinician_only)):
+        if not acc["is_superuser"]:  # clinicians: one of their own patients at a time
+            if not patient_id:
+                raise HTTPException(403, "pass patient_id (superusers can read the whole log)")
+            _call(svc.require_access, acc, patient_id)
         return svc.store.audit_log(patient_id, limit)
 
     return r

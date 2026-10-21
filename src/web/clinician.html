@@ -26,14 +26,26 @@
   <header>
     <h1>MitraMind Care: clinician dashboard</h1>
     <div class="row small"><span class="muted" id="who">Checking your login…</span>
+      <a id="admin-link" href="/admin" hidden>Superuser view</a>
       <button id="logout" style="padding:4px 10px">Log out</button></div>
   </header>
+  <p class="small muted" id="code-line" hidden style="margin:-6px 0 0">Give patients your code
+    <span class="code-pill" id="care-code"></span>. They enter it when they sign up (or under Privacy in the app),
+    and then they appear here.</p>
 
   <section class="panel">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">Alerts</h2>
       <select id="astatus"><option value="open">Open</option><option value="acknowledged">Acknowledged</option>
         <option value="resolved">Resolved</option><option value="all">All</option></select></div>
     <div class="scroll"><table id="alerts"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Patient cards</h2>
+      <button id="cards-refresh" style="padding:4px 10px">Refresh cards</button></div>
+    <p class="small muted">One User State Card per patient (rule-based, instant). Open a card for the full summary
+      and the LLM version.</p>
+    <div class="cards-grid" id="cards"></div>
   </section>
 
   <section class="panel">
@@ -63,6 +75,7 @@
   </section>
 </main>
 
+<script src="/static/cards.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
@@ -130,6 +143,10 @@ async function loadPatients() {
   $("patients").querySelectorAll("button[data-p]").forEach((b) => b.onclick = () => openPatient(b.dataset.p));
 }
 
+async function loadCards(showClinician) {
+  renderCards($("cards"), await api("/v1/clinician/dashboard"), api, openPatient, {showClinician});
+}
+
 async function openPatient(pid) {
   CURRENT = pid; LAST_CARD = null;
   $("detail").style.display = "block"; $("d-title").textContent = pid; $("card").innerHTML = ""; $("fb-out").textContent = "";
@@ -167,8 +184,12 @@ $("astatus").onchange = loadAlerts;
 (async () => {
   if (!token.get()) return toLogin();
   const me = (await api("/v1/auth/clinician/me")).clinician;
-  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email}`;
-  loadAlerts(); loadPatients();
+  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email}${me.role === "superuser" ? " · superuser" : ""}`;
+  $("admin-link").hidden = me.role !== "superuser";
+  if (me.care_code) { $("care-code").textContent = me.care_code; $("code-line").hidden = false; }
+  loadAlerts(); loadPatients(); loadCards(me.role === "superuser");
+  $("cards-refresh").onclick = () => loadCards(me.role === "superuser");
+  if (location.hash.length > 1) openPatient(decodeURIComponent(location.hash.slice(1)));  // from the superuser view
   setInterval(loadAlerts, 30000);
 })().catch(() => {});
 </script>

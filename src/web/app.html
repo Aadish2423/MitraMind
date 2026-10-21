@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="/static/patient.css?v=6">
+<link rel="stylesheet" href="/static/patient.css?v=7">
 </head>
 <body>
 
@@ -39,6 +39,7 @@
         <div class="seg role-seg" role="radiogroup" aria-labelledby="role-label">
           <button type="button" data-role="patient" class="on" role="radio" aria-checked="true">Patient</button>
           <button type="button" data-role="clinician" role="radio" aria-checked="false">Clinician</button>
+          <button type="button" data-role="superuser" role="radio" aria-checked="false" id="su-role">Superuser</button>
         </div>
       </div>
       <div class="seg" role="tablist" id="mode-seg">
@@ -54,7 +55,7 @@
           <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
         <div class="err" id="li-err" role="alert"></div>
         <button class="btn-primary" id="li-btn">Log in</button>
-        <p class="small muted" style="margin:0">New to MitraMind? <button type="button" class="linkish" data-mode="signup">Create an account</button></p>
+        <p class="small muted" style="margin:0" id="li-new">New to MitraMind? <button type="button" class="linkish" data-mode="signup">Create an account</button></p>
       </form>
 
       <form class="stack" id="signup-form" novalidate hidden>
@@ -76,6 +77,8 @@
           <label class="field"><span class="lead" data-icon="hash"></span>
             <input type="text" id="su-code" placeholder="Care-team code (optional)" autocomplete="off"></label>
         </div>
+        <label class="field patient-only"><span class="lead" data-icon="users"></span>
+          <input type="text" id="su-doc" placeholder="Your clinician's code, e.g. MM-7K3P9Q (optional)" autocomplete="off" maxlength="20"></label>
         <div class="consents patient-only" id="su-consents"></div>
         <div class="err" id="su-err" role="alert"></div>
         <button class="btn-primary" id="su-btn">Create account</button>
@@ -195,6 +198,12 @@
           <p>Short breathing, grounding and body-scan exercises, guided by Mitra.</p>
           <span class="go">Take a pause <span class="arr">→</span></span>
         </a>
+        <a class="feat" href="#my-summary" data-say="Your progress">
+          <span class="ico" style="background:#e3eef0; color:#2f6a6b" data-icon="sparkle" data-size="26"></span>
+          <b>My summary</b>
+          <p>Your own card: how your check-in scores have changed, what came up, and what helped.</p>
+          <span class="go">See my summary <span class="arr">→</span></span>
+        </a>
       </div>
     </section>
 
@@ -220,6 +229,7 @@
           <h3>Your account</h3>
           <div class="acct"><div class="avatar"><svg class="logo"><use href="#lotus"/></svg></div>
             <div><b id="acct-email"></b><div class="small muted" id="acct-code"></div></div></div>
+          <div id="doc-box" style="margin-top:14px"></div>
           <button class="btn-ghost" id="logout" style="margin-top:14px; width:100%">Log out</button>
           <div class="crisis" style="margin:16px 0 0"><span data-icon="heart"></span>
             <span>Need to talk to someone now? <a href="tel:14416">Tele-MANAS 14416</a> is free, 24x7. In an emergency call <a href="tel:112">112</a>.</span></div>
@@ -299,6 +309,12 @@
       <div class="small muted" id="p-progress"></div>
       <button class="btn-ghost" id="p-stop">End exercise</button>
     </div>
+  </section>
+
+  <!-- My summary: the patient's own State Card -->
+  <section class="view" id="v-summary">
+    <div class="page-head"><a class="back" href="#home"><span class="arr">←</span> Home</a><h2>My summary</h2></div>
+    <div id="summary" class="sum-grid"><div class="card"><p class="muted">Putting your summary together…</p></div></div>
   </section>
 
   <p class="foot-note">MitraMind is a support tool, not a doctor and not for emergencies.
@@ -402,12 +418,16 @@ const AUTH_TEXT = {
   clinician: {login: ["Clinician log in", "Alerts, scores and pre-visit summaries for your patients."],
               signup: ["Create a clinician account", "Use your Gmail address. We'll confirm it with a 6-digit code."],
               verify: ["Confirm your Gmail", "One last step before your dashboard."]},
+  superuser: {login: ["Superuser log in", "Every patient, every clinician, and how each clinician is doing."]},
 };
 
 function setMode(mode) {
+  if (ROLE === "superuser" && mode === "signup") mode = "login";  // superusers are created on the server only
   MODE = mode;
   document.querySelectorAll(".seg [data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
-  $("mode-seg").hidden = document.querySelector(".role-pick").hidden = mode === "verify";
+  document.querySelector(".role-pick").hidden = mode === "verify";
+  $("mode-seg").hidden = mode === "verify" || ROLE === "superuser";
+  $("li-new").hidden = ROLE === "superuser";
   $("login-form").hidden = mode !== "login";
   $("signup-form").hidden = mode !== "signup";
   $("verify-form").hidden = mode !== "verify";
@@ -421,7 +441,7 @@ document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => setMod
 
 function setRole(role) {
   ROLE = role;
-  const clin = role === "clinician";
+  const clin = role !== "patient";
   document.querySelectorAll(".role-seg [data-role]").forEach((b) => {
     b.classList.toggle("on", b.dataset.role === role);
     b.setAttribute("aria-checked", String(b.dataset.role === role));
@@ -429,7 +449,8 @@ function setRole(role) {
   document.querySelectorAll(".patient-only").forEach((el) => el.hidden = clin);
   document.querySelectorAll(".clinician-only").forEach((el) => el.hidden = !clin);
   $("su-name-wrap").hidden = $("su-gmail-hint").hidden = !clin;
-  $("su-email").placeholder = $("li-email").placeholder = clin ? "Gmail address (you@gmail.com)" : "Email address";
+  $("su-email").placeholder = $("li-email").placeholder =
+    role === "clinician" ? "Gmail address (you@gmail.com)" : role === "superuser" ? "Superuser email" : "Email address";
   $("su-pass").minLength = clin ? 10 : 8;
   $("su-pass-hint").textContent = clin ? "At least 10 characters." : "At least 8 characters.";
   setMode(MODE === "verify" ? "login" : MODE);
@@ -456,8 +477,12 @@ function showVerify(email, devCode) {
 }
 
 function enterClinician(s) {
+  if (ROLE === "superuser" && s.role !== "superuser") {
+    fetch("/v1/auth/clinician/logout", {method: "POST", headers: {Authorization: `Bearer ${s.token}`}}).catch(() => {});
+    throw new Error("This account is not a superuser. Choose Clinician to log in.");
+  }
   try { localStorage.setItem(CLINICIAN_TOKEN, s.token); } catch {}
-  location.href = "/clinician";
+  location.href = s.role === "superuser" ? "/admin" : "/clinician";
 }
 
 async function clinicianLogin(email, password) {
@@ -511,7 +536,7 @@ $("login-form").onsubmit = (e) => {
   if (!email || !password) { $("li-err").textContent = "Please enter your email and password."; return; }
   withButton($("li-btn"), "Logging in…", async () => {
     try {
-      if (ROLE === "clinician") await clinicianLogin(email, password);
+      if (ROLE !== "patient") await clinicianLogin(email, password);
       else startSession(await api("/v1/auth/login", {email, password}));
     } catch (err) { $("li-err").textContent = err.message; }
   });
@@ -528,7 +553,8 @@ $("signup-form").onsubmit = (e) => {
   withButton($("su-btn"), "Creating your space…", async () => {
     try {
       startSession(await api("/v1/auth/signup", {email, password, consents, preferred_language: $("su-lang").value,
-                                                  patient_code: $("su-code").value.trim() || null}));
+                                                  patient_code: $("su-code").value.trim() || null,
+                                                  clinician_code: $("su-doc").value.trim() || null}));
     } catch (err) { $("su-err").textContent = err.message; }
   });
 };
@@ -579,6 +605,7 @@ function showApp(me) {
   $("who").textContent = me.email;
   $("acct-email").textContent = me.email;
   $("acct-code").textContent = `Patient code: ${me.profile.id}`;
+  renderDoctor(me.profile.clinician_name);
   renderConsents(me.profile.consents);
   renderTeam();
   route();
@@ -587,7 +614,8 @@ function showApp(me) {
 
 // ------------------------------------------------------------------ pages: Home is the hub; each feature has its own
 // address (#chat, #check-in, #mind-pause), so the browser's Back button and a page refresh both work.
-const ROUTES = {home: "home", chat: "chat", "check-in": "checkin", "mind-pause": "pause", privacy: "home"};
+const ROUTES = {home: "home", chat: "chat", "check-in": "checkin", "mind-pause": "pause", "my-summary": "summary",
+                privacy: "home"};
 let CURRENT = null, HOME_Y = 0;
 const go = (page) => { location.hash = page; };
 
@@ -609,6 +637,65 @@ function openTab(name) {
   scrollTo(0, name === "home" ? HOME_Y : 0);
   buddy.show(name === "home");
   if (name === "chat") { $("msgs").scrollTop = $("msgs").scrollHeight; $("text").focus(); }
+  if (name === "summary") loadSummary();
+}
+
+// ------------------------------------------------------------------ link to my clinician (their MM-… code)
+function renderDoctor(name) {
+  $("doc-box").innerHTML = name
+    ? `<p class="small" style="margin:0">Your clinician: <b>${esc(name)}</b></p>
+       <p class="small muted" style="margin:4px 0 0">Changing clinician? Enter the new code:</p>${linkRow()}`
+    : `<p class="small" style="margin:0"><b>Link your clinician</b>: enter the code they gave you (like MM-7K3P9Q).</p>${linkRow()}`;
+  $("doc-go").onclick = async () => {
+    try {
+      const p = await api(`/v1/patients/${encodeURIComponent(PID)}/clinician`, {code: $("doc-code").value.trim()});
+      renderDoctor(p.clinician_name);
+    } catch (e) { $("doc-err").textContent = e.message; }
+  };
+}
+const linkRow = () => `<div class="link-row"><input id="doc-code" placeholder="MM-XXXXXX" autocomplete="off" maxlength="20">
+  <button class="btn-ghost" id="doc-go">Link</button></div><div class="err" id="doc-err"></div>`;
+
+// ------------------------------------------------------------------ My summary (the patient's own State Card)
+function spark(history, max) {
+  if (history.length < 2) return "";
+  const w = 300, h = 56, pad = 6, n = history.length;
+  const pts = history.map((p, i) => [pad + i * (w - 2 * pad) / (n - 1), h - pad - (p.total / max) * (h - 2 * pad)]);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts.map((p) => p.join(",")).join(" ")}" fill="none" stroke="#457560" stroke-width="2.5"
+      stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    ${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#457560"/>`).join("")}</svg>`;
+}
+
+async function loadSummary() {
+  const el = $("summary");
+  try {
+    const s = await api(`/v1/patients/${encodeURIComponent(PID)}/summary`);
+    const chips = (list, empty) => list.length ? `<div class="chips">${list.map((x) => `<span>${esc(x)}</span>`).join("")}</div>`
+                                               : `<p class="small muted" style="margin:6px 0 0">${empty}</p>`;
+    const scores = s.scores.length ? s.scores.map((q) => `<div class="card score-card">
+        <h3>${esc(q.label)}</h3>
+        <div><span class="big">${q.latest}</span> <span class="of">/ ${q.max}</span><span class="band">${esc(q.band)} range</span></div>
+        ${spark(q.history, q.max)}
+        <p class="small muted" style="margin:8px 0 0">${esc(q.note)}</p></div>`).join("")
+      : `<div class="card"><h3>Check-in scores</h3><p class="small muted" style="margin:0">No check-ins yet.
+          <a href="#check-in">Do your first one</a>; it takes about 2 minutes.</p></div>`;
+    el.innerHTML = `
+      ${s.support ? `<div class="crisis" style="grid-column:1/-1; margin:0"><span data-icon="heart"></span><span>${esc(s.support)}</span></div>` : ""}
+      ${scores}
+      <div class="card"><h3>What came up</h3>${chips(s.came_up, "Nothing stood out yet. Chat with Mitra about your days and it will show here.")}
+        ${s.sleep_mentions ? `<p class="small" style="margin:10px 0 0">Sleep came up in ${s.sleep_mentions} of your ${s.period.checkins} chat messages.</p>` : ""}</div>
+      <div class="card"><h3>What helped you</h3>${chips(s.helped, "When something helps, like a walk or a breathing exercise, tell Mitra and it will show here.")}
+        <p class="small muted" style="margin:10px 0 0">Mind Pauses: ${s.mind_pauses.completed} finished of ${s.mind_pauses.started} started.</p></div>
+      <div class="card"><h3>Your care team</h3>
+        <p class="small" style="margin:0">${s.clinician ? `Your clinician is <b>${esc(s.clinician)}</b>. They see your scores and only the messages you share.`
+          : "You are not linked to a clinician yet. Add your clinician's code under Privacy on the home page."}</p>
+        <p class="small muted" style="margin:10px 0 0">Based on ${s.period.checkins} chat message${s.period.checkins === 1 ? "" : "s"}
+          and your check-in scores. This summary is not a diagnosis.</p></div>`;
+    paintIcons(el);
+  } catch (e) {
+    el.innerHTML = `<div class="card"><p class="err">${esc(e.message)}</p></div>`;
+  }
 }
 document.querySelectorAll("[data-scroll]").forEach((b) => b.onclick = () => $(b.dataset.scroll).scrollIntoView({behavior: "smooth"}));
 
@@ -1229,16 +1316,18 @@ async function boot() {
   setVoice(ls.get("mm_voice") === "1");
   PURPOSES = (await api("/v1/consent-purposes")).purposes;
   renderSignupConsents();
-  if (new URLSearchParams(location.search).get("as") === "clinician") {
-    // Coming from /clinician (or a clinician link): skip straight to the dashboard if still logged in.
+  const as = new URLSearchParams(location.search).get("as");
+  if (as === "clinician" || as === "superuser") {
+    // Coming from /clinician or /admin: skip straight to the dashboard if still logged in.
     let ctok = null;
     try { ctok = localStorage.getItem(CLINICIAN_TOKEN); } catch {}
     if (ctok) {
       const r = await fetch("/v1/auth/clinician/me", {headers: {Authorization: `Bearer ${ctok}`}}).catch(() => null);
-      if (r && r.ok) { location.replace("/clinician"); return; }
+      const me = r && r.ok ? await r.json() : null;
+      if (me) { location.replace(me.role === "superuser" ? "/admin" : "/clinician"); return; }
     }
     $("auth").hidden = false; $("app").hidden = true;
-    setRole("clinician");
+    setRole(as);
     return;
   }
   if (TOKEN) {

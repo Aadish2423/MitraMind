@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MitraMind Superuser</title>
+<link rel="stylesheet" href="/static/common.css">
+<style>
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .scroll { overflow-x: auto; }
+  td select, td button { padding: 3px 8px; font-size: 13px; }
+  .why { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; padding-left: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>MitraMind Care: superuser</h1>
+    <div class="row small"><span class="muted" id="who">Checking your login…</span>
+      <a href="/clinician">Clinician view</a>
+      <button id="logout" style="padding:4px 10px">Log out</button></div>
+  </header>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>How each clinician is doing</h2>
+    <p class="small muted" style="margin-top:-6px">Caseload, how many patients use MitraMind, how their PHQ-9 / GAD-7
+      scores changed, and how fast alerts were picked up (targets: urgent within 1 h, high within 24 h, watch within
+      72 h). Score changes depend on how unwell each caseload was to begin with: use this to start a conversation,
+      not as a verdict.</p>
+    <div class="scroll"><table id="clinicians"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>All patients</h2>
+    <p class="small muted" style="margin-top:-6px">Link each patient to a clinician. Patients can also link themselves
+      with their clinician's code.</p>
+    <div class="scroll"><table id="patients"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Every patient's card</h2>
+      <button id="cards-refresh" style="padding:4px 10px">Refresh cards</button></div>
+    <p class="small muted">Rule-based User State Cards. Open one to see the full summary on the clinician view.</p>
+    <div class="cards-grid" id="cards"></div>
+  </section>
+</main>
+
+<script src="/static/cards.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const when = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "never";
+const TOKEN_KEY = "mm_clinician_token";
+const token = { get() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
+                clear() { try { localStorage.removeItem(TOKEN_KEY); } catch {} } };
+const toLogin = () => location.replace("/?as=superuser");
+let CHOICES = [];
+
+async function api(path, body) {
+  const headers = {Authorization: `Bearer ${token.get()}`};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const r = await fetch(path, body === undefined ? {headers} : {method: "POST", headers, body: JSON.stringify(body)});
+  const data = await r.json().catch(() => ({}));
+  if (r.status === 401) { token.clear(); toLogin(); throw new Error("Please log in again."); }
+  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data));
+  return data;
+}
+
+$("logout").onclick = async () => {
+  await fetch("/v1/auth/clinician/logout", {method: "POST", headers: {Authorization: `Bearer ${token.get()}`}}).catch(() => {});
+  token.clear(); toLogin();
+};
+
+async function loadOverview() {
+  const o = await api("/v1/admin/overview");
+  CHOICES = o.clinician_choices;
+  $("tiles").innerHTML = [
+    ["Patients", o.patients], ["Clinicians", o.clinicians], ["Patients without a clinician", o.unassigned_patients],
+    ["Open urgent alerts", o.open_alerts.urgent], ["Open high alerts", o.open_alerts.high], ["Open watch alerts", o.open_alerts.watch],
+  ].map(([k, v]) => `<div class="tile"><span class="small muted">${k}</span><b>${v}</b></div>`).join("");
+}
+
+function outcome(o) {
+  if (!o.patients_with_2_scores) return `<span class="muted">no repeat scores yet</span>`;
+  return `${o.improved} better · ${o.worsened} worse <span class="muted">of ${o.patients_with_2_scores}
+    (mean ${o.mean_change > 0 ? "+" : ""}${o.mean_change})</span>`;
+}
+
+async function loadClinicians() {
+  const rows = await api("/v1/admin/clinicians");
+  const cls = {"needs attention": "st-needs", "watch": "st-watch", "on track": "st-ok"};
+  $("clinicians").innerHTML = rows.length ? `<tr><th>Clinician</th><th>Status</th><th>Patients</th><th>Active (14 d)</th>
+    <th>PHQ-9 change</th><th>GAD-7 change</th><th>Alerts</th><th>Median time to pick up</th><th>Summaries rated</th><th>Last login</th></tr>` +
+    rows.map((r) => `<tr>
+      <td><b>${esc(r.clinician.name || r.clinician.email)}</b><div class="small muted">${esc(r.clinician.email)} ·
+        <span class="code-pill">${esc(r.clinician.care_code || "-")}</span></div></td>
+      <td><span class="${cls[r.status] || "muted"}">${esc(r.status)}</span>
+        <ul class="why">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></td>
+      <td>${r.patients} <span class="small muted">(${r.sharing_with_care_team} sharing)</span></td>
+      <td>${r.active_last_14_days}</td>
+      <td class="small">${outcome(r.outcomes["PHQ-9"])}</td><td class="small">${outcome(r.outcomes["GAD-7"])}</td>
+      <td class="small">${r.alerts.total} total, ${r.alerts.open} open${r.alerts.open_high_or_urgent ? `, <b>${r.alerts.open_high_or_urgent} high/urgent open</b>` : ""}${r.alerts.late ? `, <b>${r.alerts.late} late</b>` : ""}</td>
+      <td>${r.alerts.median_hours_to_acknowledge == null ? "-" : `${r.alerts.median_hours_to_acknowledge} h`}</td>
+      <td>${r.summaries_rated}</td><td class="small">${when(r.last_login_at)}</td></tr>`).join("")
+    : `<tr><td class="muted">No verified clinicians yet.</td></tr>`;
+}
+
+async function loadPatients() {
+  const rows = await api("/v1/clinician/dashboard");
+  const opts = (sel) => `<option value="">- none -</option>` + CHOICES.map((c) =>
+    `<option value="${c.id}" ${sel && sel.id === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+  const q = (t) => t ? `${t.latest} <span class="small muted">${esc(t.severity)}${t.direction !== "baseline_only" ? `, ${t.change > 0 ? "+" : ""}${t.change}` : ""}</span>` : `<span class="muted">-</span>`;
+  $("patients").innerHTML = `<tr><th>Patient</th><th>Clinician</th><th>Open alerts</th><th>PHQ-9</th><th>GAD-7</th><th>Shares with care team</th></tr>` +
+    rows.map((p) => `<tr><td>${esc(p.id)}</td>
+      <td><select data-p="${esc(p.id)}">${opts(p.clinician)}</select></td>
+      <td>${p.open_alerts ? `<span class="badge lvl-${p.highest_open_alert}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>` : "0"}</td>
+      <td>${q(p["PHQ-9"])}</td><td>${q(p["GAD-7"])}</td><td>${p.consents.care_team ? "yes" : "no"}</td></tr>`).join("");
+  $("patients").querySelectorAll("select[data-p]").forEach((s) => s.onchange = async () => {
+    await api(`/v1/admin/patients/${encodeURIComponent(s.dataset.p)}/clinician`, {clinician_id: s.value ? +s.value : null});
+    loadOverview(); loadClinicians(); loadCards();
+  });
+  return rows;
+}
+
+async function loadCards() {
+  renderCards($("cards"), await api("/v1/clinician/dashboard"), api,
+              (pid) => { location.href = `/clinician#${encodeURIComponent(pid)}`; }, {showClinician: true});
+}
+
+(async () => {
+  if (!token.get()) return toLogin();
+  const me = (await api("/v1/auth/clinician/me")).clinician;
+  if (me.role !== "superuser") { location.replace("/clinician"); return; }
+  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email} · superuser`;
+  await loadOverview();
+  loadClinicians(); loadPatients(); loadCards();
+  $("cards-refresh").onclick = loadCards;
+  setInterval(() => { loadOverview(); loadClinicians(); }, 60000);
+})().catch(() => {});
+</script>
+</body>
+</html>

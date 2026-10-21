@@ -65,8 +65,10 @@ def test_clinician_routes_need_a_verified_clinician(monkeypatch):
     r = c.post("/v1/auth/clinician/verify", json={"email": GMAIL, "code": signup["dev_code"]})
     assert r.status_code == 200 and r.json()["role"] == "clinician"
     token = r.json()["token"]
-    for path in CLINICIAN_ROUTES:
+    for path in ("/v1/clinician/dashboard", "/v1/clinician/alerts"):
         assert c.get(path, headers={"Authorization": f"Bearer {token}"}).status_code == 200, path
+    for path in ("/v1/audit", "/v1/whatsapp/outbox"):  # whole audit log and outbox: superuser only
+        assert c.get(path, headers={"Authorization": f"Bearer {token}"}).status_code == 403, path
     me = c.get("/v1/auth/clinician/me", headers={"Authorization": f"Bearer {token}"}).json()
     assert me["clinician"]["email"] == GMAIL and me["clinician"]["name"] == "Dr. Mehta"
     # After verifying, a normal login works, and the code cannot be used twice.
@@ -93,6 +95,7 @@ def test_alert_handler_is_the_logged_in_clinician(monkeypatch):
     svc.enroll("p1", consents={"companion": True, "care_team": True})
     aid = svc.store.add_alert("p1", "high", ["test"], "message")
     h = {"Authorization": f"Bearer {verified(c)}"}
+    svc.store.set_patient_clinician("p1", svc.store.clinician_by_email(GMAIL)["id"])
     r = c.post(f"/v1/clinician/alerts/{aid}", headers=h, json={"status": "acknowledged", "handled_by": "someone else"})
     assert r.json()["handled_by"] == "Dr. Mehta"
     assert svc.store.alerts("acknowledged")[0]["handled_by"] == "Dr. Mehta"

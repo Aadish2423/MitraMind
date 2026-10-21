@@ -16,7 +16,8 @@ from datetime import date as Date
 from datetime import datetime, timedelta, timezone
 
 from phase1.crisis import ACTIONS, HELPLINES, combine
-from phase1.questionnaires import score, trends
+from phase1.orchestrator import COPING_LABELS, STRESSOR_LABELS
+from phase1.questionnaires import MEANINGFUL_CHANGE, score, trends
 from phase1.render import card_to_markdown
 from phase1.schema import Entry, PatientBundle, QuestionnaireResponse
 
@@ -29,6 +30,9 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MIN_PASSWORD = 8
 MIN_CLINICIAN_PASSWORD = 10
 RESEND_SECONDS = 60
+# How fast an alert should be picked up, from the crisis layer's recommended actions ("urgent: call now",
+# "high: within 24 hours"). Confirm with the hospital's protocol.
+ACK_TARGET_HOURS = {"urgent": 1, "high": 24, "watch": 72}
 
 
 def clinician_domains() -> set[str]:
@@ -48,6 +52,10 @@ class NotFound(Exception):
 
 class AuthError(Exception):
     pass
+
+
+class Forbidden(Exception):
+    """A clinician asked for a patient who is not theirs."""
 
 
 class VerificationRequired(Exception):
@@ -84,8 +92,23 @@ class CareService:
 
     def profile(self, patient_id: str) -> dict:
         p = self._patient(patient_id)
+        doc = self._linked_clinician(p)
         return {**{k: p[k] for k in ("id", "display_name", "preferred_language", "clinician_id", "created_at")},
+                "clinician_name": (doc["name"] or doc["email"]) if doc else None,
                 "consents": self.store.consents(patient_id)}
+
+    def _linked_clinician(self, patient: dict) -> dict | None:
+        cid = patient.get("clinician_id")
+        return self.store.clinician_by_id(int(cid)) if cid and str(cid).isdigit() else None
+
+    def link_clinician(self, patient_id: str, care_code: str) -> dict:
+        """The patient enters the code their clinician gave them; from then on that clinician sees them."""
+        self._patient(patient_id)
+        doc = self.store.clinician_by_code(care_code)
+        if doc is None:
+            raise ValueError("we couldn't find a clinician with that code; please check it with your clinic")
+        self.store.set_patient_clinician(patient_id, doc["id"])
+        return self.profile(patient_id)
 
     def _patient(self, patient_id: str) -> dict:
         p = self.store.patient(patient_id)
@@ -95,7 +118,8 @@ class CareService:
 
     # ------------------------------------------------------------------ patient accounts
     def signup(self, email: str, password: str, *, consents: dict[str, bool] | None = None,
-               preferred_language: str = "auto", patient_code: str | None = None) -> dict:
+               preferred_language: str = "auto", patient_code: str | None = None,
+               clinician_code: str | None = None) -> dict:
         """New account + new patient record. `patient_code` is the code the care team gave, if any; it must be new,
         so nobody can sign up onto an existing patient's history by guessing their code."""
         email = normalise_email(email)
@@ -107,8 +131,15 @@ class CareService:
             raise ValueError("an account with this email already exists; please log in")
         if patient_code and self.store.patient(patient_code):
             raise ValueError("this patient code is already in use; please check it with your care team")
+        doc = None
+        if clinician_code and clinician_code.strip():
+            doc = self.store.clinician_by_code(clinician_code)
+            if doc is None:
+                raise ValueError("we couldn't find a clinician with that code; please check it or leave it empty")
         pid = patient_code or self._new_patient_id()
         self.enroll(pid, preferred_language=preferred_language, consents=consents)
+        if doc:
+            self.store.set_patient_clinician(pid, doc["id"])
         return self._session(self.store.create_account(email, password, pid))
 
     def login(self, email: str, password: str) -> dict:
@@ -181,7 +212,14 @@ class CareService:
                              "too_many": "too many wrong codes; please ask for a new one",
                              "missing": "please ask for a new code"}[result])
         self.store.mark_clinician_verified(email)
-        return self._clinician_session(self.store.clinician_by_email(email))
+        return self._clinician_session(self.ensure_care_code(self.store.clinician_by_email(email)))
+
+    def _new_care_code(self) -> str:
+        alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I, so it is easy to read out
+        while True:
+            code = "MM-" + "".join(secrets.choice(alphabet) for _ in range(6))
+            if not self.store.clinician_by_code(code):
+                return code
 
     def clinician_login(self, email: str, password: str) -> dict:
         email = normalise_email(email)
@@ -195,7 +233,14 @@ class CareService:
                 sent = {"emailed": mailer.configured()}
             raise VerificationRequired("please confirm your Gmail first; we sent you a 6-digit code",
                                        sent.get("dev_code"))
-        return self._clinician_session(acc)
+        return self._clinician_session(self.ensure_care_code(acc))
+
+    def ensure_care_code(self, acc: dict) -> dict:
+        """Clinician accounts verified before care codes existed get one the next time they are used."""
+        if acc["care_code"] or acc["is_superuser"]:
+            return acc
+        self.store.set_care_code(acc["id"], self._new_care_code())
+        return self.store.clinician_by_id(acc["id"])
 
     def clinician(self, token: str | None) -> dict | None:
         return self.store.clinician_session(token) if token else None
@@ -204,12 +249,47 @@ class CareService:
         self.store.end_clinician_session(token)
 
     def _clinician_session(self, acc: dict) -> dict:
-        return {"token": self.store.new_clinician_session(acc["id"]), "role": "clinician",
+        return {"token": self.store.new_clinician_session(acc["id"]), "role": self.role(acc),
                 "clinician": self.clinician_profile(acc)}
 
     @staticmethod
-    def clinician_profile(acc: dict) -> dict:
-        return {"id": acc["id"], "email": acc["email"], "name": acc["name"], "verified_at": acc["verified_at"]}
+    def role(acc: dict) -> str:
+        return "superuser" if acc.get("is_superuser") else "clinician"
+
+    @classmethod
+    def clinician_profile(cls, acc: dict) -> dict:
+        return {"id": acc["id"], "email": acc["email"], "name": acc["name"], "verified_at": acc["verified_at"],
+                "role": cls.role(acc), "care_code": acc.get("care_code")}
+
+    def create_superuser(self, email: str, password: str, name: str | None = None) -> dict:
+        email = normalise_email(email)
+        if not EMAIL_RE.match(email):
+            raise ValueError("please enter a valid email address")
+        if len(password or "") < 12:
+            raise ValueError("superuser passwords need at least 12 characters")
+        return self.clinician_profile(self.store.upsert_superuser(email, password, name))
+
+    # ------------------------------------------------------------------ who may see which patient
+    def can_see(self, acc: dict, patient: dict) -> bool:
+        return bool(acc.get("is_superuser")) or str(patient.get("clinician_id") or "") == str(acc["id"])
+
+    def require_access(self, acc: dict, patient_id: str) -> dict:
+        p = self._patient(patient_id)
+        if not self.can_see(acc, p):
+            raise Forbidden("this patient is not linked to you")
+        return p
+
+    def visible_patients(self, acc: dict) -> list[dict]:
+        return [p for p in self.store.patients() if self.can_see(acc, p)]
+
+    def assign_clinician(self, patient_id: str, clinician_id: int | None) -> dict:
+        self._patient(patient_id)
+        if clinician_id is not None:
+            doc = self.store.clinician_by_id(clinician_id)
+            if doc is None or not doc["verified_at"] or doc["is_superuser"]:
+                raise ValueError("no verified clinician with that id")
+        self.store.set_patient_clinician(patient_id, clinician_id)
+        return self.profile(patient_id)
 
     def _new_patient_id(self) -> str:
         while True:
@@ -402,14 +482,17 @@ class CareService:
         return [{k: m[k] for k in ("id", "text", "modality", "language", "risk_level", "created_at")}
                 for m in self.store.messages(patient_id, role="user", for_clinician=True) if m["shared"]]
 
-    def dashboard(self) -> list[dict]:
+    def dashboard(self, acc: dict | None = None) -> list[dict]:
+        """Patients the clinician may see (all of them for a superuser, or with acc=None inside the server)."""
         rows = []
-        for p in self.store.patients():
+        for p in (self.visible_patients(acc) if acc else self.store.patients()):
             pid = p["id"]
             consents = self.store.consents(pid)
             alerts = self.store.alerts("open", pid)
+            doc = self._linked_clinician(p)
             row = {"id": pid, "display_name": p["display_name"], "consents": consents, "open_alerts": len(alerts),
-                   "highest_open_alert": alerts[0]["level"] if alerts else "none"}
+                   "highest_open_alert": alerts[0]["level"] if alerts else "none",
+                   "clinician": {"id": doc["id"], "name": doc["name"] or doc["email"]} if doc else None}
             if consents["care_team"]:
                 tr = trends(self._responses(pid))
                 row.update({k: {"latest": t.latest_total, "severity": t.latest_severity, "change": t.change,
@@ -418,8 +501,135 @@ class CareService:
             rows.append(row)
         return sorted(rows, key=lambda r: (-LEVEL_ORDER.get(r["highest_open_alert"], 0), r["id"]))
 
-    def alerts(self, status: str | None = "open") -> list[dict]:
+    def alerts(self, status: str | None = "open", acc: dict | None = None) -> list[dict]:
+        visible = {p["id"] for p in self.visible_patients(acc)} if acc else None
+        return [{**a, "recommended_action": ACTIONS.get(a["level"], "")} for a in self.store.alerts(status)
+                if visible is None or a["patient_id"] in visible]
+
+    def alert_patient(self, alert_id: int) -> str | None:
+        rows = [a for a in self.store.alerts(None) if a["id"] == alert_id]
+        return rows[0]["patient_id"] if rows else None
+
+    # ------------------------------------------------------------------ the patient's own summary card
+    def patient_summary(self, patient_id: str) -> dict:
+        """A friendly version of the State Card for the patient: no risk labels or clinical wording,
+        just their scores over time, what came up, what helped, and where to get help."""
+        self._patient(patient_id)
+        card, _ = self.orch.build_card(self.bundle(patient_id), use_llm=False)
+        cues = card.cues
+        scores = []
+        for ins, t in card.questionnaires.items():
+            scores.append({
+                "instrument": ins, "label": {"PHQ-9": "Mood (PHQ-9)", "GAD-7": "Worry (GAD-7)"}[ins],
+                "latest": t.latest_total, "first": t.first_total, "change": t.change, "band": t.latest_severity,
+                "max": 27 if ins == "PHQ-9" else 21, "direction": t.direction,
+                "history": [{"date": h.date.isoformat(), "total": h.total} for h in t.history],
+                "note": {"improved": "Lower is better: your score has come down. Well done for keeping at it.",
+                         "worsened": "Your score has gone up. It may help to talk about this at your next visit.",
+                         "stable": "Your score has stayed about the same.",
+                         "baseline_only": "This is your first check-in; we'll show the trend after the next one."}
+                        .get(t.direction, "")})
+        top = lambda d, labels, n=4: [labels.get(k, k.replace("_", " ")) for k, _ in  # noqa: E731
+                                      sorted(d.items(), key=lambda kv: -kv[1])[:n]]
+        pauses = self.store.mind_pauses(patient_id)
+        tough = card.risk.level in ("high", "urgent")
+        return {
+            "period": {"start": cues.period_start, "end": cues.period_end, "checkins": cues.n_entries},
+            "scores": scores,
+            "came_up": top(cues.stressors, STRESSOR_LABELS),
+            "helped": top(cues.coping_helpful, COPING_LABELS),
+            "sleep_mentions": cues.phq_domains.get("sleep", 0),  # check-ins that mentioned sleep problems
+            "mind_pauses": {"started": len(pauses), "completed": sum(1 for p in pauses if p["completed"])},
+            "clinician": self.profile(patient_id)["clinician_name"],
+            "support": ("Some of what you shared recently sounded very hard. Your care team has been told and will "
+                        "reach out. You can call Tele-MANAS 14416 (free, 24x7) any time, or 112 in an emergency."
+                        if tough else None),
+            "helplines": HELPLINES,
+        }
+
+    # ------------------------------------------------------------------ superuser: how is each clinician doing?
+    def clinician_report(self) -> list[dict]:
+        """Per clinician: caseload, engagement, score change of their patients, and how fast alerts were picked up.
+
+        Outcome numbers depend on how unwell each caseload is to begin with, so they start a conversation; they
+        are not a verdict on a clinician."""
+        now_ = datetime.now(timezone.utc)
+        patients = self.store.patients()
+        all_alerts = self.store.alerts(None)
         out = []
-        for a in self.store.alerts(status):
-            out.append({**a, "recommended_action": ACTIONS.get(a["level"], "")})
-        return out
+        for doc in self.store.clinicians():
+            if doc["is_superuser"] or not doc["verified_at"]:
+                continue
+            mine = [p for p in patients if str(p["clinician_id"] or "") == str(doc["id"])]
+            ids = {p["id"] for p in mine}
+            consenting = [p for p in mine if self.store.has_consent(p["id"], "care_team")]
+            active = 0
+            for p in mine:
+                last = self.store.last_message_at(p["id"])
+                if last and datetime.fromisoformat(last) > now_ - timedelta(days=14):
+                    active += 1
+            outcomes = {}
+            for ins in ("PHQ-9", "GAD-7"):
+                changes = []
+                for p in consenting:
+                    t = trends(self._responses(p["id"])).get(ins)
+                    if t and t.n_administrations > 1:
+                        changes.append(t.change)
+                thr = MEANINGFUL_CHANGE[ins]
+                outcomes[ins] = {"patients_with_2_scores": len(changes),
+                                 "mean_change": round(sum(changes) / len(changes), 1) if changes else None,
+                                 "improved": sum(c <= -thr for c in changes), "worsened": sum(c >= thr for c in changes)}
+            alerts = [a for a in all_alerts if a["patient_id"] in ids]
+            ack_hours, late, open_serious = [], [], 0
+            for a in alerts:
+                created = datetime.fromisoformat(a["created_at"])
+                acked = datetime.fromisoformat(a["acknowledged_at"]) if a.get("acknowledged_at") else None
+                target = ACK_TARGET_HOURS.get(a["level"])
+                waited = ((acked or now_) - created).total_seconds() / 3600
+                if acked:
+                    ack_hours.append(waited)
+                if a["status"] == "open" and a["level"] in ("high", "urgent"):
+                    open_serious += 1
+                if target is not None and waited > target:
+                    late.append(a["level"])
+            ack_hours.sort()
+            median = round(ack_hours[len(ack_hours) // 2], 1) if ack_hours else None
+            reasons = []
+            if late.count("urgent"):
+                reasons.append(f"{late.count('urgent')} urgent alert(s) not picked up within {ACK_TARGET_HOURS['urgent']} h")
+            if late.count("high"):
+                reasons.append(f"{late.count('high')} high alert(s) not picked up within {ACK_TARGET_HOURS['high']} h")
+            phq = outcomes["PHQ-9"]
+            if phq["patients_with_2_scores"] >= 3 and phq["worsened"] > phq["improved"]:
+                reasons.append("more patients' PHQ-9 got clearly worse than clearly better")
+            if mine and active == 0:
+                reasons.append("no patient used MitraMind in the last 14 days")
+            if not mine:
+                status = "no patients yet"
+            elif late.count("urgent") or late.count("high") or open_serious:
+                status = "needs attention"
+            elif reasons:
+                status = "watch"
+            else:
+                status = "on track"
+            out.append({
+                "clinician": self.clinician_profile(doc), "last_login_at": doc["last_login_at"], "status": status,
+                "reasons": reasons or (["alerts picked up on time and no warning signs"] if mine else []),
+                "patients": len(mine), "sharing_with_care_team": len(consenting), "active_last_14_days": active,
+                "outcomes": outcomes,
+                "alerts": {"total": len(alerts), "open": sum(a["status"] == "open" for a in alerts),
+                           "open_high_or_urgent": open_serious, "median_hours_to_acknowledge": median,
+                           "late": len(late)},
+                "summaries_rated": self.store.feedback_count(f"clinician:{doc['id']}"),
+            })
+        order = {"needs attention": 0, "watch": 1, "on track": 2, "no patients yet": 3}
+        return sorted(out, key=lambda r: (order[r["status"]], -(r["patients"])))
+
+    def overview(self) -> dict:
+        patients = self.store.patients()
+        open_alerts = self.store.alerts("open")
+        docs = [d for d in self.store.clinicians() if d["verified_at"] and not d["is_superuser"]]
+        return {"patients": len(patients), "clinicians": len(docs),
+                "unassigned_patients": sum(1 for p in patients if not self._linked_clinician(p)),
+                "open_alerts": {lvl: sum(a["level"] == lvl for a in open_alerts) for lvl in ("urgent", "high", "watch")},
+                "clinician_choices": [{"id": d["id"], "name": d["name"] or d["email"]} for d in docs]}

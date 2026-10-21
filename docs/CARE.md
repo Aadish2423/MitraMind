@@ -54,6 +54,17 @@ Clinicians log in separately: on the sign-up page they pick **Clinician**, use a
 it with a 6-digit code sent to it (`/v1/auth/clinician/signup`, `/verify`, `/resend`, `/login`, `/logout`,
 `/me`). Every clinician route needs that verified clinician's token, and after login the page opens `/clinician`.
 
+Three views of the User State Card:
+- **Patient** (`/#my-summary`, `GET /v1/patients/{id}/summary`): their own friendly card: PHQ-9 / GAD-7 over
+  time, what came up, what helped, their clinician. No risk labels or clinical wording.
+- **Clinician** (`/clinician`): a card for every patient linked to them. Each clinician has a care code
+  (`MM-XXXXXX`); patients enter it at sign-up or under Privacy, or a superuser links them.
+- **Superuser** (`/admin`): every patient's card, assignment of patients to clinicians, and a report per clinician
+  (caseload, active patients, PHQ-9 / GAD-7 change of their patients, alert pick-up time against targets of
+  urgent 1 h, high 24 h, watch 72 h, summaries rated) with a status: needs attention / watch / on track.
+  Superusers log in from the same page (role "Superuser") but are created only on the server:
+  `python src/create_superuser.py --email ... [--generate --save var/superuser.txt]`.
+
 `/v1/clinician/alerts` (acknowledge, resolve with an outcome label), `/v1/clinician/dashboard`,
 `/v1/clinician/patients/{id}/state-card`, `/shared`, `/feedback`, `/fhir`. Page: `/clinician`.
 

@@ -101,7 +101,11 @@ CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 MIGRATIONS = [
     ("alerts", "outcome TEXT"),  # clinician's label when resolving: confirmed_risk / false_alarm / unclear
     ("messages", "image_path TEXT"),  # photo the patient attached to a chat message
+    ("clinicians", "is_superuser INTEGER NOT NULL DEFAULT 0"),  # sees every patient and every clinician's report
+    ("clinicians", "care_code TEXT"),  # short code a patient enters to link to this clinician
+    ("alerts", "acknowledged_at TEXT"),  # first time anyone acknowledged or resolved it (response-time metric)
 ]
+POST_MIGRATION = ["CREATE UNIQUE INDEX IF NOT EXISTS ix_clinicians_code ON clinicians(care_code)"]
 ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
 LEVEL_ORDER = {"none": 0, "watch": 1, "high": 2, "urgent": 3}
 SESSION_DAYS = 30
@@ -154,6 +158,9 @@ class Store:
                 self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
             except sqlite3.OperationalError:
                 pass  # column already there
+        for sql in POST_MIGRATION:
+            self._conn.execute(sql)
+        self._conn.commit()
 
     # ------------------------------------------------------------------ helpers
     def _exec(self, sql: str, args=()) -> sqlite3.Cursor:
@@ -282,6 +289,40 @@ class Store:
     def end_clinician_session(self, token: str) -> None:
         self._exec("DELETE FROM clinician_sessions WHERE token_hash = ?", (sha256(token),))
 
+    def clinician_by_id(self, clinician_id: int) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE id = ?", (clinician_id,))
+
+    def clinician_by_code(self, care_code: str) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE care_code = ? AND verified_at IS NOT NULL "
+                         "AND is_superuser = 0", ((care_code or "").strip().upper(),))
+
+    def clinicians(self) -> list[dict]:
+        return self._all("SELECT * FROM clinicians ORDER BY created_at")
+
+    def set_care_code(self, clinician_id: int, care_code: str) -> None:
+        self._exec("UPDATE clinicians SET care_code = ? WHERE id = ?", (care_code, clinician_id))
+
+    def upsert_superuser(self, email: str, password: str, name: str | None) -> dict:
+        """Create a superuser, or turn an existing clinician account into one with this password."""
+        if self.clinician_by_email(email):
+            self._exec("UPDATE clinicians SET password_hash = ?, name = COALESCE(?, name), is_superuser = 1, "
+                       "verified_at = COALESCE(verified_at, ?) WHERE email = ?", (hash_password(password), name, now(), email))
+        else:
+            self._exec("INSERT INTO clinicians (email, password_hash, name, verified_at, created_at, is_superuser) "
+                       "VALUES (?, ?, ?, ?, ?, 1)", (email, hash_password(password), name, now(), now()))
+        return self.clinician_by_email(email)
+
+    def set_patient_clinician(self, patient_id: str, clinician_id: int | None) -> None:
+        self._exec("UPDATE patients SET clinician_id = ? WHERE id = ?",
+                   (None if clinician_id is None else str(clinician_id), patient_id))
+
+    def feedback_count(self, clinician_ref: str) -> int:
+        return self._one("SELECT COUNT(*) AS n FROM clinician_feedback WHERE clinician_id = ?", (clinician_ref,))["n"]
+
+    def last_message_at(self, patient_id: str) -> str | None:
+        row = self._one("SELECT MAX(created_at) AS t FROM messages WHERE patient_id = ? AND role = 'user'", (patient_id,))
+        return row["t"] if row else None
+
     def set_email_code(self, email: str, code: str, minutes: int = CODE_MINUTES) -> None:
         expires = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
         self._exec("INSERT INTO email_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?) "
@@ -397,8 +438,8 @@ class Store:
         if outcome is not None and outcome not in ALERT_OUTCOMES:
             raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
         cur = self._exec("UPDATE alerts SET status = ?, handled_by = ?, handled_at = ?, note = ?, "
-                         "outcome = COALESCE(?, outcome) WHERE id = ?",
-                         (status, handled_by, now(), note, outcome, alert_id))
+                         "outcome = COALESCE(?, outcome), acknowledged_at = COALESCE(acknowledged_at, ?) WHERE id = ?",
+                         (status, handled_by, now(), note, outcome, now(), alert_id))
         return cur.rowcount == 1
 
     # ------------------------------------------------------------------ audit, Mind Pause, feedback
