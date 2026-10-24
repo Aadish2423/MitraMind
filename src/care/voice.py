@@ -146,9 +146,10 @@ class WhisperSTT:
         with _LOAD_LOCK:
             if self._pipe is None:
                 import torch
+                from common import pick_device
                 from transformers.pipelines import pipeline
 
-                cuda = torch.cuda.is_available()
+                cuda = pick_device(1.2).type == "cuda"  # whisper-small in fp16 needs ~0.6 GB plus working memory
                 self._pipe = pipeline("automatic-speech-recognition", model=self.model_id,
                                       device=0 if cuda else -1, torch_dtype=torch.float16 if cuda else torch.float32)
         return self._pipe

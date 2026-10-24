@@ -77,7 +77,13 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
    raised an alert with a helpline. The clips are synthetic voices; repeat with real recordings, Hindi and Hinglish.
    Windows has no Hindi TTS voice to make a test clip. Test Whisper-small on real Indian-accent Hindi and Hinglish voice notes;
    compare whisper-medium / large-v3, an IndicWhisper checkpoint, and Sarvam saarika (`MITRAMIND_STT=sarvam`).
-10. **Latency.** The first voice message takes 60-90 s (Whisper and m4 load on first use). Load models at
+10. **GPU memory.** On an 8 GB card the chat LLM kept loaded by Ollama, m1/m2, Whisper and m4 do not all fit;
+    loading m4 into a full card crashed with "CUDA error: illegal memory access" and broke every later GPU call.
+    Whisper and m4 now go to the CPU when the GPU lacks free memory (`MITRAMIND_SPEECH_DEVICE=auto|cpu|cuda`),
+    and a cue model that fails to load or run is reported as unavailable instead of failing the message.
+    A dedicated GPU for the LLM (or vLLM on a server) removes the squeeze.
+11. **Latency.** The first voice message takes 60-90 s (Whisper and m4 load on first use; up to ~3 min when m4
+    falls back to the CPU). Load models at
     startup and serve the LLM with vLLM/SGLang on a server GPU.
 11. **Server-side, style-controlled text-to-speech** (e.g. Sarvam Bulbul, Indic Parler-TTS) instead of the
     browser's voices, and recorded audio for the Mind Pause exercises.

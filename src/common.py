@@ -60,6 +60,21 @@ def device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+def pick_device(need_gb: float, env: str = "MITRAMIND_SPEECH_DEVICE"):
+    """GPU only if it has `need_gb` free right now, else CPU. On an 8 GB card the chat LLM (kept loaded by Ollama),
+    the text models and Whisper can leave too little room; filling the card made a model load fail with
+    'CUDA error: illegal memory access', which then broke every later GPU call. `env` (cpu / cuda / auto) overrides."""
+    import os
+
+    choice = os.environ.get(env, "auto").lower()
+    if choice in ("cpu", "cuda"):
+        return torch.device(choice if choice == "cpu" or torch.cuda.is_available() else "cpu")
+    if not torch.cuda.is_available():
+        return torch.device("cpu")
+    free, _ = torch.cuda.mem_get_info()
+    return torch.device("cuda" if free / 1024 ** 3 >= need_gb else "cpu")
+
+
 def autocast_dtype():
     if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
         return torch.bfloat16
