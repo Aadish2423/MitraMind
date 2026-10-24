@@ -24,7 +24,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fastapi import FastAPI, HTTPException
+
+def _load_env_file(path: Path) -> None:
+    """KEY=VALUE lines from .env (secrets such as the SMTP app password). Real environment variables win."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_env_file(Path(__file__).resolve().parents[1] / ".env")
+
+from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel

@@ -84,6 +84,12 @@ class EmailIn(BaseModel):
     email: str = Field(max_length=254)
 
 
+class ResetIn(BaseModel):
+    email: str = Field(max_length=254)
+    code: str = Field(pattern=r"^\s*\d{6}\s*$")
+    password: str = Field(max_length=200, description="the new password")
+
+
 class ChatIn(BaseModel):
     text: str = Field("", max_length=4000)
     share: bool = Field(False, description="Reflection Share: let the care team read this message")
@@ -148,6 +154,13 @@ def _bearer(request: Request) -> str | None:
     return token.strip() if scheme.lower() == "bearer" and token.strip() else None
 
 
+def verification_needed(e: VerificationRequired) -> JSONResponse:
+    detail = {"detail": str(e), "verification_required": True}
+    if e.dev_code:
+        detail["dev_code"] = e.dev_code
+    return JSONResponse(detail, status_code=403)
+
+
 def ndjson_response(events) -> StreamingResponse:
     """Stream service events as newline-delimited JSON."""
     def lines():
@@ -198,8 +211,53 @@ def build_router(svc: CareService) -> APIRouter:
         except AuthError as e:
             recent.append(t)
             raise HTTPException(401, str(e)) from e
+        except VerificationRequired as e:
+            return verification_needed(e)
+        except MailNotConfigured as e:
+            raise HTTPException(503, str(e)) from e
         failures.pop(email, None)
         return out
+
+    @r.post("/v1/auth/verify", tags=["auth"])
+    def patient_verify(body: CodeIn):
+        key = "verify-patient:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.verify_patient(body.email, body.code)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        failures.pop(key, None)
+        return out
+
+    @r.post("/v1/auth/resend", tags=["auth"])
+    def patient_resend(body: EmailIn):
+        return _call(svc.resend_patient_code, body.email)
+
+    # ---------------------------------------------------------------- forgot password: one pair per role
+    def reset_routes(prefix: str, role: str):
+        @r.post(f"{prefix}/forgot", tags=["auth"], name=f"{role}_forgot")
+        def forgot(body: EmailIn):
+            """Email a 6-digit reset code (same answer whether or not the account exists)."""
+            return _call(svc.request_password_reset, role, body.email)
+
+        @r.post(f"{prefix}/reset", tags=["auth"], name=f"{role}_reset")
+        def reset(body: ResetIn):
+            """Code + new password. Logs out every existing session of the account."""
+            key = f"reset-{role}:" + normalise_email(body.email)
+            recent = too_many(key)
+            try:
+                out = svc.reset_password(role, body.email, body.code, body.password)
+            except AuthError as e:
+                recent.append(time.monotonic())
+                raise HTTPException(401, str(e)) from e
+            except ValueError as e:
+                raise HTTPException(422, str(e)) from e
+            failures.pop(key, None)
+            return out
+
+    for prefix, role in (("/v1/auth", "patient"), ("/v1/auth/clinician", "clinician"), ("/v1/auth/admin", "superuser")):
+        reset_routes(prefix, role)
 
     @r.post("/v1/auth/logout", tags=["auth"])
     def logout(request: Request):
@@ -266,10 +324,7 @@ def build_router(svc: CareService) -> APIRouter:
             recent.append(time.monotonic())
             raise HTTPException(401, str(e)) from e
         except VerificationRequired as e:
-            detail = {"detail": str(e), "verification_required": True}
-            if e.dev_code:
-                detail["dev_code"] = e.dev_code
-            return JSONResponse(detail, status_code=403)
+            return verification_needed(e)
         except MailNotConfigured as e:
             raise HTTPException(503, str(e)) from e
         failures.pop(key, None)

@@ -104,6 +104,8 @@ MIGRATIONS = [
     ("clinicians", "is_superuser INTEGER NOT NULL DEFAULT 0"),  # sees every patient and every clinician's report
     ("clinicians", "care_code TEXT"),  # short code a patient enters to link to this clinician
     ("alerts", "acknowledged_at TEXT"),  # first time anyone acknowledged or resolved it (response-time metric)
+    # Patient email confirmed? Existing accounts count as confirmed; new ones start at 0 when verification is on.
+    ("accounts", "email_verified INTEGER NOT NULL DEFAULT 1"),
 ]
 POST_MIGRATION = ["CREATE UNIQUE INDEX IF NOT EXISTS ix_clinicians_code ON clinicians(care_code)"]
 ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
@@ -211,10 +213,24 @@ class Store:
         return self.consents(patient_id).get(purpose, False)
 
     # ------------------------------------------------------------------ patient accounts (email + password)
-    def create_account(self, email: str, password: str, patient_id: str) -> dict:
-        self._exec("INSERT INTO accounts (email, password_hash, patient_id, created_at) VALUES (?, ?, ?, ?)",
-                   (email, hash_password(password), patient_id, now()))
+    def create_account(self, email: str, password: str, patient_id: str, verified: bool = True) -> dict:
+        self._exec("INSERT INTO accounts (email, password_hash, patient_id, created_at, email_verified) "
+                   "VALUES (?, ?, ?, ?, ?)", (email, hash_password(password), patient_id, now(), int(verified)))
         return self.account_by_email(email)
+
+    def mark_account_verified(self, email: str) -> None:
+        self._exec("UPDATE accounts SET email_verified = 1 WHERE email = ?", (email,))
+
+    def set_account_password(self, email: str, password: str) -> None:
+        """New password; every existing session of the account is logged out."""
+        acc = self.account_by_email(email)
+        self._exec("UPDATE accounts SET password_hash = ? WHERE id = ?", (hash_password(password), acc["id"]))
+        self._exec("DELETE FROM sessions WHERE account_id = ?", (acc["id"],))
+
+    def set_clinician_password(self, email: str, password: str) -> None:
+        acc = self.clinician_by_email(email)
+        self._exec("UPDATE clinicians SET password_hash = ? WHERE id = ?", (hash_password(password), acc["id"]))
+        self._exec("DELETE FROM clinician_sessions WHERE clinician_id = ?", (acc["id"],))
 
     def account_by_email(self, email: str) -> dict | None:
         return self._one("SELECT * FROM accounts WHERE email = ?", (email,))
@@ -323,6 +339,8 @@ class Store:
         row = self._one("SELECT MAX(created_at) AS t FROM messages WHERE patient_id = ? AND role = 'user'", (patient_id,))
         return row["t"] if row else None
 
+    # One-time email codes. `email` here is the key "<purpose>:<address>" (e.g. "reset-patient:a@b.com"), so a
+    # sign-up code cannot reset a password and a patient and a clinician with the same address do not collide.
     def set_email_code(self, email: str, code: str, minutes: int = CODE_MINUTES) -> None:
         expires = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
         self._exec("INSERT INTO email_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?) "

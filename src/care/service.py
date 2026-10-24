@@ -35,6 +35,18 @@ RESEND_SECONDS = 60
 ACK_TARGET_HOURS = {"urgent": 1, "high": 24, "watch": 72}
 
 
+CODE_ERRORS = {"wrong": "that code is not right; please check it or ask for a new one",
+               "expired": "that code has expired; please ask for a new one",
+               "too_many": "too many wrong codes; please ask for a new one",
+               "missing": "please ask for a new code"}
+
+
+def patient_email_verification() -> bool:
+    """MITRAMIND_PATIENT_EMAIL_VERIFY=1: new patients confirm their email with a code before their first login.
+    Off by default so code-only, demo and WhatsApp patients, and older tests, keep working."""
+    return os.environ.get("MITRAMIND_PATIENT_EMAIL_VERIFY", "0") == "1"
+
+
 def clinician_domains() -> set[str]:
     """Email domains a clinician may sign up with (Gmail only by default)."""
     raw = os.environ.get("MITRAMIND_CLINICIAN_DOMAINS", "gmail.com,googlemail.com")
@@ -140,13 +152,70 @@ class CareService:
         self.enroll(pid, preferred_language=preferred_language, consents=consents)
         if doc:
             self.store.set_patient_clinician(pid, doc["id"])
-        return self._session(self.store.create_account(email, password, pid))
+        verify = patient_email_verification()
+        acc = self.store.create_account(email, password, pid, verified=not verify)
+        if verify:  # no session until the patient types the code we emailed
+            return self._send_code(email, "verify-patient", force=True)
+        return self._session(acc)
 
     def login(self, email: str, password: str) -> dict:
-        acc = self.store.check_login(normalise_email(email), password or "")
+        email = normalise_email(email)
+        acc = self.store.check_login(email, password or "")
         if acc is None:
             raise AuthError("wrong email or password")
+        if not acc["email_verified"]:
+            raise VerificationRequired("please confirm your email first; we sent you a 6-digit code",
+                                       self._send_code_quietly(email, "verify-patient"))
         return self._session(acc)
+
+    def verify_patient(self, email: str, code: str) -> dict:
+        email = normalise_email(email)
+        if self.store.account_by_email(email) is None:
+            raise AuthError(CODE_ERRORS["wrong"])
+        self._check_code(email, "verify-patient", code)
+        self.store.mark_account_verified(email)
+        return self._session(self.store.account_by_email(email))
+
+    def resend_patient_code(self, email: str) -> dict:
+        email = normalise_email(email)
+        acc = self.store.account_by_email(email)
+        if acc is None or acc["email_verified"]:
+            return {"status": "verification_sent", "email": email, "emailed": mailer.configured()}
+        return self._send_code(email, "verify-patient")
+
+    # ------------------------------------------------------------------ forgot password (all three roles)
+    def _reset_account(self, role: str, email: str) -> dict | None:
+        if role == "patient":
+            return self.store.account_by_email(email)
+        acc = self.store.clinician_by_email(email)
+        return acc if acc and bool(acc["is_superuser"]) == (role == "superuser") else None
+
+    def request_password_reset(self, role: str, email: str) -> dict:
+        """Email a reset code. The answer is the same whether or not the account exists."""
+        email = normalise_email(email)
+        generic = {"status": "reset_sent", "email": email, "emailed": mailer.configured()}
+        if self._reset_account(role, email) is None:
+            return generic
+        try:
+            return {**self._send_code(email, f"reset-{role}"), "status": "reset_sent"}
+        except ValueError:  # asked again within a minute: the earlier code still works
+            return generic
+
+    def reset_password(self, role: str, email: str, code: str, password: str) -> dict:
+        email = normalise_email(email)
+        need = {"patient": MIN_PASSWORD, "clinician": MIN_CLINICIAN_PASSWORD, "superuser": 12}[role]
+        if len(password or "") < need:
+            raise ValueError(f"the new password needs at least {need} characters")
+        if self._reset_account(role, email) is None:
+            raise AuthError(CODE_ERRORS["wrong"])
+        self._check_code(email, f"reset-{role}", code)
+        if role == "patient":
+            self.store.set_account_password(email, password)
+            self.store.mark_account_verified(email)  # the code proved they own the address
+        else:
+            self.store.set_clinician_password(email, password)
+            self.store.mark_clinician_verified(email)
+        return {"status": "password_reset", "email": email}
 
     def account(self, token: str | None) -> dict | None:
         return self.store.session_account(token) if token else None
@@ -177,7 +246,7 @@ class CareService:
             self.store.reset_unverified_clinician(email, password, name)
         else:
             self.store.create_clinician(email, password, name)
-        return self._send_code(email, force=True)
+        return self._send_code(email, "verify-clinician", force=True)
 
     def resend_clinician_code(self, email: str) -> dict:
         email = normalise_email(email)
@@ -185,32 +254,41 @@ class CareService:
         if acc is None or acc["verified_at"]:
             # Same answer either way, so this endpoint does not reveal which emails have accounts.
             return {"status": "verification_sent", "email": email, "emailed": mailer.configured()}
-        return self._send_code(email)
+        return self._send_code(email, "verify-clinician")
 
-    def _send_code(self, email: str, force: bool = False) -> dict:
-        sent = self.store.code_sent_at(email)
+    def _send_code(self, email: str, purpose: str, force: bool = False) -> dict:
+        """Email a 6-digit code for `purpose` (verify-patient, verify-clinician, reset-<role>)."""
+        key = f"{purpose}:{email}"
+        sent = self.store.code_sent_at(key)
         if not force and sent and datetime.fromisoformat(sent) > datetime.now(timezone.utc) - timedelta(
                 seconds=RESEND_SECONDS):
             raise ValueError("please wait a minute before asking for another code")
         code = f"{secrets.randbelow(10 ** 6):06d}"
-        self.store.set_email_code(email, code)
-        emailed = mailer.send_verification_code(email, code, CODE_MINUTES)
+        self.store.set_email_code(key, code)
+        emailed = mailer.send_code(email, code, CODE_MINUTES, purpose)
         out = {"status": "verification_sent", "email": email, "emailed": emailed}
         if not emailed:
             out["dev_code"] = code  # dev mode without SMTP only (see mailer.py)
         return out
 
+    def _send_code_quietly(self, email: str, purpose: str) -> str | None:
+        """(Re)send on login; within a minute of the last code keep that one. Returns the dev code, if any."""
+        try:
+            return self._send_code(email, purpose).get("dev_code")
+        except ValueError:
+            return None
+
+    def _check_code(self, email: str, purpose: str, code: str) -> None:
+        result = self.store.check_email_code(f"{purpose}:{email}", (code or "").strip())
+        if result != "ok":
+            raise AuthError(CODE_ERRORS[result])
+
     def verify_clinician(self, email: str, code: str) -> dict:
         email = normalise_email(email)
         acc = self.store.clinician_by_email(email)
         if acc is None:
-            raise AuthError("that code is not right; please check it or ask for a new one")
-        result = self.store.check_email_code(email, (code or "").strip())
-        if result != "ok":
-            raise AuthError({"wrong": "that code is not right; please check it or ask for a new one",
-                             "expired": "that code has expired; please ask for a new one",
-                             "too_many": "too many wrong codes; please ask for a new one",
-                             "missing": "please ask for a new code"}[result])
+            raise AuthError(CODE_ERRORS["wrong"])
+        self._check_code(email, "verify-clinician", code)
         self.store.mark_clinician_verified(email)
         return self._clinician_session(self.ensure_care_code(self.store.clinician_by_email(email)))
 
@@ -229,12 +307,8 @@ class CareService:
         if acc is None or bool(acc["is_superuser"]) != superuser:
             raise AuthError("wrong email or password")
         if not acc["verified_at"]:
-            try:
-                sent = self._send_code(email)
-            except ValueError:  # a code went out less than a minute ago: keep using that one
-                sent = {"emailed": mailer.configured()}
             raise VerificationRequired("please confirm your Gmail first; we sent you a 6-digit code",
-                                       sent.get("dev_code"))
+                                       self._send_code_quietly(email, "verify-clinician"))
         return self._clinician_session(self.ensure_care_code(acc))
 
     def ensure_care_code(self, acc: dict) -> dict:
