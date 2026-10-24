@@ -14,3 +14,6 @@ __pycache__/
 
 # Local database (patients, messages, audit log) and uploaded voice clips: never commit.
 var/
+
+# Local secrets (SMTP app password etc.); see .env.example
+.env

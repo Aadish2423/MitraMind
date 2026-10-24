@@ -8,15 +8,21 @@ Privacy rules enforced here, not in the UI:
   (`messages.shared = 1`); see `messages(..., for_clinician=True)`.
 - consent is append-only: the latest row per (patient, purpose) is the current state, and
   withdrawals are kept for the audit trail (DPDP Act 2023).
+- a patient's login email lives only in `accounts`; it is never copied into messages, prompts, alerts or
+  exports, which all key on the pseudonymous patient id. Passwords are stored as scrypt hashes and
+  session tokens as SHA-256 hashes, so a copied database file cannot be used to log in.
 """
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
+import secrets
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -72,6 +78,21 @@ CREATE TABLE IF NOT EXISTS questionnaire_sessions (
     channel TEXT NOT NULL, updated_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS inbound_events (
     event_id TEXT PRIMARY KEY, channel TEXT NOT NULL, received_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
+    patient_id TEXT NOT NULL UNIQUE REFERENCES patients(id), created_at TEXT NOT NULL, last_login_at TEXT);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY, account_id INTEGER NOT NULL REFERENCES accounts(id),
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS clinicians (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT,
+    verified_at TEXT, created_at TEXT NOT NULL, last_login_at TEXT);
+CREATE TABLE IF NOT EXISTS clinician_sessions (
+    token_hash TEXT PRIMARY KEY, clinician_id INTEGER NOT NULL REFERENCES clinicians(id),
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS email_codes (
+    email TEXT PRIMARY KEY, code_hash TEXT NOT NULL, expires_at TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0, sent_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_messages_patient ON messages(patient_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 """
@@ -79,9 +100,20 @@ CREATE INDEX IF NOT EXISTS ix_alerts_status ON alerts(status, created_at);
 # Columns added after the first release; applied to existing databases on startup.
 MIGRATIONS = [
     ("alerts", "outcome TEXT"),  # clinician's label when resolving: confirmed_risk / false_alarm / unclear
+    ("messages", "image_path TEXT"),  # photo the patient attached to a chat message
+    ("clinicians", "is_superuser INTEGER NOT NULL DEFAULT 0"),  # sees every patient and every clinician's report
+    ("clinicians", "care_code TEXT"),  # short code a patient enters to link to this clinician
+    ("alerts", "acknowledged_at TEXT"),  # first time anyone acknowledged or resolved it (response-time metric)
+    # Patient email confirmed? Existing accounts count as confirmed; new ones start at 0 when verification is on.
+    ("accounts", "email_verified INTEGER NOT NULL DEFAULT 1"),
 ]
+POST_MIGRATION = ["CREATE UNIQUE INDEX IF NOT EXISTS ix_clinicians_code ON clinicians(care_code)"]
 ALERT_OUTCOMES = ("confirmed_risk", "false_alarm", "unclear")
 LEVEL_ORDER = {"none": 0, "watch": 1, "high": 2, "urgent": 3}
+SESSION_DAYS = 30
+CLINICIAN_SESSION_HOURS = 12  # one working day; clinicians see many patients' data
+CODE_MINUTES, CODE_MAX_ATTEMPTS = 10, 5
+_SCRYPT = {"n": 2 ** 14, "r": 8, "p": 1}
 
 
 def now() -> str:
@@ -90,6 +122,27 @@ def now() -> str:
 
 def sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode("utf-8"), salt=salt, dklen=32, **_SCRYPT)
+    return f"scrypt${_SCRYPT['n']}${_SCRYPT['r']}${_SCRYPT['p']}${salt.hex()}${digest.hex()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        _, n, r, p, salt, digest = stored.split("$")
+        got = hashlib.scrypt(password.encode("utf-8"), salt=bytes.fromhex(salt), n=int(n), r=int(r), p=int(p),
+                             dklen=len(digest) // 2)
+    except (ValueError, TypeError):
+        return False
+    return hmac.compare_digest(got.hex(), digest)
+
+
+@lru_cache(maxsize=1)
+def _dummy_hash() -> str:
+    return hash_password(secrets.token_hex(8))
 
 
 class Store:
@@ -107,6 +160,9 @@ class Store:
                 self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
             except sqlite3.OperationalError:
                 pass  # column already there
+        for sql in POST_MIGRATION:
+            self._conn.execute(sql)
+        self._conn.commit()
 
     # ------------------------------------------------------------------ helpers
     def _exec(self, sql: str, args=()) -> sqlite3.Cursor:
@@ -156,17 +212,188 @@ class Store:
     def has_consent(self, patient_id: str, purpose: str) -> bool:
         return self.consents(patient_id).get(purpose, False)
 
+    # ------------------------------------------------------------------ patient accounts (email + password)
+    def create_account(self, email: str, password: str, patient_id: str, verified: bool = True) -> dict:
+        self._exec("INSERT INTO accounts (email, password_hash, patient_id, created_at, email_verified) "
+                   "VALUES (?, ?, ?, ?, ?)", (email, hash_password(password), patient_id, now(), int(verified)))
+        return self.account_by_email(email)
+
+    def mark_account_verified(self, email: str) -> None:
+        self._exec("UPDATE accounts SET email_verified = 1 WHERE email = ?", (email,))
+
+    def set_account_password(self, email: str, password: str) -> None:
+        """New password; every existing session of the account is logged out."""
+        acc = self.account_by_email(email)
+        self._exec("UPDATE accounts SET password_hash = ? WHERE id = ?", (hash_password(password), acc["id"]))
+        self._exec("DELETE FROM sessions WHERE account_id = ?", (acc["id"],))
+
+    def set_clinician_password(self, email: str, password: str) -> None:
+        acc = self.clinician_by_email(email)
+        self._exec("UPDATE clinicians SET password_hash = ? WHERE id = ?", (hash_password(password), acc["id"]))
+        self._exec("DELETE FROM clinician_sessions WHERE clinician_id = ?", (acc["id"],))
+
+    def account_by_email(self, email: str) -> dict | None:
+        return self._one("SELECT * FROM accounts WHERE email = ?", (email,))
+
+    def account_for_patient(self, patient_id: str) -> dict | None:
+        return self._one("SELECT * FROM accounts WHERE patient_id = ?", (patient_id,))
+
+    def check_login(self, email: str, password: str) -> dict | None:
+        acc = self.account_by_email(email)
+        if acc is None:
+            verify_password(password, _dummy_hash())  # same work as a real check, so timing does not reveal accounts
+            return None
+        if not verify_password(password, acc["password_hash"]):
+            return None
+        self._exec("UPDATE accounts SET last_login_at = ? WHERE id = ?", (now(), acc["id"]))
+        return acc
+
+    def new_session(self, account_id: int, days: int = SESSION_DAYS) -> str:
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO sessions (token_hash, account_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                   (sha256(token), account_id, now(), expires))
+        return token
+
+    def session_account(self, token: str) -> dict | None:
+        return self._one("SELECT a.* FROM sessions s JOIN accounts a ON a.id = s.account_id "
+                         "WHERE s.token_hash = ? AND s.expires_at > ?", (sha256(token), now()))
+
+    def end_session(self, token: str) -> None:
+        self._exec("DELETE FROM sessions WHERE token_hash = ?", (sha256(token),))
+
+    # ------------------------------------------------------------------ clinician accounts (Gmail-verified)
+    def create_clinician(self, email: str, password: str, name: str | None) -> dict:
+        self._exec("INSERT INTO clinicians (email, password_hash, name, created_at) VALUES (?, ?, ?, ?)",
+                   (email, hash_password(password), name, now()))
+        return self.clinician_by_email(email)
+
+    def reset_unverified_clinician(self, email: str, password: str, name: str | None) -> dict:
+        """Signing up again before verifying replaces the password and name (the old code is replaced too)."""
+        self._exec("UPDATE clinicians SET password_hash = ?, name = ? WHERE email = ? AND verified_at IS NULL",
+                   (hash_password(password), name, email))
+        return self.clinician_by_email(email)
+
+    def clinician_by_email(self, email: str) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE email = ?", (email,))
+
+    def check_clinician_login(self, email: str, password: str) -> dict | None:
+        acc = self.clinician_by_email(email)
+        if acc is None:
+            verify_password(password, _dummy_hash())
+            return None
+        if not verify_password(password, acc["password_hash"]):
+            return None
+        return acc
+
+    def mark_clinician_verified(self, email: str) -> None:
+        self._exec("UPDATE clinicians SET verified_at = COALESCE(verified_at, ?) WHERE email = ?", (now(), email))
+
+    def new_clinician_session(self, clinician_id: int, hours: int = CLINICIAN_SESSION_HOURS) -> str:
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO clinician_sessions (token_hash, clinician_id, created_at, expires_at) "
+                   "VALUES (?, ?, ?, ?)", (sha256(token), clinician_id, now(), expires))
+        self._exec("UPDATE clinicians SET last_login_at = ? WHERE id = ?", (now(), clinician_id))
+        return token
+
+    def clinician_session(self, token: str) -> dict | None:
+        return self._one("SELECT c.* FROM clinician_sessions s JOIN clinicians c ON c.id = s.clinician_id "
+                         "WHERE s.token_hash = ? AND s.expires_at > ? AND c.verified_at IS NOT NULL",
+                         (sha256(token), now()))
+
+    def end_clinician_session(self, token: str) -> None:
+        self._exec("DELETE FROM clinician_sessions WHERE token_hash = ?", (sha256(token),))
+
+    def clinician_by_id(self, clinician_id: int) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE id = ?", (clinician_id,))
+
+    def clinician_by_code(self, care_code: str) -> dict | None:
+        return self._one("SELECT * FROM clinicians WHERE care_code = ? AND verified_at IS NOT NULL "
+                         "AND is_superuser = 0", ((care_code or "").strip().upper(),))
+
+    def clinicians(self) -> list[dict]:
+        return self._all("SELECT * FROM clinicians ORDER BY created_at")
+
+    def set_care_code(self, clinician_id: int, care_code: str) -> None:
+        self._exec("UPDATE clinicians SET care_code = ? WHERE id = ?", (care_code, clinician_id))
+
+    def upsert_superuser(self, email: str, password: str, name: str | None) -> dict:
+        """Create a superuser, or turn an existing clinician account into one with this password."""
+        if self.clinician_by_email(email):
+            self._exec("UPDATE clinicians SET password_hash = ?, name = COALESCE(?, name), is_superuser = 1, "
+                       "verified_at = COALESCE(verified_at, ?) WHERE email = ?", (hash_password(password), name, now(), email))
+        else:
+            self._exec("INSERT INTO clinicians (email, password_hash, name, verified_at, created_at, is_superuser) "
+                       "VALUES (?, ?, ?, ?, ?, 1)", (email, hash_password(password), name, now(), now()))
+        return self.clinician_by_email(email)
+
+    def set_patient_clinician(self, patient_id: str, clinician_id: int | None) -> None:
+        self._exec("UPDATE patients SET clinician_id = ? WHERE id = ?",
+                   (None if clinician_id is None else str(clinician_id), patient_id))
+
+    def feedback_count(self, clinician_ref: str) -> int:
+        return self._one("SELECT COUNT(*) AS n FROM clinician_feedback WHERE clinician_id = ?", (clinician_ref,))["n"]
+
+    def last_message_at(self, patient_id: str) -> str | None:
+        row = self._one("SELECT MAX(created_at) AS t FROM messages WHERE patient_id = ? AND role = 'user'", (patient_id,))
+        return row["t"] if row else None
+
+    # One-time email codes. `email` here is the key "<purpose>:<address>" (e.g. "reset-patient:a@b.com"), so a
+    # sign-up code cannot reset a password and a patient and a clinician with the same address do not collide.
+    def set_email_code(self, email: str, code: str, minutes: int = CODE_MINUTES) -> None:
+        expires = (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat(timespec="seconds")
+        self._exec("INSERT INTO email_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?) "
+                   "ON CONFLICT(email) DO UPDATE SET code_hash = excluded.code_hash, expires_at = excluded.expires_at, "
+                   "attempts = 0, sent_at = excluded.sent_at", (email, sha256(f"{email}:{code}"), expires, now()))
+
+    def code_sent_at(self, email: str) -> str | None:
+        row = self._one("SELECT sent_at FROM email_codes WHERE email = ?", (email,))
+        return row["sent_at"] if row else None
+
+    def check_email_code(self, email: str, code: str) -> str:
+        """'ok' (and the code is used up), 'wrong', 'expired', 'too_many' or 'missing'."""
+        row = self._one("SELECT * FROM email_codes WHERE email = ?", (email,))
+        if row is None:
+            return "missing"
+        if row["expires_at"] <= now():
+            return "expired"
+        if row["attempts"] >= CODE_MAX_ATTEMPTS:
+            return "too_many"
+        if not hmac.compare_digest(row["code_hash"], sha256(f"{email}:{code}")):
+            self._exec("UPDATE email_codes SET attempts = attempts + 1 WHERE email = ?", (email,))
+            return "wrong"
+        self._exec("DELETE FROM email_codes WHERE email = ?", (email,))
+        return "ok"
+
     # ------------------------------------------------------------------ messages
     def add_message(self, patient_id: str, role: str, text: str, *, modality: str = "text", channel: str = "app",
                     language: str | None = None, shared: bool = False, audio_path: str | None = None,
                     risk_level: str | None = None, analysis: dict | None = None,
-                    reply_source: str | None = None, created_at: str | None = None) -> int:
+                    reply_source: str | None = None, created_at: str | None = None,
+                    image_path: str | None = None) -> int:
         cur = self._exec(
             "INSERT INTO messages (patient_id, role, text, modality, channel, language, shared, audio_path, "
-            "risk_level, analysis_json, reply_source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "risk_level, analysis_json, reply_source, created_at, image_path) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (patient_id, role, text, modality, channel, language, int(shared), audio_path, risk_level,
-             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, created_at or now()))
+             json.dumps(analysis, default=str) if analysis is not None else None, reply_source, created_at or now(),
+             image_path))
         return cur.lastrowid
+
+    def message_count(self, patient_id: str) -> int:
+        return self._one("SELECT COUNT(*) AS n FROM messages WHERE patient_id = ?", (patient_id,))["n"]
+
+    def messages_from(self, patient_id: str, offset: int) -> list[dict]:
+        """The patient's messages in order, skipping the first `offset` (the companion's history window)."""
+        rows = self._all("SELECT * FROM messages WHERE patient_id = ? ORDER BY id LIMIT -1 OFFSET ?",
+                         (patient_id, offset))
+        for r in rows:
+            r["analysis"] = json.loads(r.pop("analysis_json")) if r.get("analysis_json") else None
+        return rows
+
+    def message(self, patient_id: str, message_id: int) -> dict | None:
+        return self._one("SELECT * FROM messages WHERE id = ? AND patient_id = ?", (message_id, patient_id))
 
     def set_shared(self, patient_id: str, message_id: int, shared: bool) -> bool:
         cur = self._exec("UPDATE messages SET shared = ? WHERE id = ? AND patient_id = ? AND role = 'user'",
@@ -186,6 +413,7 @@ class Store:
             if for_clinician and not r["shared"]:
                 r["text"] = None
                 r["audio_path"] = None
+                r["image_path"] = None
         return rows
 
     # ------------------------------------------------------------------ questionnaires
@@ -228,8 +456,8 @@ class Store:
         if outcome is not None and outcome not in ALERT_OUTCOMES:
             raise ValueError(f"outcome must be one of {ALERT_OUTCOMES}")
         cur = self._exec("UPDATE alerts SET status = ?, handled_by = ?, handled_at = ?, note = ?, "
-                         "outcome = COALESCE(?, outcome) WHERE id = ?",
-                         (status, handled_by, now(), note, outcome, alert_id))
+                         "outcome = COALESCE(?, outcome), acknowledged_at = COALESCE(acknowledged_at, ?) WHERE id = ?",
+                         (status, handled_by, now(), note, outcome, now(), alert_id))
         return cur.rowcount == 1
 
     # ------------------------------------------------------------------ audit, Mind Pause, feedback

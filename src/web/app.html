@@ -3,264 +3,1183 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MitraMind Companion</title>
-<link rel="stylesheet" href="/static/common.css">
-<style>
-  main { max-width: 620px; margin: 0 auto; padding: 16px 16px 40px; }
-  header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
-  nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px; overflow-x: auto; }
-  nav.tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
-  nav.tabs button.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
-  .view { display: none; } .view.on { display: block; }
-  #msgs { display: flex; flex-direction: column; gap: 10px; min-height: 280px; max-height: 58vh; overflow-y: auto; padding: 4px 2px 8px; }
-  .bubble { max-width: 85%; padding: 9px 12px; border-radius: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .me { align-self: flex-end; background: var(--bubble-me); color: var(--bubble-me-text); border-bottom-right-radius: 4px; }
-  .ai { align-self: flex-start; background: var(--bubble-ai); border-bottom-left-radius: 4px; }
-  .meta { font-size: 12px; opacity: .85; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .me .meta button { background: transparent; color: inherit; border-color: rgba(255,255,255,.5); padding: 1px 8px; font-size: 12px; }
-  .ai .meta button { padding: 1px 8px; font-size: 12px; }
-  .composer { margin-top: 10px; }
-  .composer textarea { min-height: 64px; }
-  .rec { background: var(--urgent) !important; color: #fff !important; border-color: var(--urgent) !important; }
-  .item { padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-top: 6px; }
-  .opts label { border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 13px; cursor: pointer; }
-  .opts input { margin-right: 6px; }
-  .player { text-align: center; padding: 24px 8px; }
-  .player .step { font-size: 22px; min-height: 66px; margin: 12px 0; }
-  .player .count { font-size: 40px; font-weight: 700; color: var(--accent); }
-  .exlist { display: grid; gap: 8px; }
-  .consent { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .consent input { margin-top: 4px; }
-  .stack { display: grid; gap: 10px; }
-</style>
+<title>MitraMind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/static/patient.css?v=8">
 </head>
 <body>
-<main>
-  <header>
-    <h1>MitraMind</h1>
-    <div class="small muted" id="who"></div>
+
+<!-- Lotus mark, reused by the logo, the bot avatar and the login art -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lotus" viewBox="0 0 48 48">
+    <path d="M24 7c4.3 5 6.4 10.2 6.4 15.4 0 5.1-2.4 9.4-6.4 12.6-4-3.2-6.4-7.5-6.4-12.6C17.6 17.2 19.7 12 24 7Z" fill="#8cbca0"/>
+    <path d="M7 17.5c6.3 0 11.5 3.1 14.6 8.2 1.9 3.1 2.4 6.6 2.4 9.3-5.3 0-10.3-2.1-13.4-6.1C8 25.4 7.2 21.3 7 17.5Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M41 17.5c-.2 3.8-1 7.9-3.6 11.4-3.1 4-8.1 6.1-13.4 6.1 0-2.7.5-6.2 2.4-9.3 3.1-5.1 8.3-8.2 14.6-8.2Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M9.5 39c4.4 1.9 9.3 2.8 14.5 2.8s10.1-.9 14.5-2.8" stroke="#457560" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  </symbol>
+</svg>
+
+<!-- ============================================================ login / sign up -->
+<section class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-form">
+      <div class="brand">
+        <svg class="logo"><use href="#lotus"/></svg>
+        <span class="name">MitraMind</span>
+        <span class="tag">Your calm companion<br>between visits</span>
+      </div>
+      <div>
+        <h1 id="auth-title">Welcome back</h1>
+        <p class="sub" id="auth-sub">Take a slow breath. We're glad you're here.</p>
+      </div>
+      <span class="role-tag" id="role-tag" hidden></span>
+      <div class="seg" role="tablist" id="mode-seg">
+        <button type="button" data-mode="login" class="on">Log in</button>
+        <button type="button" data-mode="signup">Sign up</button>
+      </div>
+
+      <form class="stack" id="login-form" novalidate>
+        <label class="field"><span class="lead" data-icon="mail"></span>
+          <input type="email" id="li-email" placeholder="Email address" autocomplete="email" required></label>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="li-pass" placeholder="Password" autocomplete="current-password" required>
+          <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
+        <div class="err" id="li-err" role="alert"></div>
+        <button class="btn-primary" id="li-btn">Log in</button>
+        <p class="small" style="margin:0"><button type="button" class="linkish" id="li-forgot">Forgot password?</button></p>
+        <p class="small muted" style="margin:0" id="li-new">New to MitraMind? <button type="button" class="linkish" data-mode="signup">Create an account</button></p>
+      </form>
+
+      <form class="stack" id="signup-form" novalidate hidden>
+        <label class="field" id="su-name-wrap" hidden><span class="lead" data-icon="users"></span>
+          <input type="text" id="su-name" placeholder="Your name, e.g. Dr. A. Sharma" autocomplete="name" maxlength="80"></label>
+        <label class="field"><span class="lead" data-icon="mail"></span>
+          <input type="email" id="su-email" placeholder="Email address" autocomplete="email" required></label>
+        <div class="hint" id="su-gmail-hint" hidden>Clinicians sign up with a Gmail address. We'll email you a 6-digit code to confirm it.</div>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="su-pass" placeholder="Create a password" autocomplete="new-password" minlength="8" required>
+          <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
+        <div class="hint" id="su-pass-hint">At least 8 characters.</div>
+        <div class="grid2 patient-only" style="grid-template-columns:1fr 1fr; gap:10px">
+          <label class="field"><span class="lead" data-icon="globe"></span>
+            <select id="su-lang" aria-label="Language">
+              <option value="auto">Any language</option><option value="en">English</option>
+              <option value="hinglish">Hinglish</option><option value="hi">हिन्दी</option>
+            </select></label>
+          <label class="field"><span class="lead" data-icon="hash"></span>
+            <input type="text" id="su-code" placeholder="Care-team code (optional)" autocomplete="off"></label>
+        </div>
+        <label class="field patient-only"><span class="lead" data-icon="users"></span>
+          <input type="text" id="su-doc" placeholder="Your clinician's code, e.g. MM-7K3P9Q (optional)" autocomplete="off" maxlength="20"></label>
+        <div class="consents patient-only" id="su-consents"></div>
+        <div class="err" id="su-err" role="alert"></div>
+        <button class="btn-primary" id="su-btn">Create account</button>
+        <p class="small muted patient-only" style="margin:0">We use your email only to sign you in. Your chats stay private unless you choose to share them.</p>
+        <p class="small muted clinician-only" style="margin:0" hidden>Clinician accounts see alerts, scores and only the reflections patients choose to share.</p>
+      </form>
+
+      <form class="stack" id="forgot-form" novalidate hidden>
+        <label class="field"><span class="lead" data-icon="mail"></span>
+          <input type="email" id="fg-email" placeholder="Your account email" autocomplete="email" required></label>
+        <div class="err" id="fg-err" role="alert"></div>
+        <button class="btn-primary" id="fg-btn">Email me a code</button>
+        <p class="small muted" style="margin:0"><button type="button" class="linkish" data-mode="login">Back to log in</button></p>
+      </form>
+
+      <form class="stack" id="reset-form" novalidate hidden>
+        <p style="margin:0">If <b id="rs-email"></b> has an account, we've emailed it a 6-digit code.</p>
+        <div class="dev-code" id="rs-dev" hidden></div>
+        <label class="field"><span class="lead" data-icon="hash"></span>
+          <input type="text" id="rs-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code"
+                 maxlength="6" required></label>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="rs-pass" placeholder="New password" autocomplete="new-password" required>
+          <button type="button" class="trail pw-eye" aria-label="Show password" data-icon="eye"></button></label>
+        <label class="field"><span class="lead" data-icon="lock"></span>
+          <input type="password" id="rs-pass2" placeholder="New password again" autocomplete="new-password" required></label>
+        <div class="hint" id="rs-hint"></div>
+        <div class="err" id="rs-err" role="alert"></div>
+        <button class="btn-primary" id="rs-btn">Set new password</button>
+        <p class="small muted" style="margin:0">No email? Check spam, or
+          <button type="button" class="linkish" id="rs-again">send a new code</button>.</p>
+      </form>
+
+      <form class="stack" id="verify-form" novalidate hidden>
+        <p style="margin:0">We sent a 6-digit code to <b id="vf-email"></b>. Enter it to confirm your email.</p>
+        <div class="dev-code" id="vf-dev" hidden></div>
+        <label class="field"><span class="lead" data-icon="hash"></span>
+          <input type="text" id="vf-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code"
+                 maxlength="6" pattern="\d{6}" required></label>
+        <div class="err" id="vf-err" role="alert"></div>
+        <button class="btn-primary" id="vf-btn">Confirm and continue</button>
+        <p class="small muted" style="margin:0">No email? Check spam, or
+          <button type="button" class="linkish" id="vf-resend">send a new code</button>.
+          <button type="button" class="linkish" data-mode="login">Back to log in</button></p>
+      </form>
+
+      <p class="small muted role-links" id="role-links" style="margin:0"></p>
+      <div class="auth-foot"><span data-icon="phone" data-size="16"></span>
+        In a crisis, call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</div>
+    </div>
+
+    <div class="auth-art" aria-hidden="true">
+      <svg class="waves" viewBox="0 0 600 640" preserveAspectRatio="xMidYMid slice">
+        <path d="M600 0v190c-70 40-130-30-210-6-80 24-120-60-90-184z" fill="#ece6f6"/>
+        <path d="M0 0h170c20 60-30 100-90 110C40 117 10 90 0 70z" fill="#d6e8de" opacity=".8"/>
+        <path d="M0 400c110-50 200 70 330 30 130-40 190-110 270-80v290H0z" fill="#ebe5f5" opacity=".85"/>
+        <path d="M0 470c140-40 250 70 380 30 100-30 160-60 220-40v180H0z" fill="#c9e0d3"/>
+        <path d="M0 550c160-30 260 60 420 25 80-17 140-30 180-25v90H0z" fill="#a8cbb6"/>
+        <g fill="#fff" opacity=".7"><circle cx="110" cy="220" r="3"/><circle cx="480" cy="300" r="2.5"/>
+          <circle cx="520" cy="120" r="2"/><circle cx="160" cy="330" r="2"/><circle cx="420" cy="230" r="1.8"/></g>
+      </svg>
+      <svg class="leaf" style="left:8%; top:12%; width:70px; --r:-24deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <svg class="leaf l2" style="right:10%; top:40%; width:56px; --r:30deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <svg class="leaf l3" style="left:14%; bottom:30%; width:48px; --r:12deg" viewBox="0 0 80 40"><path d="M2 20C20-4 60-4 78 20 60 44 20 44 2 20Z" fill="currentColor"/><path d="M6 20h66" stroke="#fff" stroke-width="1.5" opacity=".6"/></svg>
+      <div class="orb-wrap">
+        <div class="orb"><svg class="logo"><use href="#lotus"/></svg></div>
+        <div class="breath"><span>Breathe in…</span><span>…and breathe out</span></div>
+      </div>
+      <div class="art-quote"><b>Thodi si saans, thoda sa sukoon.</b>A little breath, a little peace.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ dashboard -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <a class="brand" href="#home" title="Home">
+      <svg class="logo"><use href="#lotus"/></svg>
+      <span class="name">MitraMind</span>
+      <span class="tag" id="who"></span>
+    </a>
+    <div class="top-right">
+      <a class="help-pill" href="tel:14416"><span data-icon="phone" data-size="16"></span><span class="long">Need help?</span> 14416</a>
+      <button class="icon-btn" id="logout-top" title="Log out" aria-label="Log out" data-icon="logout"></button>
+    </div>
   </header>
 
-  <section id="enroll" class="panel stack" style="display:none">
-    <h2>Welcome</h2>
-    <p class="muted small" style="margin:0">Your hospital care team gave you MitraMind for the time between visits.
-      Use a code, not your real name or phone number.</p>
-    <div class="row"><input type="text" id="pid" placeholder="Patient code, e.g. pilot_017" style="flex:1">
-      <select id="plang"><option value="auto">Language: auto</option><option value="en">English</option>
-        <option value="hinglish">Hinglish</option><option value="hi">हिन्दी</option></select></div>
-    <div id="consents-new"></div>
-    <div class="row"><button class="primary" id="start">Start</button>
-      <button id="resume">I already have a code</button></div>
-    <div id="enroll-err" class="err"></div>
-  </section>
+  <!-- home: welcome, what and why, the three features, the team, privacy -->
+  <section class="view home" id="v-home">
+    <div class="hero">
+      <div class="hero-text">
+        <span class="badge"><span data-icon="sparkle" data-size="15"></span>Hackathon prototype</span>
+        <p class="hello" id="greet-h">Hello</p>
+        <h1>Meet Mitra, your calm companion <span class="hl">between hospital visits.</span></h1>
+        <p class="lead">MitraMind gives patients a safe place to talk about stress and worry, in English, Hinglish
+          or हिन्दी, by text or by voice, and keeps their care team in the loop when it matters.</p>
+        <button class="scroll-hint" data-scroll="about">Scroll to explore <span class="arrow">↓</span></button>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-glow"></div>
+        <div id="mitra-home"></div>
+        <div class="hero-hi">Hi! I'm Mitra.</div>
+      </div>
+    </div>
 
-  <section id="app" style="display:none">
-    <nav class="tabs">
-      <button data-tab="chat" class="on">Chat</button><button data-tab="checkin">Check-in</button>
-      <button data-tab="pause">Mind Pause</button><button data-tab="privacy">Privacy</button>
-    </nav>
+    <section class="h-sec reveal" id="about">
+      <p class="eyebrow">Why MitraMind</p>
+      <h2>Weeks between visits shouldn't mean carrying worry alone.</h2>
+      <p class="sec-lead">Hospital appointments are short and often weeks apart, and it can be hard to tell a doctor how
+        you have really been feeling. MitraMind fills that gap: a friendly AI companion for the days in between, built
+        with safety first.</p>
+      <div class="why-grid">
+        <div class="why"><span class="ico" style="background:#e6f0e9; color:#457560" data-icon="globe" data-size="22"></span>
+          <b>Listens in your language</b>
+          <p>Type or speak in English, Hinglish or Hindi. Mitra replies with warmth and never diagnoses.</p></div>
+        <div class="why"><span class="ico" style="background:#fdeee9; color:#9c3b24" data-icon="heart" data-size="22"></span>
+          <b>Safety comes first</b>
+          <p>If a message suggests someone may be in danger, Mitra shares helplines straight away and alerts the care team.</p></div>
+        <div class="why"><span class="ico" style="background:#f0ebf8; color:#5b4a86" data-icon="users" data-size="22"></span>
+          <b>Your care team stays in the loop</b>
+          <p>Check-in scores, and only the messages you choose to share, help your next visit start with the full picture.</p></div>
+      </div>
+    </section>
 
-    <div class="view on" id="v-chat">
-      <div id="crisis" class="crisis" style="display:none"></div>
-      <div id="msgs"></div>
-      <div class="composer panel">
-        <textarea id="text" placeholder="How are you feeling today? You can write in English, Hinglish or हिन्दी"></textarea>
-        <div class="row" style="margin-top:8px; justify-content:space-between">
-          <div class="row">
-            <label class="small"><input type="checkbox" id="share"> Share with my care team</label>
-            <label class="small"><input type="checkbox" id="speak"> Read replies aloud</label>
-          </div>
-          <div class="row">
-            <button id="mic" title="Record a voice message">Voice</button>
-            <button class="primary" id="send">Send</button>
-          </div>
+    <section class="h-sec reveal" id="features">
+      <p class="eyebrow">What you can do here</p>
+      <h2>Pick where you'd like to start</h2>
+      <div class="feat-row">
+        <a class="feat" href="#chat" data-say="Let's talk!">
+          <span class="ico" style="background:#e6f0e9; color:#457560" data-icon="chat" data-size="26"></span>
+          <b>Chat with Mitra</b>
+          <p>Talk or type about your day. Turn on voice mode and Mitra talks back.</p>
+          <span class="go">Open chat <span class="arr">→</span></span>
+        </a>
+        <a class="feat" href="#check-in" data-say="Quick check-in?">
+          <span class="ico" style="background:#fbf3e2; color:#7a5a17" data-icon="clipboard" data-size="26"></span>
+          <b>Check-in</b>
+          <p>Two-minute mood (PHQ-9) and worry (GAD-7) questions your care team can follow over time.</p>
+          <span class="go">Start check-in <span class="arr">→</span></span>
+        </a>
+        <a class="feat" href="#mind-pause" data-say="Breathe with me">
+          <span class="ico" style="background:#f0ebf8; color:#5b4a86" data-icon="wind" data-size="26"></span>
+          <b>Mind Pause</b>
+          <p>Short breathing, grounding and body-scan exercises, guided by Mitra.</p>
+          <span class="go">Take a pause <span class="arr">→</span></span>
+        </a>
+        <a class="feat" href="#my-summary" data-say="Your progress">
+          <span class="ico" style="background:#e3eef0; color:#2f6a6b" data-icon="sparkle" data-size="26"></span>
+          <b>My summary</b>
+          <p>Your own card: how your check-in scores have changed, what came up, and what helped.</p>
+          <span class="go">See my summary <span class="arr">→</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="h-sec reveal" id="team">
+      <p class="eyebrow">The team</p>
+      <h2>The people behind MitraMind</h2>
+      <p class="sec-lead" id="team-event" hidden></p>
+      <div class="team-row" id="team-row"></div>
+    </section>
+
+    <section class="h-sec reveal" id="privacy">
+      <p class="eyebrow">Privacy</p>
+      <h2>Your data, your choice</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Your privacy</h3>
+          <p class="small muted" style="margin:0">Your chats are private. Your care team sees how often you use MitraMind, your
+            check-in scores, and only the messages you choose to share. If something you write suggests you may be in danger,
+            your care team is alerted so they can help.</p>
+          <div class="rows" id="consents-edit"></div>
         </div>
-        <div class="small muted" id="status"></div>
+        <div class="card">
+          <h3>Your account</h3>
+          <div class="acct"><div class="avatar"><svg class="logo"><use href="#lotus"/></svg></div>
+            <div><b id="acct-email"></b><div class="small muted" id="acct-code"></div></div></div>
+          <div id="doc-box" style="margin-top:14px"></div>
+          <button class="btn-ghost" id="logout" style="margin-top:14px; width:100%">Log out</button>
+          <div class="crisis" style="margin:16px 0 0"><span data-icon="heart"></span>
+            <span>Need to talk to someone now? <a href="tel:14416">Tele-MANAS 14416</a> is free, 24x7. In an emergency call <a href="tel:112">112</a>.</span></div>
+        </div>
       </div>
-    </div>
+    </section>
+  </section>
 
-    <div class="view" id="v-checkin">
-      <div class="panel">
-        <div class="row"><select id="instrument"><option>PHQ-9</option><option>GAD-7</option></select>
-          <span class="small muted">Takes about 2 minutes</span></div>
-        <p class="small muted" id="stem"></p>
-        <div id="items"></div>
-        <div class="row" style="margin-top:12px"><button class="primary" id="submit-q">Submit</button></div>
-        <div id="q-out" style="margin-top:12px"></div>
+  <!-- chat -->
+  <section class="view" id="v-chat">
+    <div class="page-head"><a class="back" href="#home"><span class="arr">←</span> Home</a><h2>Chat with Mitra</h2></div>
+    <div class="chat" id="chat">
+      <div class="chat-head">
+        <button class="voice-toggle" id="voice-toggle" aria-pressed="false" title="Talk with Mitra, who answers out loud">
+          <span data-icon="headphones" data-size="16"></span><span id="voice-label">Voice mode</span></button>
       </div>
-    </div>
-
-    <div class="view" id="v-pause">
-      <div class="panel" id="pause-list"><h2>Mind Pause</h2><div class="exlist" id="exlist"></div></div>
-      <div class="panel player" id="player" style="display:none">
-        <h3 id="p-title"></h3>
-        <div class="count" id="p-count"></div>
-        <div class="step" id="p-step"></div>
-        <div class="small muted" id="p-progress"></div>
-        <div class="row" style="justify-content:center; margin-top:12px"><button id="p-stop">Stop</button></div>
+      <div class="stage" id="stage">
+        <div id="mitra-chat"></div>
+        <div class="who"><b>Mitra</b> · your AI companion</div>
+        <div class="caption quiet" id="caption" aria-live="polite"></div>
       </div>
-    </div>
-
-    <div class="view" id="v-privacy">
-      <div class="panel">
-        <h2>Your privacy</h2>
-        <p class="small muted">Your chats are private. Your care team sees how often you use MitraMind, your
-          questionnaire scores, and only the messages you choose to share. If something you write suggests you may be
-          in danger, your care team is alerted so they can help.</p>
-        <div id="consents-edit"></div>
-        <div class="row" style="margin-top:12px"><button id="logout">Switch patient</button></div>
+      <div id="crisis" class="crisis" hidden></div>
+      <div id="msgs" aria-live="polite"></div>
+      <div class="composer">
+        <div class="preview" id="preview" hidden>
+          <img id="preview-img" alt="Photo to send">
+          <span class="pname" id="preview-name"></span>
+          <button class="ib" id="preview-x" aria-label="Remove photo" data-icon="x" data-size="18"></button>
+        </div>
+        <div class="inputbar">
+          <button class="ib" id="attach" title="Share a photo" aria-label="Share a photo" data-icon="paperclip"></button>
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden>
+          <textarea id="text" rows="1" placeholder="Write how you feel… English, Hinglish या हिन्दी"></textarea>
+          <button class="ib mic" id="mic" title="Record a voice message" aria-label="Record a voice message" data-icon="mic"></button>
+          <button class="ib send" id="send" title="Send" aria-label="Send" data-icon="send" disabled></button>
+        </div>
+        <div class="opts-row">
+          <label class="switch"><input type="checkbox" id="share"> Share with my care team</label>
+          <label class="switch"><input type="checkbox" id="speak"> Read replies aloud</label>
+        </div>
+        <div class="status" id="status" role="status"></div>
       </div>
     </div>
   </section>
 
-  <p class="small muted" style="margin-top:16px">MitraMind is a support tool, not a doctor and not for emergencies.
-    In a crisis call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</p>
-</main>
+  <!-- check-in -->
+  <section class="view" id="v-checkin">
+    <div class="page-head"><a class="back" href="#home"><span class="arr">←</span> Home</a><h2>Check-in</h2></div>
+    <div class="card">
+      <h3>Your check-in</h3>
+      <p class="small muted" style="margin:0 0 12px">A few quick questions about the last 2 weeks. It takes about 2 minutes.</p>
+      <div class="seg seg-sm" id="instrument">
+        <button type="button" data-ins="PHQ-9" class="on">Mood (PHQ-9)</button>
+        <button type="button" data-ins="GAD-7">Worry (GAD-7)</button>
+      </div>
+      <div class="progress"><div id="q-progress"></div></div>
+      <p class="small muted" id="stem" style="margin:4px 0 0"></p>
+      <div id="items"></div>
+      <button class="btn-primary" id="submit-q" style="width:100%; margin-top:12px">Submit check-in</button>
+      <div id="q-out"></div>
+    </div>
+  </section>
 
+  <!-- Mind Pause -->
+  <section class="view" id="v-pause">
+    <div class="page-head"><a class="back" href="#home"><span class="arr">←</span> Home</a><h2>Mind Pause</h2></div>
+    <div class="card" id="pause-list">
+      <h3>Choose an exercise</h3>
+      <p class="small muted" style="margin:0">Short guided exercises. Find a comfortable spot and pick one.</p>
+      <div class="ex-grid" id="exlist"></div>
+    </div>
+    <div class="card player" id="player" hidden>
+      <h3 id="p-title"></h3>
+      <div class="p-stage"><div id="mitra-pause"></div>
+        <div class="p-bubble" aria-live="polite"><small id="p-phase"></small><span id="p-count"></span></div></div>
+      <div class="p-step" id="p-step"></div>
+      <div class="small muted" id="p-progress"></div>
+      <button class="btn-ghost" id="p-stop">End exercise</button>
+    </div>
+  </section>
+
+  <!-- My summary: the patient's own State Card -->
+  <section class="view" id="v-summary">
+    <div class="page-head"><a class="back" href="#home"><span class="arr">←</span> Home</a><h2>My summary</h2></div>
+    <div id="summary" class="sum-grid"><div class="card"><p class="muted">Putting your summary together…</p></div></div>
+  </section>
+
+  <p class="foot-note">MitraMind is a support tool, not a doctor and not for emergencies.
+    In a crisis call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</p>
+</div>
+
+<!-- a small Mitra that follows the cursor around the home page and hops onto the feature card you point at -->
+<div class="buddy" id="buddy" aria-hidden="true" hidden>
+  <div class="buddy-say" id="buddy-say"></div>
+  <div id="buddy-mitra"></div>
+</div>
+
+<script src="/static/mitra.js?v=5"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const store = {
+const enc = encodeURIComponent;
+const ls = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
 };
-let PID = store.get("mm_pid"), PURPOSES = {};
+let TOKEN = ls.get("mm_token"), PID = null, PURPOSES = {}, PHOTO = null, BUSY = false;
+let VOICE = false, MITRA = null, PMITRA = null, HMITRA = null, MOOD = "idle";
+
+// ------------------------------------------------------------------ team (home page). Photos: put them in src/web/team/
+// and set photo: "/static/team/<file>.jpg". Leave a field empty ("") to hide it.
+const TEAM_EVENT = "";  // e.g. "Built by Team <name> for <hackathon>, <college>"
+const TEAM = [
+  {name: "Aadish Bane", role: "", bio: "Overfitting at life.", photo: "/static/team/aadish.jpg",
+   github: "Aadish2423", linkedin: "https://www.linkedin.com/in/aadish-bane-292a221ba/", email: ""},
+  {name: "Shishir Pusalkar", role: "", bio: "Building AI, debugging life, dealing with information overflow.", photo: "/static/team/shishir.jpg",
+   github: "DEADPOOL-152006", linkedin: "https://www.linkedin.com/in/shishir-pusalkar-515191285/", email: ""},
+];
+
+// ------------------------------------------------------------------ icons (Lucide shapes, MIT)
+const ICONS = {
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="m2 2 20 20"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  hash: '<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  clipboard: '<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  paperclip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  stop: '<rect width="12" height="12" x="6" y="6" rx="2"/>',
+  send: '<path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.64l-19 6.5a.5.5 0 0 0-.03.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/>',
+  github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>',
+  linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
+  headphones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+};
+const svg = (name, size = 20) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
+  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+const lotus = (cls = "logo") => `<svg class="${cls}"><use href="#lotus"/></svg>`;
+function paintIcons(root = document) {
+  root.querySelectorAll("[data-icon]").forEach((el) => { el.innerHTML = svg(el.dataset.icon, +el.dataset.size || 20); });
+}
+
+// ------------------------------------------------------------------ API
+function friendly(detail) {
+  if (typeof detail === "string") return detail.charAt(0).toUpperCase() + detail.slice(1);
+  if (Array.isArray(detail) && detail[0]) {
+    const loc = (detail[0].loc || []).join(".");
+    if (loc.includes("email")) return "Please enter a valid email address.";
+    if (loc.includes("patient_code")) return "The care-team code can only use letters, numbers, - and _.";
+    return detail[0].msg || "Something went wrong. Please try again.";
+  }
+  return "Something went wrong. Please try again.";
+}
 
 async function api(path, body, method) {
-  const opt = body === undefined ? {method: method || "GET"} :
-    {method: method || "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)};
-  const r = await fetch(path, opt);
+  const headers = {};
+  if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
+  const opt = {method: method || (body === undefined ? "GET" : "POST"), headers};
+  if (body !== undefined) { headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  let r;
+  try { r = await fetch(path, opt); } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data));
+  if (r.status === 401 && TOKEN && !path.startsWith("/v1/auth/")) signOut(true);
+  if (!r.ok) throw new Error(friendly(data.detail));
   return data;
 }
 
-// ------------------------------------------------------------------ enrolment and consent
-function consentBoxes(el, current, onChange) {
-  el.innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
-    <label class="consent"><input type="checkbox" data-purpose="${k}" ${current[k] ? "checked" : ""}>
-      <span class="small">${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span></label>`).join("");
-  if (onChange) el.querySelectorAll("input").forEach((i) => i.onchange = () => onChange(i.dataset.purpose, i.checked));
+// ------------------------------------------------------------------ login / sign up: one address per role and form
+let ROLE = "patient", MODE = "login", VERIFY_EMAIL = "";
+const CLINICIAN_TOKEN = "mm_clinician_token";
+const AUTH_PAGES = {"/login": ["patient", "login"], "/signup": ["patient", "signup"],
+                    "/clinician/login": ["clinician", "login"], "/clinician/signup": ["clinician", "signup"],
+                    "/admin/login": ["superuser", "login"]};
+const AUTH_URL = {patient: {login: "/login", signup: "/signup"},
+                  clinician: {login: "/clinician/login", signup: "/clinician/signup"},
+                  superuser: {login: "/admin/login"}};
+const HOME_OF = {patient: "/", clinician: "/clinician", superuser: "/admin"};
+const ROLE_LINKS = {
+  patient: `Are you a clinician? <a href="/clinician/login">Clinician log in</a>`,
+  clinician: `Not a clinician? <a href="/login">Patient log in</a> · <a href="/admin/login">Superuser</a>`,
+  superuser: `<a href="/clinician/login">Clinician log in</a> · <a href="/login">Patient log in</a>`,
+};
+const AUTH_TEXT = {
+  patient: {login: ["Welcome back", "Take a slow breath. We're glad you're here."],
+            signup: ["Create your account", "A private, calm space for the days between your visits."]},
+  clinician: {login: ["Clinician log in", "Alerts, scores and pre-visit summaries for your patients."],
+              signup: ["Create a clinician account", "Use your Gmail address. We'll confirm it with a 6-digit code."],
+              verify: ["Confirm your Gmail", "One last step before your dashboard."]},
+  superuser: {login: ["Superuser log in", "Every patient, every clinician, and how each clinician is doing."]},
+};
+const AUTH_TEXT_ANY = {forgot: ["Forgot your password?", "We'll email you a 6-digit code to choose a new one."],
+                       reset: ["Choose a new password", "Enter the code from your email and a new password."],
+                       verify: ["Confirm your email", "One last step before you start."]};
+const AUTH_API = {patient: "/v1/auth", clinician: "/v1/auth/clinician", superuser: "/v1/auth/admin"};
+const MIN_PASS = {patient: 8, clinician: 10, superuser: 12};
+let RESET_EMAIL = "";
+
+function setMode(mode) {
+  if (ROLE === "superuser" && mode === "signup") mode = "login";  // superusers are created on the server only
+  MODE = mode;
+  document.querySelectorAll(".seg [data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
+  $("mode-seg").hidden = !["login", "signup"].includes(mode) || ROLE === "superuser";
+  $("li-new").hidden = ROLE === "superuser";
+  for (const m of ["login", "signup", "verify", "forgot", "reset"]) $(`${m}-form`).hidden = mode !== m;
+  const [title, sub] = AUTH_TEXT[ROLE][mode] || AUTH_TEXT_ANY[mode];
+  $("auth-title").textContent = title;
+  $("auth-sub").textContent = sub;
+  for (const id of ["li-err", "su-err", "vf-err", "fg-err", "rs-err"]) $(id).textContent = "";
+  ({login: $("li-email"), signup: ROLE === "clinician" ? $("su-name") : $("su-email"), verify: $("vf-code"),
+    forgot: $("fg-email"), reset: $("rs-code")})[mode].focus();
 }
 
-async function boot() {
-  PURPOSES = (await api("/v1/consent-purposes")).purposes;
-  if (PID) {
-    try { return showApp(await api(`/v1/patients/${encodeURIComponent(PID)}`)); }
-    catch { PID = null; store.set("mm_pid", null); }
-  }
-  $("enroll").style.display = "grid";
-  consentBoxes($("consents-new"), {companion: true, care_team: true});
+// ------------------------------------------------------------------ forgot password (every role)
+$("li-forgot").onclick = () => { $("fg-email").value = $("li-email").value; setMode("forgot"); };
+
+async function sendReset(email) {
+  const res = await authPost(`${AUTH_API[ROLE]}/forgot`, {email});
+  if (!res.ok) throw new Error(friendly(res.data.detail));
+  RESET_EMAIL = res.data.email;
+  $("rs-email").textContent = RESET_EMAIL;
+  $("rs-dev").hidden = !res.data.dev_code;
+  $("rs-dev").innerHTML = res.data.dev_code ? `<b>Developer mode:</b> email isn't set up on this server, so here is the
+    code: <b>${esc(res.data.dev_code)}</b>. On a real server it only arrives by email.` : "";
+  $("rs-hint").textContent = `At least ${MIN_PASS[ROLE]} characters.`;
+  $("rs-code").value = $("rs-pass").value = $("rs-pass2").value = "";
+  setMode("reset");
 }
 
-$("start").onclick = async () => {
-  const consents = {};
-  $("consents-new").querySelectorAll("input").forEach((i) => consents[i.dataset.purpose] = i.checked);
-  try {
-    const p = await api("/v1/patients", {id: $("pid").value.trim(), preferred_language: $("plang").value, consents});
-    showApp(p);
-  } catch (e) { $("enroll-err").textContent = e.message; }
-};
-$("resume").onclick = async () => {
-  try { showApp(await api(`/v1/patients/${encodeURIComponent($("pid").value.trim())}`)); }
-  catch (e) { $("enroll-err").textContent = e.message; }
-};
-$("logout").onclick = () => { store.set("mm_pid", null); location.reload(); };
-
-function showApp(p) {
-  PID = p.id; store.set("mm_pid", PID);
-  $("enroll").style.display = "none"; $("app").style.display = "block";
-  $("who").textContent = `Patient code: ${p.id}`;
-  consentBoxes($("consents-edit"), p.consents, async (purpose, granted) => {
-    await api(`/v1/patients/${encodeURIComponent(PID)}/consents`, {purpose, granted});
+$("forgot-form").onsubmit = (e) => {
+  e.preventDefault();
+  const email = $("fg-email").value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("fg-err").textContent = "Please enter a valid email address."; return; }
+  withButton($("fg-btn"), "Sending…", async () => {
+    try { await sendReset(email); } catch (err) { $("fg-err").textContent = err.message; }
   });
+};
+
+$("rs-again").onclick = () => sendReset(RESET_EMAIL).then(() => { $("rs-err").textContent = "A new code is on its way."; },
+                                                         (err) => { $("rs-err").textContent = err.message; });
+
+$("reset-form").onsubmit = (e) => {
+  e.preventDefault();
+  const code = $("rs-code").value.trim(), password = $("rs-pass").value;
+  if (!/^\d{6}$/.test(code)) { $("rs-err").textContent = "Please enter the 6 digits from the email."; return; }
+  if (password.length < MIN_PASS[ROLE]) { $("rs-err").textContent = `The new password needs at least ${MIN_PASS[ROLE]} characters.`; return; }
+  if (password !== $("rs-pass2").value) { $("rs-err").textContent = "The two passwords don't match."; return; }
+  withButton($("rs-btn"), "Saving…", async () => {
+    const res = await authPost(`${AUTH_API[ROLE]}/reset`, {email: RESET_EMAIL, code, password});
+    if (!res.ok) { $("rs-err").textContent = friendly(res.data.detail); return; }
+    $("rs-pass").value = $("rs-pass2").value = "";
+    setMode("login");
+    $("li-email").value = RESET_EMAIL; $("li-pass").focus();
+    $("li-err").textContent = "Password changed. Please log in with your new password.";
+  });
+};
+// Log in and Sign up are separate addresses: switching between them navigates.
+document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => {
+  const url = AUTH_URL[ROLE][b.dataset.mode];
+  if (url && url !== location.pathname) location.assign(url);
+  else setMode(b.dataset.mode);
+});
+
+function setRole(role) {
+  ROLE = role;
+  const clin = role !== "patient";
+  $("role-tag").hidden = !clin;
+  $("role-tag").textContent = role === "superuser" ? "Superuser" : "Clinician";
+  $("role-tag").className = `role-tag ${role}`;
+  $("role-links").innerHTML = ROLE_LINKS[role];
+  document.querySelectorAll(".patient-only").forEach((el) => el.hidden = clin);
+  document.querySelectorAll(".clinician-only").forEach((el) => el.hidden = !clin);
+  $("su-name-wrap").hidden = $("su-gmail-hint").hidden = !clin;
+  $("su-email").placeholder = $("li-email").placeholder =
+    role === "clinician" ? "Gmail address (you@gmail.com)" : role === "superuser" ? "Superuser email" : "Email address";
+  $("su-pass").minLength = clin ? 10 : 8;
+  $("su-pass-hint").textContent = clin ? "At least 10 characters." : "At least 8 characters.";
+  setMode(MODE === "verify" ? "login" : MODE);
+}
+
+// Clinician calls need the raw response: a 403 "verification_required" carries the next step.
+async function authPost(path, body) {
+  let r;
+  try {
+    r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
+  return {ok: r.ok, status: r.status, data: await r.json().catch(() => ({}))};
+}
+
+function showVerify(email, devCode) {
+  VERIFY_EMAIL = email;
+  $("vf-email").textContent = email;
+  $("vf-code").value = "";
+  $("vf-dev").hidden = !devCode;
+  $("vf-dev").innerHTML = devCode ? `<b>Developer mode:</b> email isn't set up on this server, so here is your code:
+    <b>${esc(devCode)}</b>. On a real server it only arrives by email.` : "";
+  setMode("verify");
+}
+
+// Patient login / sign-up: with email verification on, both can answer "confirm your email first".
+async function patientAuth(path, body) {
+  const res = await authPost(path, body);
+  if (res.ok && res.data.token) return startSession(res.data);
+  if (res.ok || (res.status === 403 && res.data.verification_required))
+    return showVerify((res.data.email || body.email).trim().toLowerCase(), res.data.dev_code);
+  throw new Error(friendly(res.data.detail));
+}
+
+function enterClinician(s) {
+  try { localStorage.setItem(CLINICIAN_TOKEN, s.token); } catch {}
+  location.replace(HOME_OF[s.role] || "/clinician");
+}
+
+async function clinicianLogin(email, password) {
+  const res = await authPost(ROLE === "superuser" ? "/v1/auth/admin/login" : "/v1/auth/clinician/login", {email, password});
+  if (res.ok) return enterClinician(res.data);
+  if (res.status === 403 && res.data.verification_required) return showVerify(email.trim().toLowerCase(), res.data.dev_code);
+  throw new Error(friendly(res.data.detail));
+}
+
+$("verify-form").onsubmit = (e) => {
+  e.preventDefault();
+  const code = $("vf-code").value.trim();
+  if (!/^\d{6}$/.test(code)) { $("vf-err").textContent = "Please enter the 6 digits from the email."; return; }
+  withButton($("vf-btn"), "Checking…", async () => {
+    const res = await authPost(`${AUTH_API[ROLE]}/verify`, {email: VERIFY_EMAIL, code});
+    if (res.ok) return ROLE === "patient" ? startSession(res.data) : enterClinician(res.data);
+    $("vf-err").textContent = friendly(res.data.detail);
+  });
+};
+
+$("vf-resend").onclick = async () => {
+  const res = await authPost(`${AUTH_API[ROLE]}/resend`, {email: VERIFY_EMAIL});
+  if (!res.ok) { $("vf-err").textContent = friendly(res.data.detail); return; }
+  showVerify(VERIFY_EMAIL, res.data.dev_code);
+  $("vf-err").textContent = "A new code is on its way.";
+};
+
+document.querySelectorAll(".pw-eye").forEach((b) => b.onclick = () => {
+  const input = b.parentElement.querySelector("input");
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  b.innerHTML = svg(show ? "eyeoff" : "eye");
+  b.setAttribute("aria-label", show ? "Hide password" : "Show password");
+});
+
+function renderSignupConsents() {
+  $("su-consents").innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
+    <label class="check"><input type="checkbox" data-purpose="${k}" ${k === "companion" || k === "care_team" ? "checked" : ""}>
+      <span>${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span></label>`).join("");
+}
+
+async function withButton(btn, label, fn) {
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = label;
+  try { await fn(); } finally { btn.disabled = false; btn.textContent = old; }
+}
+
+$("login-form").onsubmit = (e) => {
+  e.preventDefault();
+  const email = $("li-email").value.trim(), password = $("li-pass").value;
+  if (!email || !password) { $("li-err").textContent = "Please enter your email and password."; return; }
+  withButton($("li-btn"), "Logging in…", async () => {
+    try {
+      if (ROLE !== "patient") await clinicianLogin(email, password);
+      else await patientAuth("/v1/auth/login", {email, password});
+    } catch (err) { $("li-err").textContent = err.message; }
+  });
+};
+
+$("signup-form").onsubmit = (e) => {
+  e.preventDefault();
+  if (ROLE === "clinician") return clinicianSignup();
+  const email = $("su-email").value.trim(), password = $("su-pass").value, consents = {};
+  $("su-consents").querySelectorAll("input").forEach((i) => consents[i.dataset.purpose] = i.checked);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("su-err").textContent = "Please enter a valid email address."; return; }
+  if (password.length < 8) { $("su-err").textContent = "The password needs at least 8 characters."; return; }
+  if (!consents.companion) { $("su-err").textContent = "Please allow the companion (first box) so you can chat."; return; }
+  withButton($("su-btn"), "Creating your space…", async () => {
+    try {
+      await patientAuth("/v1/auth/signup", {email, password, consents, preferred_language: $("su-lang").value,
+                                            patient_code: $("su-code").value.trim() || null,
+                                            clinician_code: $("su-doc").value.trim() || null});
+    } catch (err) { $("su-err").textContent = err.message; }
+  });
+};
+
+function clinicianSignup() {
+  const email = $("su-email").value.trim().toLowerCase(), password = $("su-pass").value, name = $("su-name").value.trim();
+  if (!/^[^@\s]+@(gmail|googlemail)\.com$/.test(email)) { $("su-err").textContent = "Please use your Gmail address (…@gmail.com)."; return; }
+  if (password.length < 10) { $("su-err").textContent = "Clinician passwords need at least 10 characters."; return; }
+  withButton($("su-btn"), "Sending your code…", async () => {
+    const res = await authPost("/v1/auth/clinician/signup", {email, password, name: name || null});
+    if (!res.ok) { $("su-err").textContent = friendly(res.data.detail); return; }
+    $("su-pass").value = "";
+    showVerify(res.data.email, res.data.dev_code);
+  });
+}
+
+function startSession(s) {
+  TOKEN = s.token; ls.set("mm_token", TOKEN);
+  $("li-pass").value = $("su-pass").value = "";
+  history.replaceState(null, "", "/#home");  // a fresh login always starts on the welcome page, at /
+  showApp(s);
+}
+
+function showAuth(mode = "login") {
+  $("app").hidden = true; $("auth").hidden = false;
+  setMode(mode);
+}
+
+function signOut(expired = false) {
+  if (!expired && TOKEN) fetch("/v1/auth/logout", {method: "POST", headers: {Authorization: `Bearer ${TOKEN}`}}).catch(() => {});
+  if (playing) stopExercise(false);
+  speech.reset();
+  TOKEN = null; PID = null; ls.set("mm_token", null);
+  location.replace(expired ? "/login?expired=1" : "/login");
+}
+$("logout").onclick = $("logout-top").onclick = () => signOut();
+
+// ------------------------------------------------------------------ dashboard
+function showApp(me) {
+  PID = me.profile.id;
+  $("auth").hidden = true; $("app").hidden = false;
+  const h = new Date().getHours();
+  $("greet-h").textContent = `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}, welcome to MitraMind`;
+  $("who").textContent = me.email;
+  $("acct-email").textContent = me.email;
+  $("acct-code").textContent = `Patient code: ${me.profile.id}`;
+  renderDoctor(me.profile.clinician_name);
+  renderConsents(me.profile.consents);
+  renderTeam();
+  route();
   loadHistory(); loadForm(); loadExercises();
 }
 
-document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => {
-  document.querySelectorAll("nav.tabs button").forEach((x) => x.classList.toggle("on", x === b));
-  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${b.dataset.tab}`));
-});
+// ------------------------------------------------------------------ pages: Home is the hub; each feature has its own
+// address (#chat, #check-in, #mind-pause), so the browser's Back button and a page refresh both work.
+const ROUTES = {home: "home", chat: "chat", "check-in": "checkin", "mind-pause": "pause", "my-summary": "summary",
+                privacy: "home"};
+let CURRENT = null, HOME_Y = 0;
+const go = (page) => { location.hash = page; };
+
+function route() {
+  if (!PID) return;
+  const page = location.hash.slice(1) || "home";
+  openTab(ROUTES[page] || "home");
+  if (page === "privacy") $("privacy").scrollIntoView({behavior: "smooth"});
+}
+addEventListener("hashchange", route);
+
+function openTab(name) {
+  if (name === CURRENT) return;
+  if (CURRENT === "home") HOME_Y = scrollY;
+  if (CURRENT === "chat") speech.reset();
+  if (name !== "pause" && playing) stopExercise(false);
+  CURRENT = name;
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${name}`));
+  scrollTo(0, name === "home" ? HOME_Y : 0);
+  buddy.show(name === "home");
+  if (name === "chat") { $("msgs").scrollTop = $("msgs").scrollHeight; $("text").focus(); }
+  if (name === "summary") loadSummary();
+}
+
+// ------------------------------------------------------------------ link to my clinician (their MM-… code)
+function renderDoctor(name) {
+  $("doc-box").innerHTML = name
+    ? `<p class="small" style="margin:0">Your clinician: <b>${esc(name)}</b></p>
+       <p class="small muted" style="margin:4px 0 0">Changing clinician? Enter the new code:</p>${linkRow()}`
+    : `<p class="small" style="margin:0"><b>Link your clinician</b>: enter the code they gave you (like MM-7K3P9Q).</p>${linkRow()}`;
+  $("doc-go").onclick = async () => {
+    try {
+      const p = await api(`/v1/patients/${encodeURIComponent(PID)}/clinician`, {code: $("doc-code").value.trim()});
+      renderDoctor(p.clinician_name);
+    } catch (e) { $("doc-err").textContent = e.message; }
+  };
+}
+const linkRow = () => `<div class="link-row"><input id="doc-code" placeholder="MM-XXXXXX" autocomplete="off" maxlength="20">
+  <button class="btn-ghost" id="doc-go">Link</button></div><div class="err" id="doc-err"></div>`;
+
+// ------------------------------------------------------------------ My summary (the patient's own State Card)
+function spark(history, max) {
+  if (history.length < 2) return "";
+  const w = 300, h = 56, pad = 6, n = history.length;
+  const pts = history.map((p, i) => [pad + i * (w - 2 * pad) / (n - 1), h - pad - (p.total / max) * (h - 2 * pad)]);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts.map((p) => p.join(",")).join(" ")}" fill="none" stroke="#457560" stroke-width="2.5"
+      stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    ${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#457560"/>`).join("")}</svg>`;
+}
+
+async function loadSummary() {
+  const el = $("summary");
+  try {
+    const s = await api(`/v1/patients/${encodeURIComponent(PID)}/summary`);
+    const chips = (list, empty) => list.length ? `<div class="chips">${list.map((x) => `<span>${esc(x)}</span>`).join("")}</div>`
+                                               : `<p class="small muted" style="margin:6px 0 0">${empty}</p>`;
+    const scores = s.scores.length ? s.scores.map((q) => `<div class="card score-card">
+        <h3>${esc(q.label)}</h3>
+        <div><span class="big">${q.latest}</span> <span class="of">/ ${q.max}</span><span class="band">${esc(q.band)} range</span></div>
+        ${spark(q.history, q.max)}
+        <p class="small muted" style="margin:8px 0 0">${esc(q.note)}</p></div>`).join("")
+      : `<div class="card"><h3>Check-in scores</h3><p class="small muted" style="margin:0">No check-ins yet.
+          <a href="#check-in">Do your first one</a>; it takes about 2 minutes.</p></div>`;
+    el.innerHTML = `
+      ${s.support ? `<div class="crisis" style="grid-column:1/-1; margin:0"><span data-icon="heart"></span><span>${esc(s.support)}</span></div>` : ""}
+      ${scores}
+      <div class="card"><h3>What came up</h3>${chips(s.came_up, "Nothing stood out yet. Chat with Mitra about your days and it will show here.")}
+        ${s.sleep_mentions ? `<p class="small" style="margin:10px 0 0">Sleep came up in ${s.sleep_mentions} of your ${s.period.checkins} chat messages.</p>` : ""}</div>
+      <div class="card"><h3>What helped you</h3>${chips(s.helped, "When something helps, like a walk or a breathing exercise, tell Mitra and it will show here.")}
+        <p class="small muted" style="margin:10px 0 0">Mind Pauses: ${s.mind_pauses.completed} finished of ${s.mind_pauses.started} started.</p></div>
+      <div class="card"><h3>Your care team</h3>
+        <p class="small" style="margin:0">${s.clinician ? `Your clinician is <b>${esc(s.clinician)}</b>. They see your scores and only the messages you share.`
+          : "You are not linked to a clinician yet. Add your clinician's code under Privacy on the home page."}</p>
+        <p class="small muted" style="margin:10px 0 0">Based on ${s.period.checkins} chat message${s.period.checkins === 1 ? "" : "s"}
+          and your check-in scores. This summary is not a diagnosis.</p></div>`;
+    paintIcons(el);
+  } catch (e) {
+    el.innerHTML = `<div class="card"><p class="err">${esc(e.message)}</p></div>`;
+  }
+}
+document.querySelectorAll("[data-scroll]").forEach((b) => b.onclick = () => $(b.dataset.scroll).scrollIntoView({behavior: "smooth"}));
+
+function renderTeam() {
+  const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const link = (href, label, icon) => href ? `<a href="${esc(href)}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${svg(icon, 18)}</a>` : "";
+  $("team-event").hidden = !TEAM_EVENT; $("team-event").textContent = TEAM_EVENT;
+  $("team-row").innerHTML = TEAM.map((p) => `<div class="member">
+    <div class="face">${p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">` : esc(initials(p.name))}</div>
+    <b>${esc(p.name)}</b>${p.role ? `<span class="role">${esc(p.role)}</span>` : ""}
+    ${p.bio ? `<p>${esc(p.bio)}</p>` : ""}
+    <div class="links">${link(p.github && `https://github.com/${p.github}`, "GitHub", "github")}
+      ${link(p.linkedin, "LinkedIn", "linkedin")}${link(p.email && `mailto:${p.email}`, "Email", "mail")}</div></div>`).join("");
+}
+
+// Sections of the home page fade in as they scroll into view.
+const revealer = "IntersectionObserver" in window
+  ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); revealer.unobserve(e.target); } }),
+                             {threshold: 0.12})
+  : null;
+document.querySelectorAll(".reveal").forEach((el) => revealer ? revealer.observe(el) : el.classList.add("in"));
+
+// ------------------------------------------------------------------ home: Mitra follows the cursor
+// The big Mitra's eyes follow the pointer; a small Mitra glides after it and hops onto the feature card you point at.
+// Only with a mouse (not on touch screens) and not when the device asks for reduced motion.
+const FINE = matchMedia("(hover: hover) and (pointer: fine)"), CALM = matchMedia("(prefers-reduced-motion: reduce)");
+const buddy = {
+  m: null, x: -200, y: -200, px: -200, py: -200, card: null, on: false, seen: false, raf: 0,
+  init() {
+    this.m = new Mitra($("buddy-mitra"));
+    addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      this.px = e.clientX; this.py = e.clientY;
+      if (!this.seen) { this.seen = true; this.x = this.px + 26; this.y = this.py + 18; }
+      $("buddy").classList.remove("away");
+      if (CURRENT === "home") this.lookHero();
+    });
+    document.documentElement.addEventListener("mouseleave", () => $("buddy").classList.add("away"));
+    document.querySelectorAll(".feat").forEach((c) => {
+      c.addEventListener("pointerenter", () => this.perch(c));
+      c.addEventListener("pointerleave", () => this.perch(null));
+    });
+  },
+  allowed() { return FINE.matches && !CALM.matches; },
+  show(on) {
+    this.on = on && this.allowed();
+    $("buddy").hidden = !this.on;
+    cancelAnimationFrame(this.raf);
+    if (this.on) this.raf = requestAnimationFrame(() => this.tick());
+    else { this.perch(null); HMITRA?.lookAt(null); }
+  },
+  perch(card) {
+    if (this.card) this.card.classList.remove("perched");
+    this.card = this.on ? card : null;
+    $("buddy").classList.toggle("perched", !!this.card);
+    this.m.wave(!!this.card);
+    if (this.card) {
+      this.card.classList.add("perched");
+      $("buddy-say").textContent = card.dataset.say;
+      $("buddy").classList.remove("hop"); void $("buddy").offsetWidth; $("buddy").classList.add("hop");
+    }
+  },
+  tick() {
+    let tx = this.px + 26, ty = this.py + 18;  // beside the cursor, never under it
+    if (this.card) { const r = this.card.getBoundingClientRect(); tx = r.right - 92; ty = r.top - 62; }
+    const dx = tx - this.x, dy = ty - this.y;
+    this.x += dx * 0.12; this.y += dy * 0.12;
+    const tilt = Math.max(-14, Math.min(14, dx * 0.15));
+    $("buddy").style.transform = `translate3d(${this.x}px, ${this.y}px, 0) rotate(${tilt}deg)`;
+    if (this.card) this.m.lookAt((this.px - this.x - 30) / 120, (this.py - this.y - 30) / 120);
+    else this.m.lookAt(dx / 60, dy / 60);
+    this.raf = requestAnimationFrame(() => this.tick());
+  },
+  lookHero() {
+    const r = $("mitra-home").getBoundingClientRect();
+    if (!r.width) return;
+    HMITRA.lookAt((this.px - (r.left + r.width / 2)) / (innerWidth / 2.5), (this.py - (r.top + r.height * 0.45)) / (innerHeight / 2.5));
+  },
+};
 
 // ------------------------------------------------------------------ chat
-function bubble(m) {
-  const div = document.createElement("div");
-  div.className = `bubble ${m.role === "user" ? "me" : "ai"}`;
-  div.innerHTML = `<div>${esc(m.text)}</div>`;
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  if (m.role === "user") {
-    if (m.modality === "voice") meta.insertAdjacentHTML("beforeend", "<span>voice</span>");
-    const b = document.createElement("button");
-    const draw = () => b.textContent = m.shared ? "Shared with care team" : "Private";
-    draw();
-    b.title = "Tap to change who can read this message";
-    b.onclick = async () => {
-      m.shared = !m.shared; draw();
-      await api(`/v1/patients/${encodeURIComponent(PID)}/messages/${m.id}/share`, {shared: m.shared});
-    };
-    meta.appendChild(b);
-  } else if (m.mind_pause && m.mind_pause !== "none") {
-    const b = document.createElement("button");
-    b.textContent = "Start a Mind Pause";
-    b.onclick = () => { document.querySelector('[data-tab="pause"]').click(); startExercise(m.mind_pause); };
-    meta.appendChild(b);
+function scrollDown() { $("msgs").scrollTo({top: $("msgs").scrollHeight, behavior: "smooth"}); }
+
+function addMsg(m) {
+  const mine = m.role === "user";
+  const row = document.createElement("div");
+  row.className = `msg ${mine ? "me" : "ai"}`;
+  row.innerHTML = `${mine ? "" : `<div class="avatar">${lotus()}</div>`}<div class="col"><div class="bubble"></div><div class="chips"></div></div>`;
+  const bubble = row.querySelector(".bubble");
+  if (m.photoUrl || m.has_image) {
+    const img = document.createElement("img");
+    img.alt = "Photo you shared";
+    if (m.photoUrl) img.src = m.photoUrl; else loadPhoto(img, m.id);
+    bubble.appendChild(img);
   }
-  if (meta.childElementCount) div.appendChild(meta);
-  $("msgs").appendChild(div);
-  $("msgs").scrollTop = $("msgs").scrollHeight;
-  return div;
+  if (m.text) bubble.insertAdjacentHTML("beforeend", `<div class="txt">${esc(m.text)}</div>`);
+  if (mine && m.id) addPrivacyChip(row, m);
+  if (mine && m.modality === "voice") row.querySelector(".chips").insertAdjacentHTML("afterbegin", `<span class="chip">${svg("mic", 13)} voice</span>`);
+  if (!mine) addPauseChip(row, m.mind_pause);
+  $("msgs").appendChild(row);
+  scrollDown();
+  return row;
+}
+
+function addPauseChip(row, exercise) {
+  if (!exercise || exercise === "none" || row.querySelector(".chip.go")) return;
+  const b = document.createElement("button");
+  b.className = "chip go"; b.innerHTML = `${svg("wind", 13)} Try a Mind Pause`;
+  b.onclick = () => { go("mind-pause"); openTab("pause"); startExercise(exercise); };
+  row.querySelector(".chips").appendChild(b);
+}
+
+function setBubbleText(row, text) {
+  let t = row.querySelector(".txt");
+  if (!t) { t = document.createElement("div"); t.className = "txt"; row.querySelector(".bubble").appendChild(t); }
+  t.textContent = text;
+  scrollDown();
+}
+
+function addPrivacyChip(row, m) {
+  const b = document.createElement("button");
+  b.title = "Tap to change who can read this message";
+  const draw = () => {
+    b.className = `chip${m.shared ? " shared" : ""}`;
+    b.innerHTML = m.shared ? `${svg("users", 13)} Shared with care team` : `${svg("lock", 13)} Private`;
+  };
+  draw();
+  b.onclick = async () => {
+    m.shared = !m.shared; draw();
+    try { await api(`/v1/patients/${enc(PID)}/messages/${m.id}/share`, {shared: m.shared}); }
+    catch (e) { m.shared = !m.shared; draw(); setStatus(e.message, true); }
+  };
+  row.querySelector(".chips").appendChild(b);
+}
+
+async function loadPhoto(img, mid) {
+  try {
+    const r = await fetch(`/v1/patients/${enc(PID)}/messages/${mid}/photo`, {headers: {Authorization: `Bearer ${TOKEN}`}});
+    if (r.ok) img.src = URL.createObjectURL(await r.blob());
+  } catch {}
 }
 
 async function loadHistory() {
   $("msgs").innerHTML = "";
-  const hist = await api(`/v1/patients/${encodeURIComponent(PID)}/messages?limit=60`);
-  if (!hist.length) bubble({role: "assistant", text: "Hi, I'm MitraMind. How are you feeling today? / आज आप कैसा महसूस कर रहे हैं?"});
-  hist.forEach((m) => bubble({...m, shared: !!m.shared}));
+  const hist = await api(`/v1/patients/${enc(PID)}/messages?limit=60`);
+  if (!hist.length) addMsg({role: "assistant", text: "Hi, I'm MitraMind. How are you feeling today?\nआज आप कैसा महसूस कर रहे हैं?"});
+  hist.forEach((m) => addMsg({...m, shared: !!m.shared}));
+}
+
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "msg ai typing";
+  row.innerHTML = `<div class="avatar">${lotus()}</div><div class="bubble" aria-label="MitraMind is typing">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="wait"></span></div>`;
+  $("msgs").appendChild(row);
+  scrollDown();
+  row.timer = setTimeout(() => { row.querySelector(".wait").textContent = "taking a moment to reply…"; }, 9000);
+  row.done = () => { clearTimeout(row.timer); row.remove(); };
+  return row;
 }
 
 function showCrisis(res) {
-  if (!res.escalate) { $("crisis").style.display = "none"; return; }
-  $("crisis").style.display = "block";
-  $("crisis").innerHTML = `<b>You don't have to face this alone.</b><br>
+  if (!res.escalate) { $("crisis").hidden = true; return; }
+  $("crisis").hidden = false;
+  $("crisis").innerHTML = `${svg("heart")}<span><b>You don't have to face this alone.</b><br>
     Call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a> in an emergency.
-    Your care team has been told and will contact you.`;
+    Your care team has been told and will contact you.</span>`;
 }
 
-function speak(text, language) {
-  if (!$("speak").checked || !("speechSynthesis" in window)) return;
+// ------------------------------------------------------------------ speech: a sentence queue that drives Mitra's
+// mouth and the captions. Uses the browser's voices; without any, Mitra still "speaks" with captions at reading pace.
+let VOICES = [];
+if ("speechSynthesis" in window) {
+  const load = () => { VOICES = speechSynthesis.getVoices(); };
+  load(); speechSynthesis.onvoiceschanged = load;
+}
+function pickVoice(lang) {
+  const local = VOICES.filter((v) => v.localService);  // local voices report word timings, which drive the mouth
+  const pool = [...local, ...VOICES];
+  return pool.find((v) => v.lang === lang) || pool.find((v) => v.lang.startsWith(lang.slice(0, 2))) || null;
+}
+const langOf = (text) => /[ऀ-ॿ]/.test(text) ? "hi-IN" : "en-IN";
+
+const speech = {
+  queue: [], busy: false, gen: 0, timer: null,
+  on() { return VOICE || $("speak").checked; },
+  push(text) {
+    if (!this.on() || !text) return;
+    this.queue.push(text);
+    if (!this.busy) this.next();
+  },
+  pushAll(text) { (text.match(/[^.!?।\n]+[.!?।]*/g) || [text]).map((s) => s.trim()).filter(Boolean).forEach((s) => this.push(s)); },
+  reset() {
+    this.gen++; this.queue = []; this.busy = false; clearTimeout(this.timer);
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    if (MITRA) MITRA.talk(false);
+  },
+  async next() {
+    const text = this.queue.shift();
+    if (text == null) { this.busy = false; if (VOICE) MITRA.setState(MOOD); return; }
+    this.busy = true;
+    const gen = this.gen;
+    if (VOICE) { MITRA.setState("speaking"); showCaption(text); }
+    const voice = "speechSynthesis" in window ? pickVoice(langOf(text)) : null;
+    if (voice) await this.say(text, voice); else if (VOICE) await this.mime(text);
+    if (gen === this.gen) this.next();
+  },
+  say(text, voice) {
+    return new Promise((done) => {
+      let finished = false;
+      const end = () => {
+        if (finished) return;
+        finished = true; clearTimeout(this.timer);
+        if (VOICE) { MITRA.talk(false); markCaptionDone(); }
+        done();
+      };
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = voice; u.lang = voice.lang; u.rate = 0.95; u.pitch = 1.05;
+      u.onstart = () => { if (VOICE) MITRA.talk(true); };
+      u.onboundary = (e) => { if (e.name && e.name !== "word") return; if (VOICE) { MITRA.word(); highlightAt(e.charIndex); } };
+      u.onend = end; u.onerror = end;
+      speechSynthesis.speak(u);
+      this.timer = setTimeout(end, 5000 + text.split(/\s+/).length * 700);  // some browsers never fire onend
+    });
+  },
+  mime(text) {  // no voice available: move the mouth and the caption at a calm reading pace
+    return new Promise((done) => {
+      const words = text.split(/\s+/).filter(Boolean);
+      let i = 0;
+      MITRA.talk(true);
+      const tick = () => {
+        if (i >= words.length) { MITRA.talk(false); markCaptionDone(); return done(); }
+        highlightWord(i); MITRA.word();
+        this.timer = setTimeout(tick, 260 + words[i++].length * 28);
+      };
+      tick();
+    });
+  },
+};
+
+function narrate(text) {  // Mind Pause voice-over: plain speech, Mitra keeps demonstrating instead of talking
+  if (!(VOICE || $("speak").checked) || !("speechSynthesis" in window)) return;
+  const voice = pickVoice(langOf(text));
+  if (!voice) return;
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = language === "hi" ? "hi-IN" : "en-IN";
-  const v = speechSynthesis.getVoices().find((x) => x.lang === u.lang);
-  if (v) u.voice = v;
+  u.voice = voice; u.lang = voice.lang; u.rate = 0.9;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 
-function afterReply(res, userText, modality) {
-  bubble({id: res.message_id, role: "user", text: userText, shared: $("share").checked, modality});
-  bubble({role: "assistant", text: res.reply, mind_pause: res.mind_pause});
-  showCrisis(res);
-  speak(res.reply, res.language);
+function showCaption(text, quiet = false) {
+  const c = $("caption");
+  c.className = `caption${quiet ? " quiet" : ""}`;
+  c.innerHTML = "";
+  if (quiet) { c.textContent = text; return; }
+  const re = /\S+/g;
+  let m, last = 0;
+  while ((m = re.exec(text))) {
+    c.append(text.slice(last, m.index));
+    const w = document.createElement("span");
+    w.className = "w"; w.dataset.at = m.index; w.textContent = m[0];
+    c.append(w);
+    last = m.index + m[0].length;
+  }
+}
+function highlightWord(k) {
+  $("caption").querySelectorAll(".w").forEach((w, j) => { w.classList.toggle("on", j === k); w.classList.toggle("done", j < k); });
+}
+function highlightAt(charIndex) {
+  let k = -1;
+  $("caption").querySelectorAll(".w").forEach((w, j) => { if (+w.dataset.at <= charIndex) k = j; });
+  highlightWord(k);
+}
+function markCaptionDone() { $("caption").querySelectorAll(".w").forEach((w) => { w.classList.remove("on"); w.classList.add("done"); }); }
+
+function setVoice(on) {
+  VOICE = on; ls.set("mm_voice", on ? "1" : null);
+  $("chat").classList.toggle("voice", on);
+  $("voice-toggle").classList.toggle("on", on);
+  $("voice-toggle").setAttribute("aria-pressed", String(on));
+  $("voice-label").textContent = on ? "Voice mode on" : "Voice mode";
+  speech.reset(); MOOD = "idle"; MITRA.setState("idle");
+  if (on) showCaption("Hi, I'm Mitra. Tap the mic and tell me how you're feeling, or type below.", true);
+}
+$("voice-toggle").onclick = () => setVoice(!VOICE);
+
+function setStatus(msg, isErr = false) { $("status").innerHTML = isErr ? `<span class="err">${esc(msg)}</span>` : esc(msg); }
+function updateSend() { $("send").disabled = BUSY || (!$("text").value.trim() && !PHOTO); }
+function setBusy(b) { BUSY = b; $("mic").disabled = $("attach").disabled = b; updateSend(); }
+
+const grow = () => { const t = $("text"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 150) + "px"; };
+$("text").addEventListener("input", () => { grow(); updateSend(); });
+$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+$("send").onclick = () => send();
+
+// The reply streams in sentence by sentence (newline-delimited JSON), so it can be shown and spoken sooner.
+async function streamChat(body, onEvent, kind = "chat") {
+  let r;
+  try {
+    r = await fetch(`/v1/patients/${enc(PID)}/${kind}/stream`, {method: "POST", body: JSON.stringify(body),
+      headers: {"Content-Type": "application/json", Authorization: `Bearer ${TOKEN}`}});
+  } catch { throw new Error("Can't reach MitraMind. Please check your connection."); }
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 401) signOut(true);
+    throw new Error(friendly(data.detail));
+  }
+  const reader = r.body.getReader(), dec = new TextDecoder();
+  let buf = "", final = null;
+  for (;;) {
+    const {value, done} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line) continue;
+      const ev = JSON.parse(line);
+      if (ev.type === "final") final = ev;
+      else if (ev.type === "error") throw new Error(ev.detail);
+      else onEvent(ev);
+    }
+  }
+  if (!final) throw new Error("The reply was cut off. Please try again.");
+  return final;
 }
 
-async function withBusy(label, fn) {
-  $("send").disabled = $("mic").disabled = true; $("status").textContent = label;
-  try { await fn(); $("status").textContent = ""; }
-  catch (e) { $("status").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
-  finally { $("send").disabled = $("mic").disabled = false; }
+async function send() {
+  const text = $("text").value.trim(), photo = PHOTO, share = $("share").checked;
+  if (BUSY || (!text && !photo)) return;
+  $("text").value = ""; grow(); clearPhoto(); setStatus("");
+  speech.reset(); MOOD = "idle";
+  const msg = {role: "user", text, shared: share, photoUrl: photo?.dataUrl};
+  const row = addMsg(msg);
+  const typing = showTyping();
+  if (VOICE) { MITRA.setState("thinking"); showCaption("Thinking…", true); }
+  setBusy(true);
+  let ai = null, shown = [];
+  const reply = () => { if (!ai) { typing.done(); ai = addMsg({role: "assistant", text: ""}); } return ai; };
+  try {
+    const res = await streamChat({text, share, photo_base64: photo?.b64 || null}, (ev) => {
+      if (ev.type === "sentence") {
+        shown.push(ev.text);
+        setBubbleText(reply(), shown.join(" "));
+        speech.push(ev.text);
+      } else if (ev.type === "replace") {  // a later sentence failed the safety checks: show the safe reply instead
+        speech.reset();
+        shown = [ev.text];
+        setBubbleText(reply(), ev.text);
+        speech.pushAll(ev.text);
+      }
+    });
+    setBubbleText(reply(), res.reply);
+    addPauseChip(ai, res.mind_pause);
+    msg.id = res.message_id; addPrivacyChip(row, msg);
+    showCrisis(res);
+    MOOD = res.escalate ? "concerned" : "idle";
+    if (VOICE && !speech.busy) MITRA.setState(MOOD);
+  } catch (e) {
+    typing.done(); speech.reset();
+    if (VOICE) { MITRA.setState("idle"); showCaption("Sorry, that didn't go through. Please try again.", true); }
+    row.classList.add("failed");
+    if (!$("text").value) { $("text").value = text; grow(); }
+    if (photo && !PHOTO) setPhoto(photo, "photo");
+    setStatus(`Not sent: ${e.message}`, true);
+  } finally { setBusy(false); }
 }
 
-$("send").onclick = () => {
-  const text = $("text").value.trim();
-  if (!text) return;
-  withBusy("MitraMind is replying…", async () => {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/chat`, {text, share: $("share").checked});
-    $("text").value = "";
-    afterReply(res, text, "text");
-  });
+// photos: re-encoded in the browser (max 1280 px JPEG), which also drops EXIF data such as location
+$("attach").onclick = () => $("file").click();
+$("file").onchange = async () => {
+  const f = $("file").files[0];
+  $("file").value = "";
+  if (!f) return;
+  if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { setStatus("Please choose a JPEG, PNG or WebP photo.", true); return; }
+  try { setPhoto(await shrink(f), f.name); setStatus(""); }
+  catch { setStatus("That photo could not be opened. Please try another.", true); }
 };
-$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("send").click(); } });
+$("preview-x").onclick = () => clearPhoto();
+
+async function shrink(file, max = 1280) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const dataUrl = c.toDataURL("image/jpeg", 0.85);
+    return {dataUrl, b64: dataUrl.split(",")[1]};
+  } finally { URL.revokeObjectURL(url); }
+}
+function setPhoto(p, name) {
+  PHOTO = p; $("preview-img").src = p.dataUrl; $("preview-name").textContent = name; $("preview").hidden = false; updateSend();
+}
+function clearPhoto() { PHOTO = null; $("preview").hidden = true; $("preview-img").removeAttribute("src"); updateSend(); }
 
 // ------------------------------------------------------------------ voice: record 16 kHz mono WAV in the browser
 let rec = null;
@@ -275,9 +1194,15 @@ $("mic").onclick = async () => {
     proc.onaudioprocess = (e) => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     src.connect(proc); proc.connect(ctx.destination);
     rec = {stream, ctx, proc, chunks, t0: Date.now()};
-    $("mic").classList.add("rec"); $("mic").textContent = "Stop";
-    rec.timer = setInterval(() => $("status").textContent = `Recording… ${Math.round((Date.now() - rec.t0) / 1000)} s (tap Stop to send)`, 300);
-  } catch (e) { $("status").innerHTML = `<span class="err">Microphone not available: ${esc(e.message)}</span>`; }
+    $("mic").classList.add("rec"); $("mic").innerHTML = svg("stop"); $("mic").setAttribute("aria-label", "Stop and send");
+    $("send").disabled = true;
+    speech.reset();
+    if (VOICE) { MITRA.setState("listening"); showCaption("I'm listening…", true); }
+    rec.timer = setInterval(() => {
+      const s = Math.round((Date.now() - rec.t0) / 1000);
+      setStatus(`Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} · tap the square to send`);
+    }, 300);
+  } catch (e) { setStatus(`Microphone not available: ${e.message}`, true); }
 };
 
 function toWav(chunks, rate) {
@@ -293,7 +1218,6 @@ function toWav(chunks, rate) {
   v.setUint32(40, pcm.length * 2, true); new Int16Array(buf, 44).set(pcm);
   return new Uint8Array(buf);
 }
-
 function b64(bytes) {
   let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(s);
@@ -303,78 +1227,212 @@ async function stopRecording() {
   const r = rec; rec = null; clearInterval(r.timer);
   r.proc.disconnect(); r.stream.getTracks().forEach((t) => t.stop());
   const wav = toWav(r.chunks, r.ctx.sampleRate); r.ctx.close();
-  $("mic").classList.remove("rec"); $("mic").textContent = "Voice";
-  withBusy("Listening to your voice message…", async () => {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/voice`,
-                          {audio_base64: b64(wav), mime: "audio/wav", share: $("share").checked});
-    afterReply(res, res.transcript, "voice");
-  });
+  $("mic").classList.remove("rec"); $("mic").innerHTML = svg("mic"); $("mic").setAttribute("aria-label", "Record a voice message");
+  setStatus("");
+  speech.reset(); MOOD = "idle";
+  let typing = showTyping(), ai = null, shown = [];
+  const share = $("share").checked, msg = {role: "user", text: "", shared: share, modality: "voice"};
+  let mine = null;
+  if (VOICE) { MITRA.setState("thinking"); showCaption("Listening back to you…", true); }
+  setBusy(true);
+  const reply = () => { if (!ai) { typing.done(); ai = addMsg({role: "assistant", text: ""}); } return ai; };
+  try {
+    // Streamed: the transcript arrives first, then Mitra's reply sentence by sentence (spoken as it comes).
+    const res = await streamChat({audio_base64: b64(wav), mime: "audio/wav", share}, (ev) => {
+      if (ev.type === "transcript") {
+        typing.done();
+        msg.text = ev.text; mine = addMsg(msg);
+        typing = showTyping();
+        if (VOICE) showCaption("Thinking…", true);
+      } else if (ev.type === "sentence") {
+        shown.push(ev.text);
+        setBubbleText(reply(), shown.join(" "));
+        speech.push(ev.text);
+      } else if (ev.type === "replace") {
+        speech.reset(); shown = [ev.text];
+        setBubbleText(reply(), ev.text);
+        speech.pushAll(ev.text);
+      }
+    }, "voice");
+    setBubbleText(reply(), res.reply);
+    addPauseChip(ai, res.mind_pause);
+    if (mine) { msg.id = res.message_id; addPrivacyChip(mine, msg); }
+    showCrisis(res);
+    MOOD = res.escalate ? "concerned" : "idle";
+    if (VOICE && !speech.busy) MITRA.setState(MOOD);
+  } catch (e) {
+    typing.done(); speech.reset();
+    if (VOICE) { MITRA.setState("idle"); showCaption("Sorry, I couldn't hear that. Please try again or type below.", true); }
+    setStatus(`Voice message not sent: ${e.message}`, true);
+  } finally { setBusy(false); }
 }
 
-// ------------------------------------------------------------------ questionnaires
+// ------------------------------------------------------------------ check-in
+let INSTRUMENT = "PHQ-9";
+document.querySelectorAll("#instrument button").forEach((b) => b.onclick = () => {
+  INSTRUMENT = b.dataset.ins;
+  document.querySelectorAll("#instrument button").forEach((x) => x.classList.toggle("on", x === b));
+  loadForm();
+});
 async function loadForm() {
-  const f = await api(`/v1/questionnaires/${$("instrument").value}/form`);
+  const f = await api(`/v1/questionnaires/${INSTRUMENT}/form`);
   $("stem").textContent = f.stem;
-  $("items").innerHTML = f.items.map((q, i) => `<div class="item"><div>${i + 1}. ${esc(q)}</div><div class="opts">
-    ${f.options.map((o) => `<label><input type="radio" name="q${i}" value="${o.value}">${esc(o.label)}</label>`).join("")}
+  $("items").innerHTML = f.items.map((q, i) => `<div class="q"><div class="qt">${i + 1}. ${esc(q)}</div><div class="qopts">
+    ${f.options.map((o) => `<label><input type="radio" name="q${i}" value="${o.value}"><span>${esc(o.label)}</span></label>`).join("")}
     </div></div>`).join("");
-  $("q-out").innerHTML = "";
+  $("items").querySelectorAll("input").forEach((i) => i.onchange = drawProgress);
+  $("q-out").innerHTML = ""; drawProgress();
 }
-$("instrument").onchange = loadForm;
+function drawProgress() {
+  const n = $("items").querySelectorAll(".q").length, done = $("items").querySelectorAll("input:checked").length;
+  $("q-progress").style.width = n ? `${(100 * done) / n}%` : "0";
+}
 $("submit-q").onclick = async () => {
-  const n = $("items").querySelectorAll(".item").length, items = [];
-  for (let i = 0; i < n; i++) {
-    const c = document.querySelector(`input[name=q${i}]:checked`);
-    if (!c) { $("q-out").innerHTML = `<p class="err">Please answer question ${i + 1}.</p>`; return; }
+  const qs = $("items").querySelectorAll(".q"), items = [];
+  for (let i = 0; i < qs.length; i++) {
+    const c = qs[i].querySelector("input:checked");
+    if (!c) { $("q-out").innerHTML = `<p class="err">Please answer question ${i + 1}.</p>`; qs[i].scrollIntoView({behavior: "smooth", block: "center"}); return; }
     items.push(+c.value);
   }
   try {
-    const res = await api(`/v1/patients/${encodeURIComponent(PID)}/questionnaires`, {instrument: $("instrument").value, items});
+    const res = await api(`/v1/patients/${enc(PID)}/questionnaires`, {instrument: INSTRUMENT, items});
     const t = res.trend;
-    $("q-out").innerHTML = `<p>Thank you. Your ${esc(res.score.instrument)} score is <b>${res.score.total}</b>
-      (${esc(res.score.severity)} range)${t.n_administrations > 1 ? `, ${t.change > 0 ? "up" : t.change < 0 ? "down" : "no change"}
-      from ${t.first_total} at your first check-in` : ""}. Your care team can see this.</p>
-      ${res.helplines.length ? `<div class="crisis">Some of your answers suggest you may be going through a very hard time.
-      Your care team has been told. You can call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) any time, or
-      <a href="tel:112">112</a> in an emergency.</div>` : ""}`;
+    $("q-out").innerHTML = `<div class="result"><b>Thank you for checking in.</b><br>Your ${esc(res.score.instrument)} score is
+      <b>${res.score.total}</b> (${esc(res.score.severity)} range)${t.n_administrations > 1 ? `, ${t.change > 0 ? "up" : t.change < 0 ? "down" : "no change"}
+      from ${t.first_total} at your first check-in` : ""}. Your care team can see this.</div>
+      ${res.helplines.length ? `<div class="crisis" style="margin:12px 0 0">${svg("heart")}<span>Some of your answers suggest you may be going
+      through a very hard time. Your care team has been told. You can call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) any time,
+      or <a href="tel:112">112</a> in an emergency.</span></div>` : ""}`;
+    $("q-out").scrollIntoView({behavior: "smooth", block: "nearest"});
   } catch (e) { $("q-out").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 };
 
 // ------------------------------------------------------------------ Mind Pause
+const EX_LOOK = {box_breathing: ["wind", "#e6f0e9", "#457560"], grounding_54321: ["leaf", "#f0ebf8", "#5b4a86"],
+                 body_scan: ["moon", "#fbf3e2", "#7a5a17"]};
 let EXS = {}, playing = null;
 async function loadExercises() {
   const list = await api("/v1/mind-pause");
   EXS = Object.fromEntries(list.map((e) => [e.id, e]));
-  $("exlist").innerHTML = list.map((e) => `<button data-ex="${e.id}" style="text-align:left">
-    <b>${esc(e.title)}</b><br><span class="small muted">For when you feel ${esc(e.for)}</span></button>`).join("");
+  $("exlist").innerHTML = list.map((e) => {
+    const [ic, bg, fg] = EX_LOOK[e.id] || ["sparkle", "#e6f0e9", "#457560"];
+    return `<button class="ex-card" data-ex="${e.id}"><span class="ico" style="background:${bg}; color:${fg}">${svg(ic, 24)}</span>
+      <b>${esc(e.title)}</b><span class="small">For when you feel ${esc(e.for)}</span></button>`;
+  }).join("");
   $("exlist").querySelectorAll("button").forEach((b) => b.onclick = () => startExercise(b.dataset.ex));
 }
-
+// Mitra demonstrates each step: inhales (grows, eyes closed), holds, exhales (puffs of air), or rests calmly,
+// while the bubble counts 1-2-3-4 for breathing steps and shows the seconds left on longer steps.
+const PHASE_LABEL = {in: "breathe in", hold: "hold", out: "breathe out", calm: "notice", rest: "relax"};
+function phaseOf(text, exId) {
+  if (/breathe in|inhale|साँस अंदर/i.test(text)) return "in";
+  if (/breathe out|exhale|बाहर/i.test(text)) return "out";
+  if (/hold|रोक|रुक/i.test(text)) return "hold";
+  return exId === "body_scan" ? "rest" : "calm";
+}
 function startExercise(id) {
   const ex = EXS[id]; if (!ex) return;
   stopExercise(false);
-  $("pause-list").style.display = "none"; $("player").style.display = "block"; $("p-title").textContent = ex.title;
-  let i = 0, left = ex.steps[0].seconds;
-  const draw = () => { $("p-step").textContent = ex.steps[i].text; $("p-count").textContent = left;
-                       $("p-progress").textContent = `Step ${i + 1} of ${ex.steps.length}`; };
-  draw(); speakStep(ex.steps[0].text);
+  $("pause-list").hidden = true; $("player").hidden = false; $("p-title").textContent = ex.title;
+  $("p-stop").textContent = "End exercise";
+  let i = 0, t = 0;
+  const draw = () => {
+    const s = ex.steps[i], p = phaseOf(s.text, id);
+    $("p-step").textContent = s.text;
+    $("p-phase").textContent = PHASE_LABEL[p];
+    $("p-count").textContent = ["in", "hold", "out"].includes(p) ? t + 1 : s.seconds - t;
+    $("p-progress").textContent = `Step ${i + 1} of ${ex.steps.length}`;
+  };
+  const begin = () => {
+    const s = ex.steps[i];
+    t = 0;
+    PMITRA.breathe(phaseOf(s.text, id), s.seconds, id !== "grounding_54321");
+    narrate(s.text);
+    draw();
+  };
+  begin();
   playing = {id, timer: setInterval(() => {
-    if (--left > 0) return draw();
+    if (++t < ex.steps[i].seconds) return draw();
     if (++i >= ex.steps.length) return stopExercise(true);
-    left = ex.steps[i].seconds; draw(); speakStep(ex.steps[i].text);
+    begin();
   }, 1000)};
 }
-function speakStep(t) { if ($("speak").checked) speak(t, "en"); }
 function stopExercise(completed) {
   if (!playing) return;
   clearInterval(playing.timer);
-  api(`/v1/patients/${encodeURIComponent(PID)}/mind-pause`, {exercise: playing.id, completed}).catch(() => {});
+  api(`/v1/patients/${enc(PID)}/mind-pause`, {exercise: playing.id, completed}).catch(() => {});
   playing = null;
-  $("player").style.display = "none"; $("pause-list").style.display = "block";
+  PMITRA.breathe(null);
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if (completed) {  // stay on screen for a moment: Mitra smiles and invites the patient to notice how they feel
+    PMITRA.mouth("smile");
+    $("p-phase").textContent = "well done"; $("p-count").textContent = "✓";
+    $("p-step").textContent = "Well done. Take a moment to notice how you feel now.";
+    $("p-progress").textContent = "";
+    $("p-stop").textContent = "Back to exercises";
+    narrate("Well done. Take a moment to notice how you feel now.");
+  } else {
+    $("player").hidden = true; $("pause-list").hidden = false;
+  }
 }
-$("p-stop").onclick = () => stopExercise(false);
+$("p-stop").onclick = () => {
+  if (playing) return stopExercise(false);
+  $("player").hidden = true; $("pause-list").hidden = false;
+};
 
-boot().catch((e) => { document.querySelector("main").insertAdjacentHTML("afterbegin", `<p class="err">${esc(e.message)}</p>`); });
+// ------------------------------------------------------------------ privacy
+function renderConsents(current) {
+  $("consents-edit").innerHTML = Object.entries(PURPOSES).map(([k, text]) => `
+    <label class="row-switch"><span>${esc(text)}${k === "companion" ? " <b>(needed to chat)</b>" : ""}</span>
+      <span class="switch"><input type="checkbox" data-purpose="${k}" ${current[k] ? "checked" : ""} aria-label="${esc(text)}"></span></label>`).join("");
+  $("consents-edit").querySelectorAll("input").forEach((i) => i.onchange = async () => {
+    try { await api(`/v1/patients/${enc(PID)}/consents`, {purpose: i.dataset.purpose, granted: i.checked}); }
+    catch (e) { i.checked = !i.checked; alert(e.message); }
+  });
+}
+
+// ------------------------------------------------------------------ start
+async function boot() {
+  paintIcons();
+  if (matchMedia("(max-width: 480px)").matches) $("text").placeholder = "Write how you feel…";
+  MITRA = new Mitra($("mitra-chat"));
+  PMITRA = new Mitra($("mitra-pause"));
+  HMITRA = new Mitra($("mitra-home"));
+  buddy.init();
+  setVoice(ls.get("mm_voice") === "1");
+  PURPOSES = (await api("/v1/consent-purposes")).purposes;
+  renderSignupConsents();
+  const params = new URLSearchParams(location.search);
+  const as = params.get("as");  // old links (/?as=clinician) go to the new addresses
+  if (AUTH_URL[as]) { location.replace(AUTH_URL[as].login); return; }
+  const page = AUTH_PAGES[location.pathname];
+  if (page) {
+    const [role, mode] = page;
+    if (role === "patient") {
+      if (TOKEN && await api("/v1/auth/me").then(() => true, () => false)) { location.replace("/"); return; }
+    } else {
+      // Already logged in on this browser as this kind of account: go straight to the dashboard.
+      let ctok = null;
+      try { ctok = localStorage.getItem(CLINICIAN_TOKEN); } catch {}
+      if (ctok) {
+        const r = await fetch("/v1/auth/clinician/me", {headers: {Authorization: `Bearer ${ctok}`}}).catch(() => null);
+        const me = r && r.ok ? await r.json() : null;
+        if (me && me.role === role) { location.replace(HOME_OF[role]); return; }
+      }
+    }
+    $("auth").hidden = false; $("app").hidden = true;
+    MODE = mode;
+    setRole(role);
+    if (params.get("expired")) $("li-err").textContent = "Your session ended. Please log in again.";
+    return;
+  }
+  if (TOKEN) {
+    try { return showApp(await api("/v1/auth/me")); }
+    catch { TOKEN = null; ls.set("mm_token", null); }
+  }
+  location.replace("/login");
+}
+boot().catch((e) => { document.body.insertAdjacentHTML("afterbegin", `<p class="err" style="padding:16px">${esc(e.message)}</p>`); });
 </script>
 </body>
 </html>

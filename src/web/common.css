@@ -37,3 +37,18 @@ button:disabled { opacity: .6; cursor: wait; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
 pre { background: var(--code); padding: 10px; border-radius: 8px; overflow: auto; font-size: 12px; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.mini-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: grid; gap: 6px; background: var(--panel); }
+.mini-card header { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.mini-card header .badge { margin-left: auto; }
+.mc-scores { display: flex; gap: 14px; font-size: 14px; flex-wrap: wrap; }
+.mc-scores .up { color: var(--high); font-weight: 600; } .mc-scores .down { color: var(--none); font-weight: 600; }
+.mc-sum { margin: 0; font-size: 13.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.mc-meta { font-size: 12px; color: var(--muted); }
+.mc-open { justify-self: start; padding: 4px 10px; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--panel); }
+.tile b { display: block; font-size: 24px; }
+.st-needs { color: var(--urgent); font-weight: 700; } .st-watch { color: var(--watch); font-weight: 700; }
+.st-ok { color: var(--none); font-weight: 700; }
+.code-pill { font-family: ui-monospace, Consolas, monospace; background: var(--code); padding: 2px 8px; border-radius: 6px; }

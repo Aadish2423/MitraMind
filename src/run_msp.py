@@ -82,7 +82,7 @@ class SERModel(nn.Module):
         return self.ser_model(self.pool_model(h, mask))
 
 
-def load_ser(repo):
+def load_ser(repo, dev=None):
     cfg = json.loads(Path(hf_hub_download(repo, "config.json")).read_text())
     model = SERModel(cfg)
     state = load_file(hf_hub_download(repo, "model.safetensors"))
@@ -90,12 +90,12 @@ def load_ser(repo):
     # The WavLM checkpoint may carry buffers the fresh config does not create; real weights must all load.
     if missing or any(not k.endswith(("masked_spec_embed",)) for k in unexpected):
         raise SystemExit(f"{repo}: weights do not match architecture.\nmissing={missing}\nunexpected={unexpected}")
-    return model.to(device()).eval(), cfg
+    return model.to(dev or device()).eval(), cfg
 
 
 @torch.no_grad()
 def run(model, cfg, wavs):
-    dev_, outs = device(), []
+    dev_, outs = next(model.parameters()).device, []  # wherever load_ser put the model
     for w in wavs:  # one clip at a time: no padding, exactly as in the model card
         x = torch.from_numpy((w - cfg["mean"]) / (cfg["std"] + 1e-6)).unsqueeze(0).to(dev_)
         mask = torch.ones_like(x)

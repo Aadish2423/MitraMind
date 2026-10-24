@@ -29,10 +29,23 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
 
 ### Must be done before any real patient uses it
 
-1. **Login and roles.** There is no authentication: anyone who can reach the server can read any patient.
-   Add patient login (OTP to phone) and clinician login (hospital SSO), and check in `CareService` that a
-   patient only reaches their own data and a clinician only their clinic's patients (`clinician_id` is
-   stored but not used yet).
+1. **Login and roles (partly done).** Separate pages: `/login` and `/signup` (patients), `/clinician/login` and
+   `/clinician/signup`, `/admin/login` (superusers are created with `src/create_superuser.py`, no sign-up page).
+   Each login only accepts its own kind of account. "Forgot password?" on every login page emails a 6-digit code
+   (`/v1/auth[/clinician|/admin]/forgot` and `/reset`); a reset logs out every session of that account. Patients
+   confirm their email with a code when `MITRAMIND_PATIENT_EMAIL_VERIFY=1`. Email goes through Gmail SMTP set
+   in a local `.env` (copy `.env.example`; never commit `.env`).
+   Clinicians must use a Gmail address, confirm it with a 6-digit code sent to that Gmail, and
+   land on `/clinician`; every `/v1/clinician/...`, `/v1/audit` and `/v1/whatsapp/outbox` route needs a verified
+   clinician's token. Still to do:
+   - set `MITRAMIND_SMTP_*` (a Gmail sender with an app password) and `MITRAMIND_ENV=production` on the real
+     server; until then the code is shown on screen (developer mode only);
+   - clinicians now see only patients linked to them (care code or superuser assignment), and a superuser
+     (`src/create_superuser.py`, `/admin`) sees everyone plus a per-clinician report. Still open: approving new
+     clinician accounts before they can be linked, several clinics, and hospital SSO;
+   - the clinician report compares raw score change between caseloads; adjust for baseline severity before
+     using it for anything beyond a conversation with the clinician;
+   - patient login by phone OTP for patients without email.
 2. **Security of stored data.** Move SQLite to Postgres (the schema in `src/care/store.py` maps 1:1), encrypt
    the database and `var/audio/` at rest, use TLS, back up, and set a retention period for voice clips
    (they are kept forever now). Host in an Indian region or on the hospital's own servers.
@@ -45,7 +58,7 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
    the official Hindi and regional versions (phqscreeners.com); never self-translate a validated scale.
 5. **Alert delivery.** Alerts only show on the dashboard. Urgent alerts need an SMS or call to the on-call
    staff and an escalation timer (e.g. not acknowledged in 15 minutes → next person), per hospital protocol.
-6. **Grow the red-team suite** (`tests/redteam_cases.yaml`, 19 cases now) with the clinical champion and
+6. **Grow the red-team suite** (`tests/redteam_cases.yaml`, 22 cases now) with the clinical champion and
    every pilot incident, and re-run `src/redteam_companion.py` before any prompt or model change.
    Known issue: Hindi/Hinglish crisis phrases do not check who the sentence is about, so "mera dost
    suicide karna chahta hai" (my friend…) gives the patient the crisis reply and a high alert.
@@ -56,10 +69,21 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
 
 8. **Train m3** (CREMA-D voice emotion): `python -I src/prepare_cremad.py` then `python src/train_cremad.py`
    (README "How to run"). Until then voice emotion comes from m4 only.
-9. **Hindi / Hinglish speech-to-text quality.** Only an English clip was tested (Windows has no Hindi TTS
-   voice to make a test clip). Test Whisper-small on real Indian-accent Hindi and Hinglish voice notes;
+9. **Hindi / Hinglish speech-to-text quality.** Muffled / quiet / noisy / phone audio was tested in English only
+   (`src/eval_voice_robustness.py`, report in `outputs/voice_robustness/report.md`, 5 noise draws per clip):
+   no word errors and every crisis sentence caught when the audio is muffled, very quiet, phone-quality or in a
+   noisy room; only muffled + quiet + noisy together hurt (13.5% word errors, 16/20 crisis sentences still rated
+   high/urgent). The default clean-up `MITRAMIND_AUDIO_ENHANCE=normalise` raised that to 18/20, and all 20 at least
+   raised an alert with a helpline. The clips are synthetic voices; repeat with real recordings, Hindi and Hinglish.
+   Windows has no Hindi TTS voice to make a test clip. Test Whisper-small on real Indian-accent Hindi and Hinglish voice notes;
    compare whisper-medium / large-v3, an IndicWhisper checkpoint, and Sarvam saarika (`MITRAMIND_STT=sarvam`).
-10. **Latency.** The first voice message takes 60-90 s (Whisper and m4 load on first use). Load models at
+10. **GPU memory.** On an 8 GB card the chat LLM kept loaded by Ollama, m1/m2, Whisper and m4 do not all fit;
+    loading m4 into a full card crashed with "CUDA error: illegal memory access" and broke every later GPU call.
+    Whisper and m4 now go to the CPU when the GPU lacks free memory (`MITRAMIND_SPEECH_DEVICE=auto|cpu|cuda`),
+    and a cue model that fails to load or run is reported as unavailable instead of failing the message.
+    A dedicated GPU for the LLM (or vLLM on a server) removes the squeeze.
+11. **Latency.** The first voice message takes 60-90 s (Whisper and m4 load on first use; up to ~3 min when m4
+    falls back to the CPU). Load models at
     startup and serve the LLM with vLLM/SGLang on a server GPU.
 11. **Server-side, style-controlled text-to-speech** (e.g. Sarvam Bulbul, Indic Parler-TTS) instead of the
     browser's voices, and recorded audio for the Mind Pause exercises.

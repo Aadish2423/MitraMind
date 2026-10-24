@@ -1,4 +1,107 @@
-# MitraMind phase-1 cue models
+# MitraMind
+
+**A calm AI companion for Indian patients between hospital visits.** Patients talk or type to Mitra, a friendly
+2D companion, in English, Hinglish or हिन्दी. A safety layer reads every message before any AI model does, and a
+dashboard keeps the patient's care team in the loop. Hackathon prototype: MitraMind is a wellness support tool,
+not a doctor and not an emergency service.
+
+## The product: three sites, one server
+
+One local server (`uvicorn`, port 8080) serves three web apps:
+
+| Site | For | Log in | After login |
+|---|---|---|---|
+| Patient app | Patients | <http://127.0.0.1:8080/login> (sign up: `/signup`) | <http://127.0.0.1:8080/> |
+| Clinician dashboard | Doctors and care teams | <http://127.0.0.1:8080/clinician/login> (sign up: `/clinician/signup`) | <http://127.0.0.1:8080/clinician> |
+| Superuser view | Admins | <http://127.0.0.1:8080/admin/login> (no sign-up page) | <http://127.0.0.1:8080/admin> |
+
+Developer pages: `/docs` (every API endpoint, with try-it-out) and `/tester` (Phase 1 pipeline tester).
+
+**Patient app**
+- **Home:** what MitraMind is and why, the four features, the team and privacy settings. Mitra's eyes follow the
+  cursor and a small Mitra hops onto the card you point at.
+- **Chat with Mitra** (`#chat`): text, voice messages (transcribed on the device by Whisper) and photos. Replies
+  stream sentence by sentence. In voice mode Mitra speaks the reply, with moving mouth and live captions.
+- **Check-in** (`#check-in`): PHQ-9 (mood) and GAD-7 (worry), with the change since the first check-in.
+- **Mind Pause** (`#mind-pause`): box breathing, 5-4-3-2-1 grounding and a body scan, led by Mitra.
+- **My summary** (`#my-summary`): the patient's own progress card.
+- **Privacy:** consent switches (India's DPDP Act), and per-message "Shared with care team" or "Private".
+- Email and password accounts, forgot password, optional email verification.
+
+**Safety first.** Every message goes through the crisis layer before the LLM. High or urgent risk gets a fixed
+crisis reply with Tele-MANAS 14416 and 112, never an AI-written one, and opens an alert for the care team.
+
+**Clinician dashboard**
+- Gmail sign-up confirmed by an emailed code. Each clinician gets a care-team code; patients enter it in the app
+  to link to them.
+- Overview tiles, the alert queue (acknowledge, or resolve with a note and "was the risk real?"), one User State
+  Card per patient, the patient table, and a pre-visit summary (rule-based in seconds, or AI-written in 20-60 s)
+  that the clinician can rate. An open dashboard refreshes every 30 seconds.
+- Clinicians see scores and usage only with the patient's consent, and only the messages the patient shared.
+  Safety alerts always reach the care team.
+
+What opens an alert:
+
+| Source | Rule | Level |
+|---|---|---|
+| Chat message (text or voice) | Crisis language (English, Hinglish, Hindi lexicons and phrases) | watch / high / urgent |
+| Photo | The model judges the photo worrying | watch |
+| PHQ-9 | Item 9 (thoughts of self-harm) = 1 | high |
+| PHQ-9 | Item 9 ≥ 2 | urgent |
+| PHQ-9 | Total worse by 5+ points since the previous PHQ-9 | watch |
+
+A GAD-7, or a high PHQ-9 total with item 9 = 0, does not open an alert; it shows in the scores and cards.
+
+**Superuser view:** every clinician and patient, linking patients to clinicians, and the clinician report.
+Create a superuser with `python src/create_superuser.py --email you@example.com --generate`.
+
+## Quick start
+
+Needs Python 3.11 and [Ollama](https://ollama.com). An NVIDIA GPU speeds up voice transcription and the cue
+models but is optional.
+
+```bash
+git clone https://github.com/Aadish2423/mitramind-cue-models.git
+cd mitramind-cue-models
+python -m venv /c/venvs/mitramind_cues          # a short path matters on Windows (see "How to run")
+PY=/c/venvs/mitramind_cues/Scripts/python.exe
+$PY -m pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cu126
+$PY -m pip install -r requirements.txt -r requirements-phase1.txt
+$PY src/download_models.py                      # trained models m1-m3 (optional, about 2.6 GB)
+ollama pull gemma4:e4b                          # companion chat
+ollama pull qwen3.5                             # pre-visit summaries
+cp .env.example .env                            # optional: Gmail SMTP for sign-up and reset codes
+$PY -m uvicorn api:app --app-dir src --port 8080
+```
+
+Then open <http://127.0.0.1:8080>. Without email set up (dev mode), verification and password-reset codes are
+shown on screen. Run the tests with `$PY -m pytest tests`; they need no GPU, models or LLM.
+
+Settings (environment variables or `.env`):
+
+| Variable | Default | What it does |
+|---|---|---|
+| `MITRAMIND_CHAT_LLM` | `ollama:gemma4:e4b` | Model for companion replies |
+| `MITRAMIND_LLM` | `ollama:qwen3.5` | Model for the pre-visit summary (`none` = rule-based only) |
+| `MITRAMIND_OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama address |
+| `MITRAMIND_STT` / `MITRAMIND_STT_MODEL` | `whisper` / `openai/whisper-small` | Speech-to-text (`none` turns voice off) |
+| `MITRAMIND_ENV` | `dev` | `production` refuses sign-up and password reset without SMTP |
+| `MITRAMIND_PATIENT_EMAIL_VERIFY` | `0` | `1` = patients confirm their email before the first login |
+| `MITRAMIND_SMTP_*` | unset | Gmail SMTP for codes (see `.env.example`) |
+| `MITRAMIND_CLINICIAN_DOMAINS` | `gmail.com,googlemail.com` | Email domains allowed for clinician accounts |
+
+Replies are much faster with a GPU build of Ollama. On CPU only, the first sentence of a reply takes about 15-20 s.
+
+## Team
+
+| | Name | GitHub | LinkedIn |
+|---|---|---|---|
+| <img src="src/web/team/aadish.jpg" width="64" alt="Aadish Bane"> | **Aadish Bane** | [Aadish2423](https://github.com/Aadish2423) | [aadish-bane](https://www.linkedin.com/in/aadish-bane-292a221ba/) |
+| <img src="src/web/team/shishir.jpg" width="64" alt="Shishir Pusalkar"> | **Shishir Pusalkar** | [DEADPOOL-152006](https://github.com/DEADPOOL-152006) | [shishir-pusalkar](https://www.linkedin.com/in/shishir-pusalkar-515191285/) |
+
+---
+
+## Research: the cue models behind MitraMind
 
 Five cue models that turn text or a voice clip into MitraMind cues, and the **Phase 1 pipeline** that
 combines them with a crisis-safety layer, PHQ-9 / GAD-7 scoring and an open-weight LLM into a
@@ -111,7 +214,7 @@ work in [task.md](task.md)):
 - **Integrations:** WhatsApp Business webhook (chat, voice notes, PHQ-9 / GAD-7) and a FHIR R4 export.
 
 ```bash
-uvicorn api:app --app-dir src --port 8080   # / patient app, /clinician dashboard, /tester, /docs
+uvicorn api:app --app-dir src --port 8080   # / patient app, /clinician dashboard, /admin, /tester, /docs
 python src/redteam_companion.py --models qwen3.5
 python src/simulate_pilot.py && python src/export_pilot_dataset.py --db var/pilot_sim.db --out outputs/phase2_synthetic --source synthetic
 python src/train_outcome_model.py --data outputs/phase2_synthetic
@@ -136,8 +239,21 @@ Data checks:
 
 ## How to run
 
-This repo holds code and results only. Datasets and trained weights are not included; the steps below
-re-download the data and retrain (about 1.5 hours on a 4 GB RTX 3050).
+This repo holds code and results only. Datasets and trained weights are not in Git. To run the app you can
+download the trained weights (below); to reproduce them, re-download the data and retrain (steps 1-3, about
+1.5 hours on a 4 GB RTX 3050).
+
+**Download the trained models (m1-m3)** instead of training them. They are published as a GitHub Release
+([models-v1](https://github.com/Aadish2423/mitramind-cue-models/releases/tag/models-v1), about 2.6 GB). The script
+uses only Python's standard library, checks each file's SHA-256 before unpacking, and fills `models/`:
+
+```bash
+python src/download_models.py                    # all three
+python src/download_models.py m3_cremad_speech   # or only the ones you need
+```
+
+Using them needs PyTorch (step 1). Without the weights or PyTorch the app still runs: the Phase 1 pipeline falls
+back to the lexicon cues (m5) and lists the missing models under `models_unavailable` in `/health`.
 
 **1. Environment** (Python 3.11). On Windows, keep the virtual environment at a short path such as
 `C:\venvs\mitramind_cues`: Windows cannot load DLLs from paths longer than 260 characters.

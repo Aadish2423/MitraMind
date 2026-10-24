@@ -11,9 +11,12 @@ is reported in the card (`models_unavailable`) instead of failing the pipeline.
 """
 from __future__ import annotations
 
+import logging
 import re
 import sys
 from pathlib import Path
+
+log = logging.getLogger("mitramind.cue_models")
 
 SRC = Path(__file__).resolve().parents[1]
 if str(SRC) not in sys.path:
@@ -136,8 +139,12 @@ class MspSpeechModel:
         cached = all(isinstance(try_to_load_from_cache(r, "model.safetensors"), str) for r in REPOS.values())
         if not cached and not allow_download:
             raise Unavailable("MSP models not in the HF cache (run src/run_msp.py once, or allow_download)")
-        self.cat, self.cat_cfg = load_ser(REPOS["categorical"])
-        self.dim, self.dim_cfg = load_ser(REPOS["dimensional"])
+        from common import pick_device
+
+        dev = pick_device(3.0)  # two WavLM-large models, ~1.3 GB each plus working memory
+        self.device = str(dev)
+        self.cat, self.cat_cfg = load_ser(REPOS["categorical"], dev)
+        self.dim, self.dim_cfg = load_ser(REPOS["dimensional"], dev)
         self.labels = [self.cat_cfg["id2label"][str(i)] for i in range(self.cat_cfg["num_classes"])]
 
     def run(self, audio_path: str) -> dict:
@@ -182,6 +189,10 @@ class CueModelRegistry:
             }[model_id]()
         except Unavailable as e:
             self.unavailable[model_id] = str(e)
+            return None
+        except Exception as e:  # e.g. out of GPU memory: the check-in goes on without this model
+            log.exception("could not load %s", model_id)
+            self.unavailable[model_id] = f"failed to load: {e.__class__.__name__}: {str(e)[:160]}"
             return None
         self._models[model_id] = model
         return model

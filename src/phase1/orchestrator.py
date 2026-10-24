@@ -97,7 +97,14 @@ class Phase1Orchestrator:
                 continue
             inp = entry.audio_path if mid in ("m3_cremad_speech", "m4_msp_speech") else text
             if inp:
-                outputs[mid] = model.run(inp)
+                if mid == "m5_lexicon_text":  # the lexicon also feeds the crisis layer: never swallow its errors
+                    outputs[mid] = model.run(inp)
+                else:
+                    try:
+                        outputs[mid] = model.run(inp)
+                    except Exception as e:  # an emotion model failing (e.g. GPU memory) must not lose the message
+                        self.registry.unavailable[mid] = f"failed on this check-in: {e.__class__.__name__}"
+                        continue
                 used.append(mid)
 
         lex = outputs.get("m5_lexicon_text")

@@ -1,0 +1,242 @@
+{
+  "clean": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    }
+  },
+  "muffled (cloth over mic, <1.5 kHz)": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    }
+  },
+  "very muffled (<700 Hz)": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    }
+  },
+  "very quiet (-30 dB)": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    }
+  },
+  "noisy room (SNR 10 dB)": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "30/30",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "30/30",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "30/30",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.001,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "30/30",
+      "false_alarms": 0
+    }
+  },
+  "very noisy (SNR 0 dB)": {
+    "none": {
+      "wer": 0.009,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "25/30",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.009,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "25/30",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.008,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "25/30",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.006,
+      "crisis_caught": "20/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "25/30",
+      "false_alarms": 0
+    }
+  },
+  "phone call (8 kHz)": {
+    "none": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.0,
+      "crisis_caught": "4/4",
+      "crisis_any_alert": "4/4",
+      "same_risk_level": "6/6",
+      "false_alarms": 0
+    }
+  },
+  "muffled + quiet + noisy": {
+    "none": {
+      "wer": 0.135,
+      "crisis_caught": "16/20",
+      "crisis_any_alert": "18/20",
+      "same_risk_level": "16/30",
+      "false_alarms": 0
+    },
+    "normalise": {
+      "wer": 0.12,
+      "crisis_caught": "18/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "18/30",
+      "false_alarms": 0
+    },
+    "highpass,normalise": {
+      "wer": 0.124,
+      "crisis_caught": "17/20",
+      "crisis_any_alert": "20/20",
+      "same_risk_level": "17/30",
+      "false_alarms": 0
+    },
+    "highpass,denoise,normalise": {
+      "wer": 0.128,
+      "crisis_caught": "16/20",
+      "crisis_any_alert": "19/20",
+      "same_risk_level": "16/30",
+      "false_alarms": 0
+    }
+  }
+}

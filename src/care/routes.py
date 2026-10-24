@@ -1,7 +1,12 @@
 """HTTP routes for the patient app (companion, questionnaires, consent) and the clinician dashboard.
 
-No authentication yet: this is a pilot prototype. Before any real patient uses it, put these behind
-hospital SSO / OTP login with patient and clinician roles (see task.md, "Remaining").
+Patients sign up and log in with email + password (/v1/auth/*) and send the session token as
+`Authorization: Bearer <token>`. Every /v1/patients/{pid}/... route checks that token when that patient has an
+account; code-only patients (demo data, tests, WhatsApp) keep the old open behaviour.
+
+Clinicians have their own accounts (/v1/auth/clinician/*): Gmail addresses only, confirmed with a 6-digit code
+sent to that Gmail, 12-hour sessions. Every /v1/clinician/... route and /v1/audit needs a verified clinician's
+token. Hospital SSO can replace this later (see task.md, "Remaining").
 """
 from __future__ import annotations
 
@@ -9,15 +14,20 @@ import base64
 import binascii
 import json
 import os
+import time
+from collections import defaultdict, deque
 from datetime import date as Date
 from typing import Literal
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import PlainTextResponse
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import fhir, instruments, mind_pause
-from .service import CareService, ConsentRequired, NotFound
+from .mailer import MailNotConfigured
+from .photos import MAX_BYTES as MAX_PHOTO_BYTES
+from .service import (AuthError, CareService, ConsentRequired, Forbidden, NotFound, VerificationRequired,
+                      normalise_email)
 from .store import CONSENT_PURPOSES, CONSENT_VERSION
 from .whatsapp import WhatsAppChannel, verify_signature
 
@@ -36,9 +46,54 @@ class ConsentChange(BaseModel):
     granted: bool
 
 
+class SignupIn(BaseModel):
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=200)
+    preferred_language: Literal["auto", "en", "hinglish", "hi"] = "auto"
+    consents: dict[str, bool] = {}
+    patient_code: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{2,40}$",
+                                     description="code from the care team, if they gave one")
+    clinician_code: str | None = Field(None, max_length=20, description="the clinician's care code, e.g. MM-7K3P9Q")
+
+
+class ClinicianCodeIn(BaseModel):
+    code: str = Field(min_length=3, max_length=20)
+
+
+class AssignIn(BaseModel):
+    clinician_id: int | None = Field(None, description="verified clinician to link; null unlinks")
+
+
+class LoginIn(BaseModel):
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=200)
+
+
+class ClinicianSignupIn(BaseModel):
+    email: str = Field(max_length=254, description="a Gmail address")
+    password: str = Field(max_length=200)
+    name: str | None = Field(None, max_length=80, description="shown to colleagues, e.g. 'Dr. A. Sharma'")
+
+
+class CodeIn(BaseModel):
+    email: str = Field(max_length=254)
+    code: str = Field(pattern=r"^\s*\d{6}\s*$")
+
+
+class EmailIn(BaseModel):
+    email: str = Field(max_length=254)
+
+
+class ResetIn(BaseModel):
+    email: str = Field(max_length=254)
+    code: str = Field(pattern=r"^\s*\d{6}\s*$")
+    password: str = Field(max_length=200, description="the new password")
+
+
 class ChatIn(BaseModel):
-    text: str = Field(min_length=1, max_length=4000)
+    text: str = Field("", max_length=4000)
     share: bool = Field(False, description="Reflection Share: let the care team read this message")
+    photo_base64: str | None = Field(None, description="optional JPEG / PNG / WebP photo, base64-encoded (max 5 MB)")
 
 
 class VoiceIn(BaseModel):
@@ -84,14 +139,231 @@ def _call(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except NotFound as e:
         raise HTTPException(404, str(e)) from e
-    except ConsentRequired as e:
+    except (ConsentRequired, Forbidden) as e:
         raise HTTPException(403, str(e)) from e
+    except AuthError as e:
+        raise HTTPException(401, str(e)) from e
+    except MailNotConfigured as e:
+        raise HTTPException(503, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
 
 
+def _bearer(request: Request) -> str | None:
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    return token.strip() if scheme.lower() == "bearer" and token.strip() else None
+
+
+def verification_needed(e: VerificationRequired) -> JSONResponse:
+    detail = {"detail": str(e), "verification_required": True}
+    if e.dev_code:
+        detail["dev_code"] = e.dev_code
+    return JSONResponse(detail, status_code=403)
+
+
+def ndjson_response(events) -> StreamingResponse:
+    """Stream service events as newline-delimited JSON."""
+    def lines():
+        try:
+            for ev in events:
+                yield json.dumps(ev, ensure_ascii=False, default=str) + "\n"
+        except Exception as e:  # mid-stream failure: tell the app instead of silently cutting the connection
+            yield json.dumps({"type": "error", "detail": f"the reply could not be finished ({e.__class__.__name__})"}) + "\n"
+
+    return StreamingResponse(lines(), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+LOGIN_WINDOW_S, LOGIN_MAX_FAILURES = 15 * 60, 5
+
+
 def build_router(svc: CareService) -> APIRouter:
     r = APIRouter()
+    failures: dict[str, deque] = defaultdict(deque)  # email -> times of recent failed logins (per process)
+
+    def guard(request: Request, pid: str) -> None:
+        """A patient with an account can only be read or changed with that patient's own session token."""
+        if svc.store.account_for_patient(pid) is None:
+            return
+        acc = svc.account(_bearer(request))
+        if acc is None:
+            raise HTTPException(401, "please log in again")
+        if acc["patient_id"] != pid:
+            raise HTTPException(403, "this is not your account")
+
+    # ---------------------------------------------------------------- patient accounts
+    @r.post("/v1/auth/signup", tags=["auth"])
+    def signup(body: SignupIn):
+        return _call(svc.signup, body.email, body.password, consents=body.consents,
+                     preferred_language=body.preferred_language, patient_code=body.patient_code,
+                     clinician_code=body.clinician_code)
+
+    @r.post("/v1/auth/login", tags=["auth"])
+    def login(body: LoginIn):
+        email, t = normalise_email(body.email), time.monotonic()
+        recent = failures[email]
+        while recent and t - recent[0] > LOGIN_WINDOW_S:
+            recent.popleft()
+        if len(recent) >= LOGIN_MAX_FAILURES:
+            raise HTTPException(429, "too many attempts; please wait 15 minutes and try again")
+        try:
+            out = svc.login(email, body.password)
+        except AuthError as e:
+            recent.append(t)
+            raise HTTPException(401, str(e)) from e
+        except VerificationRequired as e:
+            return verification_needed(e)
+        except MailNotConfigured as e:
+            raise HTTPException(503, str(e)) from e
+        failures.pop(email, None)
+        return out
+
+    @r.post("/v1/auth/verify", tags=["auth"])
+    def patient_verify(body: CodeIn):
+        key = "verify-patient:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.verify_patient(body.email, body.code)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        failures.pop(key, None)
+        return out
+
+    @r.post("/v1/auth/resend", tags=["auth"])
+    def patient_resend(body: EmailIn):
+        return _call(svc.resend_patient_code, body.email)
+
+    # ---------------------------------------------------------------- forgot password: one pair per role
+    def reset_routes(prefix: str, role: str):
+        @r.post(f"{prefix}/forgot", tags=["auth"], name=f"{role}_forgot")
+        def forgot(body: EmailIn):
+            """Email a 6-digit reset code (same answer whether or not the account exists)."""
+            return _call(svc.request_password_reset, role, body.email)
+
+        @r.post(f"{prefix}/reset", tags=["auth"], name=f"{role}_reset")
+        def reset(body: ResetIn):
+            """Code + new password. Logs out every existing session of the account."""
+            key = f"reset-{role}:" + normalise_email(body.email)
+            recent = too_many(key)
+            try:
+                out = svc.reset_password(role, body.email, body.code, body.password)
+            except AuthError as e:
+                recent.append(time.monotonic())
+                raise HTTPException(401, str(e)) from e
+            except ValueError as e:
+                raise HTTPException(422, str(e)) from e
+            failures.pop(key, None)
+            return out
+
+    for prefix, role in (("/v1/auth", "patient"), ("/v1/auth/clinician", "clinician"), ("/v1/auth/admin", "superuser")):
+        reset_routes(prefix, role)
+
+    @r.post("/v1/auth/logout", tags=["auth"])
+    def logout(request: Request):
+        if token := _bearer(request):
+            svc.logout(token)
+        return {"ok": True}
+
+    @r.get("/v1/auth/me", tags=["auth"])
+    def me(request: Request):
+        acc = svc.account(_bearer(request))
+        if acc is None:
+            raise HTTPException(401, "please log in again")
+        return {"email": acc["email"], "profile": _call(svc.profile, acc["patient_id"])}
+
+    # ---------------------------------------------------------------- clinician accounts
+    def too_many(key: str) -> deque:
+        t, recent = time.monotonic(), failures[key]
+        while recent and t - recent[0] > LOGIN_WINDOW_S:
+            recent.popleft()
+        if len(recent) >= LOGIN_MAX_FAILURES:
+            raise HTTPException(429, "too many attempts; please wait 15 minutes and try again")
+        return recent
+
+    @r.post("/v1/auth/clinician/signup", tags=["auth"])
+    def clinician_signup(body: ClinicianSignupIn):
+        return _call(svc.clinician_signup, body.email, body.password, body.name)
+
+    @r.post("/v1/auth/clinician/verify", tags=["auth"])
+    def clinician_verify(body: CodeIn):
+        key = "verify:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.verify_clinician(body.email, body.code)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        failures.pop(key, None)
+        return out
+
+    @r.post("/v1/auth/clinician/resend", tags=["auth"])
+    def clinician_resend(body: EmailIn):
+        return _call(svc.resend_clinician_code, body.email)
+
+    @r.post("/v1/auth/admin/login", tags=["auth"])
+    def admin_login(body: LoginIn):
+        """Superuser login (superusers are created on the server with src/create_superuser.py)."""
+        key = "admin:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.clinician_login(body.email, body.password, superuser=True)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        failures.pop(key, None)
+        return out
+
+    @r.post("/v1/auth/clinician/login", tags=["auth"])
+    def clinician_login(body: LoginIn):
+        key = "clinician:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.clinician_login(body.email, body.password)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        except VerificationRequired as e:
+            return verification_needed(e)
+        except MailNotConfigured as e:
+            raise HTTPException(503, str(e)) from e
+        failures.pop(key, None)
+        return out
+
+    @r.post("/v1/auth/clinician/logout", tags=["auth"])
+    def clinician_logout(request: Request):
+        if token := _bearer(request):
+            svc.clinician_logout(token)
+        return {"ok": True}
+
+    def clinician_only(request: Request) -> dict:
+        acc = svc.clinician(_bearer(request))
+        if acc is None:
+            raise HTTPException(401, "clinician login required")
+        return acc
+
+    def superuser_only(acc: dict = Depends(clinician_only)) -> dict:
+        if not acc["is_superuser"]:
+            raise HTTPException(403, "superuser only")
+        return acc
+
+    @r.get("/v1/auth/clinician/me", tags=["auth"])
+    def clinician_me(acc: dict = Depends(clinician_only)):
+        return {"role": svc.role(acc), "clinician": svc.clinician_profile(svc.ensure_care_code(acc))}
+
+    # ---------------------------------------------------------------- superuser
+    @r.get("/v1/admin/overview", tags=["superuser"])
+    def admin_overview(acc: dict = Depends(superuser_only)):
+        return svc.overview()
+
+    @r.get("/v1/admin/clinicians", tags=["superuser"])
+    def admin_clinicians(acc: dict = Depends(superuser_only)):
+        """Each clinician's caseload, patient engagement, score change and alert response times."""
+        return svc.clinician_report()
+
+    @r.post("/v1/admin/patients/{pid}/clinician", tags=["superuser"])
+    def admin_assign(pid: str, body: AssignIn, acc: dict = Depends(superuser_only)):
+        return _call(svc.assign_clinician, pid, body.clinician_id)
 
     # ---------------------------------------------------------------- patient app
     @r.get("/v1/consent-purposes", tags=["patient"])
@@ -104,35 +376,85 @@ def build_router(svc: CareService) -> APIRouter:
                      phone=body.phone, consents=body.consents)
 
     @r.get("/v1/patients/{pid}", tags=["patient"])
-    def profile(pid: str):
+    def profile(pid: str, request: Request):
+        guard(request, pid)
         return _call(svc.profile, pid)
 
+    @r.get("/v1/patients/{pid}/summary", tags=["patient"])
+    def my_summary(pid: str, request: Request):
+        """The patient's own summary card: scores over time, what came up, what helped."""
+        guard(request, pid)
+        return _call(svc.patient_summary, pid)
+
+    @r.post("/v1/patients/{pid}/clinician", tags=["patient"])
+    def link_my_clinician(pid: str, body: ClinicianCodeIn, request: Request):
+        guard(request, pid)
+        return _call(svc.link_clinician, pid, body.code)
+
     @r.post("/v1/patients/{pid}/consents", tags=["patient"])
-    def change_consent(pid: str, body: ConsentChange):
+    def change_consent(pid: str, body: ConsentChange, request: Request):
+        guard(request, pid)
         _call(svc.profile, pid)
         _call(svc.store.record_consent, pid, body.purpose, body.granted)
         return _call(svc.profile, pid)
 
-    @r.post("/v1/patients/{pid}/chat", tags=["patient"])
-    def chat(pid: str, body: ChatIn):
-        return _call(svc.chat, pid, body.text, share=body.share)
+    def decode_photo(body: ChatIn) -> bytes | None:
+        if not body.photo_base64:
+            return None
+        try:
+            photo = base64.b64decode(body.photo_base64, validate=True)
+        except binascii.Error as e:
+            raise HTTPException(422, "photo_base64 is not valid base64") from e
+        if len(photo) > MAX_PHOTO_BYTES:
+            raise HTTPException(413, "photos can be at most 5 MB")
+        return photo
 
-    @r.post("/v1/patients/{pid}/voice", tags=["patient"])
-    def voice(pid: str, body: VoiceIn):
+    @r.post("/v1/patients/{pid}/chat", tags=["patient"])
+    def chat(pid: str, body: ChatIn, request: Request):
+        guard(request, pid)
+        return _call(svc.chat, pid, body.text, share=body.share, photo=decode_photo(body))
+
+    @r.post("/v1/patients/{pid}/chat/stream", tags=["patient"])
+    def chat_stream(pid: str, body: ChatIn, request: Request):
+        """Same as /chat, but the reply arrives sentence by sentence as newline-delimited JSON events:
+        {"type": "sentence", "text"} ..., optionally {"type": "replace", "text"}, then {"type": "final", ...}."""
+        guard(request, pid)
+        return ndjson_response(_call(svc.chat_stream, pid, body.text, share=body.share, photo=decode_photo(body)))
+
+    @r.get("/v1/patients/{pid}/messages/{mid}/photo", tags=["patient"])
+    def message_photo(pid: str, mid: int, request: Request):
+        guard(request, pid)
+        return FileResponse(_call(svc.photo, pid, mid), headers={"Cache-Control": "private, max-age=3600"})
+
+    def decode_audio(body: VoiceIn) -> bytes:
         try:
             audio = base64.b64decode(body.audio_base64, validate=True)
         except binascii.Error as e:
             raise HTTPException(422, "audio_base64 is not valid base64") from e
         if len(audio) > 15 * 1024 * 1024:
             raise HTTPException(413, "voice message too long (max 15 MB)")
-        return _call(svc.voice, pid, audio, body.mime, share=body.share, language=body.language)
+        return audio
+
+    @r.post("/v1/patients/{pid}/voice", tags=["patient"])
+    def voice(pid: str, body: VoiceIn, request: Request):
+        guard(request, pid)
+        return _call(svc.voice, pid, decode_audio(body), body.mime, share=body.share, language=body.language)
+
+    @r.post("/v1/patients/{pid}/voice/stream", tags=["patient"])
+    def voice_stream(pid: str, body: VoiceIn, request: Request):
+        """Same as /voice, but streams NDJSON: {"type": "transcript"} first, then the /chat/stream events."""
+        guard(request, pid)
+        return ndjson_response(_call(svc.voice_stream, pid, decode_audio(body), body.mime, share=body.share,
+                                     language=body.language))
 
     @r.get("/v1/patients/{pid}/messages", tags=["patient"])
-    def messages(pid: str, limit: int = 50):
+    def messages(pid: str, request: Request, limit: int = 50):
+        guard(request, pid)
         return _call(svc.history, pid, limit)
 
     @r.post("/v1/patients/{pid}/messages/{mid}/share", tags=["patient"])
-    def share(pid: str, mid: int, body: ShareIn):
+    def share(pid: str, mid: int, body: ShareIn, request: Request):
+        guard(request, pid)
         if not svc.share(pid, mid, body.shared):
             raise HTTPException(404, "no such patient message")
         return {"message_id": mid, "shared": body.shared}
@@ -142,7 +464,8 @@ def build_router(svc: CareService) -> APIRouter:
         return mind_pause.catalogue(language)
 
     @r.post("/v1/patients/{pid}/mind-pause", tags=["patient"])
-    def mind_pause_log(pid: str, body: MindPauseIn):
+    def mind_pause_log(pid: str, body: MindPauseIn, request: Request):
+        guard(request, pid)
         if body.exercise not in mind_pause.EXERCISES:
             raise HTTPException(422, f"unknown exercise {body.exercise}")
         return {"id": _call(svc.mind_pause_done, pid, body.exercise, body.completed)}
@@ -152,40 +475,53 @@ def build_router(svc: CareService) -> APIRouter:
         return instruments.form(instrument)
 
     @r.post("/v1/patients/{pid}/questionnaires", tags=["patient"])
-    def submit_questionnaire(pid: str, body: QuestionnaireIn):
+    def submit_questionnaire(pid: str, body: QuestionnaireIn, request: Request):
+        guard(request, pid)
         return _call(svc.submit_questionnaire, pid, body.instrument, body.items, body.date)
 
-    # ---------------------------------------------------------------- clinician dashboard
+    # ---------------------------------------------------------------- clinician dashboard (verified clinicians only)
+    def who(acc: dict) -> str:
+        return acc["name"] or acc["email"]
+
+    # A clinician sees only the patients linked to them; a superuser sees everyone.
     @r.get("/v1/clinician/dashboard", tags=["clinician"])
-    def dashboard():
-        return svc.dashboard()
+    def dashboard(acc: dict = Depends(clinician_only)):
+        return svc.dashboard(acc)
 
     @r.get("/v1/clinician/alerts", tags=["clinician"])
-    def alerts(status: Literal["open", "acknowledged", "resolved", "all"] = "open"):
-        return svc.alerts(None if status == "all" else status)
+    def alerts(status: Literal["open", "acknowledged", "resolved", "all"] = "open",
+               acc: dict = Depends(clinician_only)):
+        return svc.alerts(None if status == "all" else status, acc)
 
     @r.post("/v1/clinician/alerts/{aid}", tags=["clinician"])
-    def update_alert(aid: int, body: AlertUpdate):
-        if not svc.store.update_alert(aid, body.status, body.handled_by, body.note, body.outcome):
+    def update_alert(aid: int, body: AlertUpdate, acc: dict = Depends(clinician_only)):
+        pid = svc.alert_patient(aid)
+        if pid is None:
             raise HTTPException(404, "no such alert")
-        return {"id": aid, "status": body.status}
+        _call(svc.require_access, acc, pid)
+        # The person who handled the alert is the logged-in clinician, not whatever the page sends.
+        svc.store.update_alert(aid, body.status, who(acc), body.note, body.outcome)
+        return {"id": aid, "status": body.status, "handled_by": who(acc)}
 
     @r.get("/v1/clinician/patients/{pid}/state-card", tags=["clinician"])
-    def clinician_card(pid: str, use_llm: bool = True):
+    def clinician_card(pid: str, use_llm: bool = True, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         return _call(svc.state_card, pid, use_llm)
 
     @r.get("/v1/clinician/patients/{pid}/shared", tags=["clinician"])
-    def shared_reflections(pid: str):
+    def shared_reflections(pid: str, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         return _call(svc.clinician_messages, pid)
 
     @r.post("/v1/clinician/patients/{pid}/feedback", tags=["clinician"])
-    def feedback(pid: str, body: FeedbackIn):
-        _call(svc.profile, pid)
-        return {"id": svc.store.add_feedback(pid, body.clinician_id, body.rating, body.accurate, body.minutes_saved,
-                                             body.comment, None)}
+    def feedback(pid: str, body: FeedbackIn, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
+        return {"id": svc.store.add_feedback(pid, f"clinician:{acc['id']}", body.rating, body.accurate,
+                                             body.minutes_saved, body.comment, None)}
 
     @r.get("/v1/clinician/patients/{pid}/fhir", tags=["clinician"])
-    def fhir_export(pid: str, include_card: bool = False):
+    def fhir_export(pid: str, include_card: bool = False, acc: dict = Depends(clinician_only)):
+        _call(svc.require_access, acc, pid)
         _call(svc._require_care_team, pid)
         md = _call(svc.state_card, pid, False)["markdown"] if include_card else None
         return fhir.patient_bundle(svc.store, pid, md)
@@ -211,12 +547,16 @@ def build_router(svc: CareService) -> APIRouter:
         return {"status": "accepted"}
 
     @r.get("/v1/whatsapp/outbox", tags=["whatsapp"])
-    def wa_outbox(limit: int = 20):
+    def wa_outbox(limit: int = 20, acc: dict = Depends(superuser_only)):
         """Replies the WhatsApp channel sent or, without credentials, would have sent (testing)."""
         return wa.sender.outbox[-limit:]
 
     @r.get("/v1/audit", tags=["clinician"])
-    def audit(patient_id: str | None = None, limit: int = 100):
+    def audit(patient_id: str | None = None, limit: int = 100, acc: dict = Depends(clinician_only)):
+        if not acc["is_superuser"]:  # clinicians: one of their own patients at a time
+            if not patient_id:
+                raise HTTPException(403, "pass patient_id (superusers can read the whole log)")
+            _call(svc.require_access, acc, patient_id)
         return svc.store.audit_log(patient_id, limit)
 
     return r
