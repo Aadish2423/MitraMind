@@ -92,6 +92,25 @@ Settings (environment variables or `.env`):
 
 Replies are much faster with a GPU build of Ollama. On CPU only, the first sentence of a reply takes about 15-20 s.
 
+## Future work
+
+**Clinician codes handed out before the patient logs in.** Today a clinician gets a care-team code after signing
+up, and the patient types it into the app later (under Privacy) to link to that clinician. The planned flow
+links the patient to their clinician from the very first login:
+
+1. **One code per clinician.** The hospital keeps a small pool of codes, for example 10-20, one for each clinician
+   on the team. Each code is randomly generated, so it can't be guessed, and belongs to exactly one clinician.
+2. **The patient gets the code before logging in.** At the visit, the hospital gives the patient their
+   clinician's code, for example on the appointment slip or by SMS.
+3. **The patient enters it at sign-up or first login,** and is linked to that clinician straight away.
+4. **The clinician logs in and sees every patient who used their code:** the profile, the User State Card and
+   pre-visit summary, check-in scores and alerts (always within the patient's consent settings).
+5. **The clinician consults the patient later** with that history in hand, for example at the next visit or in
+   a follow-up call.
+
+This needs a code pool that an admin manages from the superuser view (create, assign to a clinician, retire), a
+code field on the sign-up page, and a check that each code maps to one active clinician.
+
 ## Team
 
 | | Name | GitHub | LinkedIn |
