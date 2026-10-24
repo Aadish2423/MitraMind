@@ -8,7 +8,8 @@
     MITRAMIND_WARMUP=1                    # load the companion model and text cue models when the server starts
 
 Patient app and clinician routes: src/care/routes.py (see /docs). Pages: / (patient app),
-/clinician (dashboard), /admin (superuser), /tester (Phase 1 tester).
+/clinician (dashboard), /admin (superuser), /tester (Phase 1 tester). Log in / sign up: /login, /signup
+(patients), /clinician/login, /clinician/signup, /admin/login (superusers have no sign-up page).
 
 POST /v1/checkins/analyze   one check-in -> cues + real-time crisis triage (no LLM)
 POST /v1/state-card         patient bundle -> User State Card (JSON) and pre-visit summary (Markdown)
@@ -98,6 +99,18 @@ class CardResponse(BaseModel):
 def patient_app():
     # no-cache: browsers re-check the page on every visit, so new ?v= asset versions reach patients right away.
     return FileResponse(WEB / "app.html", headers={"Cache-Control": "no-cache"})
+
+
+AUTH_PAGES = ["/login", "/signup", "/clinician/login", "/clinician/signup", "/admin/login"]
+
+
+def auth_page():
+    """One page file; the address decides the role and the form (see AUTH_PAGES in app.html)."""
+    return FileResponse(WEB / "app.html", headers={"Cache-Control": "no-cache"})
+
+
+for _path in AUTH_PAGES:
+    app.add_api_route(_path, auth_page, include_in_schema=False)
 
 
 @app.get("/clinician", include_in_schema=False)

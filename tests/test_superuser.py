@@ -39,9 +39,21 @@ def clinician(c, email, name):
 
 def superuser(c, svc):
     svc.create_superuser("boss@example.com", "superuser-password-1", "Boss")
-    s = c.post("/v1/auth/clinician/login", json={"email": "boss@example.com", "password": "superuser-password-1"})
+    s = c.post("/v1/auth/admin/login", json={"email": "boss@example.com", "password": "superuser-password-1"})
     assert s.status_code == 200 and s.json()["role"] == "superuser"
     return {"Authorization": f"Bearer {s.json()['token']}"}
+
+
+def test_each_login_form_takes_only_its_own_accounts(monkeypatch):
+    c, svc = setup(monkeypatch)
+    clinician(c, "dr.a@gmail.com", "Dr A")
+    svc.create_superuser("boss@example.com", "superuser-password-1", "Boss")
+    clin = {"email": "dr.a@gmail.com", "password": "long-password-1"}
+    boss = {"email": "boss@example.com", "password": "superuser-password-1"}
+    assert c.post("/v1/auth/clinician/login", json=boss).status_code == 401
+    assert c.post("/v1/auth/admin/login", json=clin).status_code == 401
+    assert c.post("/v1/auth/clinician/login", json=clin).status_code == 200
+    assert c.post("/v1/auth/admin/login", json=boss).status_code == 200
 
 
 def test_clinician_sees_only_linked_patients_superuser_sees_all(monkeypatch):

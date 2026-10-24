@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="/static/patient.css?v=7">
+<link rel="stylesheet" href="/static/patient.css?v=8">
 </head>
 <body>
 
@@ -34,14 +34,7 @@
         <h1 id="auth-title">Welcome back</h1>
         <p class="sub" id="auth-sub">Take a slow breath. We're glad you're here.</p>
       </div>
-      <div class="role-pick">
-        <span class="small muted" id="role-label">I am a</span>
-        <div class="seg role-seg" role="radiogroup" aria-labelledby="role-label">
-          <button type="button" data-role="patient" class="on" role="radio" aria-checked="true">Patient</button>
-          <button type="button" data-role="clinician" role="radio" aria-checked="false">Clinician</button>
-          <button type="button" data-role="superuser" role="radio" aria-checked="false" id="su-role">Superuser</button>
-        </div>
-      </div>
+      <span class="role-tag" id="role-tag" hidden></span>
       <div class="seg" role="tablist" id="mode-seg">
         <button type="button" data-mode="login" class="on">Log in</button>
         <button type="button" data-mode="signup">Sign up</button>
@@ -99,6 +92,7 @@
           <button type="button" class="linkish" data-mode="login">Back to log in</button></p>
       </form>
 
+      <p class="small muted role-links" id="role-links" style="margin:0"></p>
       <div class="auth-foot"><span data-icon="phone" data-size="16"></span>
         In a crisis, call <a href="tel:14416">Tele-MANAS 14416</a> (free, 24x7) or <a href="tel:112">112</a>.</div>
     </div>
@@ -409,9 +403,21 @@ async function api(path, body, method) {
   return data;
 }
 
-// ------------------------------------------------------------------ login / sign up (patient or clinician)
+// ------------------------------------------------------------------ login / sign up: one address per role and form
 let ROLE = "patient", MODE = "login", VERIFY_EMAIL = "";
 const CLINICIAN_TOKEN = "mm_clinician_token";
+const AUTH_PAGES = {"/login": ["patient", "login"], "/signup": ["patient", "signup"],
+                    "/clinician/login": ["clinician", "login"], "/clinician/signup": ["clinician", "signup"],
+                    "/admin/login": ["superuser", "login"]};
+const AUTH_URL = {patient: {login: "/login", signup: "/signup"},
+                  clinician: {login: "/clinician/login", signup: "/clinician/signup"},
+                  superuser: {login: "/admin/login"}};
+const HOME_OF = {patient: "/", clinician: "/clinician", superuser: "/admin"};
+const ROLE_LINKS = {
+  patient: `Are you a clinician? <a href="/clinician/login">Clinician log in</a>`,
+  clinician: `Not a clinician? <a href="/login">Patient log in</a> · <a href="/admin/login">Superuser</a>`,
+  superuser: `<a href="/clinician/login">Clinician log in</a> · <a href="/login">Patient log in</a>`,
+};
 const AUTH_TEXT = {
   patient: {login: ["Welcome back", "Take a slow breath. We're glad you're here."],
             signup: ["Create your account", "A private, calm space for the days between your visits."]},
@@ -425,8 +431,7 @@ function setMode(mode) {
   if (ROLE === "superuser" && mode === "signup") mode = "login";  // superusers are created on the server only
   MODE = mode;
   document.querySelectorAll(".seg [data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode));
-  document.querySelector(".role-pick").hidden = mode === "verify";
-  $("mode-seg").hidden = mode === "verify" || ROLE === "superuser";
+  $("mode-seg").hidden = !["login", "signup"].includes(mode) || ROLE === "superuser";
   $("li-new").hidden = ROLE === "superuser";
   $("login-form").hidden = mode !== "login";
   $("signup-form").hidden = mode !== "signup";
@@ -437,15 +442,20 @@ function setMode(mode) {
   $("li-err").textContent = $("su-err").textContent = $("vf-err").textContent = "";
   ({login: $("li-email"), signup: ROLE === "clinician" ? $("su-name") : $("su-email"), verify: $("vf-code")})[mode].focus();
 }
-document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+// Log in and Sign up are separate addresses: switching between them navigates.
+document.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => {
+  const url = AUTH_URL[ROLE][b.dataset.mode];
+  if (url && url !== location.pathname) location.assign(url);
+  else setMode(b.dataset.mode);
+});
 
 function setRole(role) {
   ROLE = role;
   const clin = role !== "patient";
-  document.querySelectorAll(".role-seg [data-role]").forEach((b) => {
-    b.classList.toggle("on", b.dataset.role === role);
-    b.setAttribute("aria-checked", String(b.dataset.role === role));
-  });
+  $("role-tag").hidden = !clin;
+  $("role-tag").textContent = role === "superuser" ? "Superuser" : "Clinician";
+  $("role-tag").className = `role-tag ${role}`;
+  $("role-links").innerHTML = ROLE_LINKS[role];
   document.querySelectorAll(".patient-only").forEach((el) => el.hidden = clin);
   document.querySelectorAll(".clinician-only").forEach((el) => el.hidden = !clin);
   $("su-name-wrap").hidden = $("su-gmail-hint").hidden = !clin;
@@ -455,7 +465,6 @@ function setRole(role) {
   $("su-pass-hint").textContent = clin ? "At least 10 characters." : "At least 8 characters.";
   setMode(MODE === "verify" ? "login" : MODE);
 }
-document.querySelectorAll(".role-seg [data-role]").forEach((b) => b.onclick = () => setRole(b.dataset.role));
 
 // Clinician calls need the raw response: a 403 "verification_required" carries the next step.
 async function authPost(path, body) {
@@ -477,16 +486,12 @@ function showVerify(email, devCode) {
 }
 
 function enterClinician(s) {
-  if (ROLE === "superuser" && s.role !== "superuser") {
-    fetch("/v1/auth/clinician/logout", {method: "POST", headers: {Authorization: `Bearer ${s.token}`}}).catch(() => {});
-    throw new Error("This account is not a superuser. Choose Clinician to log in.");
-  }
   try { localStorage.setItem(CLINICIAN_TOKEN, s.token); } catch {}
-  location.href = s.role === "superuser" ? "/admin" : "/clinician";
+  location.replace(HOME_OF[s.role] || "/clinician");
 }
 
 async function clinicianLogin(email, password) {
-  const res = await authPost("/v1/auth/clinician/login", {email, password});
+  const res = await authPost(ROLE === "superuser" ? "/v1/auth/admin/login" : "/v1/auth/clinician/login", {email, password});
   if (res.ok) return enterClinician(res.data);
   if (res.status === 403 && res.data.verification_required) return showVerify(email.trim().toLowerCase(), res.data.dev_code);
   throw new Error(friendly(res.data.detail));
@@ -574,7 +579,7 @@ function clinicianSignup() {
 function startSession(s) {
   TOKEN = s.token; ls.set("mm_token", TOKEN);
   $("li-pass").value = $("su-pass").value = "";
-  history.replaceState(null, "", "#home");  // a fresh login always starts on the welcome page
+  history.replaceState(null, "", "/#home");  // a fresh login always starts on the welcome page, at /
   showApp(s);
 }
 
@@ -588,11 +593,7 @@ function signOut(expired = false) {
   if (playing) stopExercise(false);
   speech.reset();
   TOKEN = null; PID = null; ls.set("mm_token", null);
-  clearPhoto(); $("msgs").innerHTML = ""; $("crisis").hidden = true;
-  history.replaceState(null, "", location.pathname);
-  CURRENT = null; buddy.show(false);
-  showAuth("login");
-  if (expired) $("li-err").textContent = "Your session ended. Please log in again.";
+  location.replace(expired ? "/login?expired=1" : "/login");
 }
 $("logout").onclick = $("logout-top").onclick = () => signOut();
 
@@ -1316,25 +1317,35 @@ async function boot() {
   setVoice(ls.get("mm_voice") === "1");
   PURPOSES = (await api("/v1/consent-purposes")).purposes;
   renderSignupConsents();
-  const as = new URLSearchParams(location.search).get("as");
-  if (as === "clinician" || as === "superuser") {
-    // Coming from /clinician or /admin: skip straight to the dashboard if still logged in.
-    let ctok = null;
-    try { ctok = localStorage.getItem(CLINICIAN_TOKEN); } catch {}
-    if (ctok) {
-      const r = await fetch("/v1/auth/clinician/me", {headers: {Authorization: `Bearer ${ctok}`}}).catch(() => null);
-      const me = r && r.ok ? await r.json() : null;
-      if (me) { location.replace(me.role === "superuser" ? "/admin" : "/clinician"); return; }
+  const params = new URLSearchParams(location.search);
+  const as = params.get("as");  // old links (/?as=clinician) go to the new addresses
+  if (AUTH_URL[as]) { location.replace(AUTH_URL[as].login); return; }
+  const page = AUTH_PAGES[location.pathname];
+  if (page) {
+    const [role, mode] = page;
+    if (role === "patient") {
+      if (TOKEN && await api("/v1/auth/me").then(() => true, () => false)) { location.replace("/"); return; }
+    } else {
+      // Already logged in on this browser as this kind of account: go straight to the dashboard.
+      let ctok = null;
+      try { ctok = localStorage.getItem(CLINICIAN_TOKEN); } catch {}
+      if (ctok) {
+        const r = await fetch("/v1/auth/clinician/me", {headers: {Authorization: `Bearer ${ctok}`}}).catch(() => null);
+        const me = r && r.ok ? await r.json() : null;
+        if (me && me.role === role) { location.replace(HOME_OF[role]); return; }
+      }
     }
     $("auth").hidden = false; $("app").hidden = true;
-    setRole(as);
+    MODE = mode;
+    setRole(role);
+    if (params.get("expired")) $("li-err").textContent = "Your session ended. Please log in again.";
     return;
   }
   if (TOKEN) {
     try { return showApp(await api("/v1/auth/me")); }
     catch { TOKEN = null; ls.set("mm_token", null); }
   }
-  showAuth("login");
+  location.replace("/login");
 }
 boot().catch((e) => { document.body.insertAdjacentHTML("afterbegin", `<p class="err" style="padding:16px">${esc(e.message)}</p>`); });
 </script>

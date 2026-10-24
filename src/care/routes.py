@@ -243,6 +243,19 @@ def build_router(svc: CareService) -> APIRouter:
     def clinician_resend(body: EmailIn):
         return _call(svc.resend_clinician_code, body.email)
 
+    @r.post("/v1/auth/admin/login", tags=["auth"])
+    def admin_login(body: LoginIn):
+        """Superuser login (superusers are created on the server with src/create_superuser.py)."""
+        key = "admin:" + normalise_email(body.email)
+        recent = too_many(key)
+        try:
+            out = svc.clinician_login(body.email, body.password, superuser=True)
+        except AuthError as e:
+            recent.append(time.monotonic())
+            raise HTTPException(401, str(e)) from e
+        failures.pop(key, None)
+        return out
+
     @r.post("/v1/auth/clinician/login", tags=["auth"])
     def clinician_login(body: LoginIn):
         key = "clinician:" + normalise_email(body.email)

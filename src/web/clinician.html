@@ -84,7 +84,7 @@ let CURRENT = null, LAST_CARD = null;
 const TOKEN_KEY = "mm_clinician_token";
 const token = { get() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
                 clear() { try { localStorage.removeItem(TOKEN_KEY); } catch {} } };
-const toLogin = () => location.replace("/?as=clinician");
+const toLogin = () => location.replace("/clinician/login");
 
 async function api(path, body) {
   const headers = {Authorization: `Bearer ${token.get()}`};

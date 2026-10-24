@@ -221,10 +221,12 @@ class CareService:
             if not self.store.clinician_by_code(code):
                 return code
 
-    def clinician_login(self, email: str, password: str) -> dict:
+    def clinician_login(self, email: str, password: str, superuser: bool = False) -> dict:
+        """Clinician login, or superuser login with superuser=True. Each form only accepts its own kind of
+        account, with the same message as a wrong password, so neither form reveals the other's accounts."""
         email = normalise_email(email)
         acc = self.store.check_clinician_login(email, password or "")
-        if acc is None:
+        if acc is None or bool(acc["is_superuser"]) != superuser:
             raise AuthError("wrong email or password")
         if not acc["verified_at"]:
             try:
