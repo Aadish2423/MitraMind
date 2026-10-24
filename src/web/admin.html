@@ -4,49 +4,85 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MitraMind Superuser</title>
-<link rel="stylesheet" href="/static/common.css">
-<style>
-  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; }
-  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-  .scroll { overflow-x: auto; }
-  td select, td button { padding: 3px 8px; font-size: 13px; }
-  .why { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; padding-left: 16px; }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/static/patient.css?v=8">
+<link rel="stylesheet" href="/static/clinician.css?v=4">
 </head>
 <body>
-<main>
-  <header>
-    <h1>MitraMind Care: superuser</h1>
-    <div class="row small"><span class="muted" id="who">Checking your login…</span>
-      <a href="/clinician">Clinician view</a>
-      <button id="logout" style="padding:4px 10px">Log out</button></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lotus" viewBox="0 0 48 48">
+    <path d="M24 7c4.3 5 6.4 10.2 6.4 15.4 0 5.1-2.4 9.4-6.4 12.6-4-3.2-6.4-7.5-6.4-12.6C17.6 17.2 19.7 12 24 7Z" fill="#8cbca0"/>
+    <path d="M7 17.5c6.3 0 11.5 3.1 14.6 8.2 1.9 3.1 2.4 6.6 2.4 9.3-5.3 0-10.3-2.1-13.4-6.1C8 25.4 7.2 21.3 7 17.5Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M41 17.5c-.2 3.8-1 7.9-3.6 11.4-3.1 4-8.1 6.1-13.4 6.1 0-2.7.5-6.2 2.4-9.3 3.1-5.1 8.3-8.2 14.6-8.2Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M9.5 39c4.4 1.9 9.3 2.8 14.5 2.8s10.1-.9 14.5-2.8" stroke="#457560" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  </symbol>
+</svg>
+
+<div class="app dash">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo"><use href="#lotus"/></svg>
+      <span class="name">MitraMind</span>
+      <span class="tag">Superuser</span>
+    </div>
+    <div class="top-right">
+      <a class="btn-ghost btn-sm" href="/clinician">Clinician view</a>
+      <div class="who-chip" id="who-chip" hidden><span class="initials" id="initials"></span><span id="who"></span></div>
+      <button class="icon-btn" id="logout" title="Log out" aria-label="Log out" data-icon="logout"></button>
+    </div>
   </header>
 
-  <section class="tiles" id="tiles"></section>
-
-  <section class="panel">
-    <h2>How each clinician is doing</h2>
-    <p class="small muted" style="margin-top:-6px">Caseload, how many patients use MitraMind, how their PHQ-9 / GAD-7
-      scores changed, and how fast alerts were picked up (targets: urgent within 1 h, high within 24 h, watch within
-      72 h). Score changes depend on how unwell each caseload was to begin with: use this to start a conversation,
-      not as a verdict.</p>
-    <div class="scroll"><table id="clinicians"></table></div>
+  <section class="dash-hero">
+    <div>
+      <p class="eyebrow" id="today"></p>
+      <h1 id="greet">Welcome back</h1>
+      <p class="muted">Every clinician and every patient in one place.</p>
+    </div>
   </section>
 
-  <section class="panel">
-    <h2>All patients</h2>
-    <p class="small muted" style="margin-top:-6px">Link each patient to a clinician. Patients can also link themselves
-      with their clinician's code.</p>
-    <div class="scroll"><table id="patients"></table></div>
+  <section class="stats six" aria-label="Overview">
+    <div class="stat"><span class="ico" style="background:#e6f0e9; color:#457560" data-icon="users" data-size="20"></span>
+      <div><b id="s-patients">–</b><span>Patients</span></div></div>
+    <div class="stat"><span class="ico" style="background:#f0ebf8; color:#5b4a86" data-icon="stethoscope" data-size="20"></span>
+      <div><b id="s-clinicians">–</b><span>Clinicians</span></div></div>
+    <div class="stat"><span class="ico" style="background:#f3efe7; color:#5d6967" data-icon="unlink" data-size="20"></span>
+      <div><b id="s-unassigned">–</b><span>Without a clinician</span></div></div>
+    <div class="stat"><span class="ico" style="background:#d9694c; color:#fff" data-icon="bell" data-size="20"></span>
+      <div><b id="s-urgent">–</b><span>Open urgent alerts</span></div></div>
+    <div class="stat"><span class="ico" style="background:#fdeee9; color:#9c3b24" data-icon="bell" data-size="20"></span>
+      <div><b id="s-high">–</b><span>Open high alerts</span></div></div>
+    <div class="stat"><span class="ico" style="background:#fbf3e2; color:#7a5a17" data-icon="bell" data-size="20"></span>
+      <div><b id="s-watch">–</b><span>Open watch alerts</span></div></div>
   </section>
 
-  <section class="panel">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Every patient's card</h2>
-      <button id="cards-refresh" style="padding:4px 10px">Refresh cards</button></div>
-    <p class="small muted">Rule-based User State Cards. Open one to see the full summary on the clinician view.</p>
+  <section class="card sec">
+    <div class="sec-head"><div><h3>How each clinician is doing</h3>
+      <p class="small muted">Caseload, how many patients use MitraMind, how their PHQ-9 / GAD-7 scores changed, and how fast
+        alerts were picked up (targets: urgent within 1 h, high within 24 h, watch within 72 h). Score changes depend on how
+        unwell each caseload was to begin with: use this to start a conversation, not as a verdict.</p></div></div>
+    <div class="scroll"><table class="tbl" id="clinicians"></table></div>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-head"><div><h3>All patients</h3>
+      <p class="small muted">Link each patient to a clinician. Patients can also link themselves with their clinician's code.</p></div></div>
+    <div class="scroll"><table class="tbl" id="patients"></table></div>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-head">
+      <div><h3>Every patient's card</h3><p class="small muted">Rule-based User State Cards. Open one to see the full summary
+        in the clinician view.</p></div>
+      <button class="btn-ghost btn-sm" id="cards-refresh"><span data-icon="refresh" data-size="15"></span> Refresh</button>
+    </div>
     <div class="cards-grid" id="cards"></div>
   </section>
-</main>
+
+  <p class="foot-note">MitraMind supports care between visits; it does not diagnose. Figures here start conversations, not verdicts.</p>
+</div>
 
 <script src="/static/cards.js"></script>
 <script>
@@ -58,6 +94,21 @@ const token = { get() { try { return localStorage.getItem(TOKEN_KEY); } catch { 
                 clear() { try { localStorage.removeItem(TOKEN_KEY); } catch {} } };
 const toLogin = () => location.replace("/admin/login");
 let CHOICES = [];
+
+// ------------------------------------------------------------------ icons (Lucide shapes, MIT), as in the other pages
+const ICONS = {
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  stethoscope: '<path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>',
+  unlink: '<path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><path d="M8 2v3"/><path d="M2 8h3"/><path d="M16 22v-3"/><path d="M22 16h-3"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+};
+const svg = (name, size = 20) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
+  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+function paintIcons(root = document) {
+  root.querySelectorAll("[data-icon]").forEach((el) => { el.innerHTML = svg(el.dataset.icon, +el.dataset.size || 20); });
+}
 
 async function api(path, body) {
   const headers = {Authorization: `Bearer ${token.get()}`};
@@ -77,50 +128,63 @@ $("logout").onclick = async () => {
 async function loadOverview() {
   const o = await api("/v1/admin/overview");
   CHOICES = o.clinician_choices;
-  $("tiles").innerHTML = [
-    ["Patients", o.patients], ["Clinicians", o.clinicians], ["Patients without a clinician", o.unassigned_patients],
-    ["Open urgent alerts", o.open_alerts.urgent], ["Open high alerts", o.open_alerts.high], ["Open watch alerts", o.open_alerts.watch],
-  ].map(([k, v]) => `<div class="tile"><span class="small muted">${k}</span><b>${v}</b></div>`).join("");
+  $("s-patients").textContent = o.patients; $("s-clinicians").textContent = o.clinicians;
+  $("s-unassigned").textContent = o.unassigned_patients;
+  $("s-urgent").textContent = o.open_alerts.urgent; $("s-high").textContent = o.open_alerts.high;
+  $("s-watch").textContent = o.open_alerts.watch;
 }
 
 function outcome(o) {
-  if (!o.patients_with_2_scores) return `<span class="muted">no repeat scores yet</span>`;
-  return `${o.improved} better · ${o.worsened} worse <span class="muted">of ${o.patients_with_2_scores}
-    (mean ${o.mean_change > 0 ? "+" : ""}${o.mean_change})</span>`;
+  if (!o.patients_with_2_scores) return `<span class="muted">No repeat scores yet</span>`;
+  return `<span class="down">${o.improved} better</span> · <span class="up">${o.worsened} worse</span>
+    <div class="muted">of ${o.patients_with_2_scores}, mean ${o.mean_change > 0 ? "+" : ""}${o.mean_change}</div>`;
 }
 
 async function loadClinicians() {
   const rows = await api("/v1/admin/clinicians");
   const cls = {"needs attention": "st-needs", "watch": "st-watch", "on track": "st-ok"};
-  $("clinicians").innerHTML = rows.length ? `<tr><th>Clinician</th><th>Status</th><th>Patients</th><th>Active (14 d)</th>
-    <th>PHQ-9 change</th><th>GAD-7 change</th><th>Alerts</th><th>Median time to pick up</th><th>Summaries rated</th><th>Last login</th></tr>` +
+  $("clinicians").innerHTML = rows.length ? `<thead><tr><th>Clinician</th><th>Status</th><th>Patients</th><th>Active (14 d)</th>
+    <th>PHQ-9 change</th><th>GAD-7 change</th><th>Alerts</th><th>Time to pick up</th><th>Rated</th><th>Last login</th></tr></thead><tbody>` +
     rows.map((r) => `<tr>
-      <td><b>${esc(r.clinician.name || r.clinician.email)}</b><div class="small muted">${esc(r.clinician.email)} ·
-        <span class="code-pill">${esc(r.clinician.care_code || "-")}</span></div></td>
-      <td><span class="${cls[r.status] || "muted"}">${esc(r.status)}</span>
-        <ul class="why">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></td>
-      <td>${r.patients} <span class="small muted">(${r.sharing_with_care_team} sharing)</span></td>
-      <td>${r.active_last_14_days}</td>
+      <td><b class="who-name">${esc(r.clinician.name || r.clinician.email)}</b><div class="small muted">${esc(r.clinician.email)}</div>
+        <span class="code-pill">${esc(r.clinician.care_code || "–")}</span></td>
+      <td><span class="status ${cls[r.status] || ""}">${esc(r.status)}</span>
+        ${r.reasons.length ? `<ul class="reasons">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</td>
+      <td><b>${r.patients}</b><div class="small muted">${r.sharing_with_care_team} sharing</div></td>
+      <td><b>${r.active_last_14_days}</b></td>
       <td class="small">${outcome(r.outcomes["PHQ-9"])}</td><td class="small">${outcome(r.outcomes["GAD-7"])}</td>
-      <td class="small">${r.alerts.total} total, ${r.alerts.open} open${r.alerts.open_high_or_urgent ? `, <b>${r.alerts.open_high_or_urgent} high/urgent open</b>` : ""}${r.alerts.late ? `, <b>${r.alerts.late} late</b>` : ""}</td>
-      <td>${r.alerts.median_hours_to_acknowledge == null ? "-" : `${r.alerts.median_hours_to_acknowledge} h`}</td>
-      <td>${r.summaries_rated}</td><td class="small">${when(r.last_login_at)}</td></tr>`).join("")
-    : `<tr><td class="muted">No verified clinicians yet.</td></tr>`;
+      <td class="small">${r.alerts.total} total, ${r.alerts.open} open
+        ${r.alerts.open_high_or_urgent ? `<div><span class="badge lvl-high">${r.alerts.open_high_or_urgent} high/urgent open</span></div>` : ""}
+        ${r.alerts.late ? `<div><span class="badge lvl-urgent">${r.alerts.late} late</span></div>` : ""}</td>
+      <td>${r.alerts.median_hours_to_acknowledge == null ? `<span class="muted">–</span>` : `<b>${r.alerts.median_hours_to_acknowledge} h</b>`}
+        <div class="small muted">median</div></td>
+      <td>${r.summaries_rated}</td><td class="small muted">${when(r.last_login_at)}</td></tr>`).join("") + "</tbody>"
+    : `<tbody><tr><td class="empty">No verified clinicians yet.</td></tr></tbody>`;
 }
 
 async function loadPatients() {
   const rows = await api("/v1/clinician/dashboard");
-  const opts = (sel) => `<option value="">- none -</option>` + CHOICES.map((c) =>
+  const opts = (sel) => `<option value="">No clinician</option>` + CHOICES.map((c) =>
     `<option value="${c.id}" ${sel && sel.id === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("");
-  const q = (t) => t ? `${t.latest} <span class="small muted">${esc(t.severity)}${t.direction !== "baseline_only" ? `, ${t.change > 0 ? "+" : ""}${t.change}` : ""}</span>` : `<span class="muted">-</span>`;
-  $("patients").innerHTML = `<tr><th>Patient</th><th>Clinician</th><th>Open alerts</th><th>PHQ-9</th><th>GAD-7</th><th>Shares with care team</th></tr>` +
-    rows.map((p) => `<tr><td>${esc(p.id)}</td>
-      <td><select data-p="${esc(p.id)}">${opts(p.clinician)}</select></td>
-      <td>${p.open_alerts ? `<span class="badge lvl-${p.highest_open_alert}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>` : "0"}</td>
-      <td>${q(p["PHQ-9"])}</td><td>${q(p["GAD-7"])}</td><td>${p.consents.care_team ? "yes" : "no"}</td></tr>`).join("");
+  const q = (t) => t ? `<b>${t.latest}</b>${t.direction !== "baseline_only" && t.change
+      ? ` <span class="${t.change > 0 ? "up" : "down"}">${t.change > 0 ? "▲" : "▼"} ${Math.abs(t.change)}</span>` : ""}<div class="sev">${esc(t.severity)}</div>`
+    : `<span class="muted">–</span>`;
+  $("patients").innerHTML = rows.length ? `<thead><tr><th>Patient</th><th>Clinician</th><th>Alerts</th><th>PHQ-9</th><th>GAD-7</th>
+    <th>Shares with care team</th></tr></thead><tbody>` +
+    rows.map((p) => `<tr><td><span class="pid">${esc(p.id)}</span></td>
+      <td><select class="pick" data-p="${esc(p.id)}" aria-label="Clinician for ${esc(p.id)}">${opts(p.clinician)}</select>
+        <span class="small muted saved" hidden>Saved</span></td>
+      <td>${p.open_alerts ? `<span class="badge lvl-${esc(p.highest_open_alert)}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>` : `<span class="muted">None</span>`}</td>
+      <td>${q(p["PHQ-9"])}</td><td>${q(p["GAD-7"])}</td>
+      <td>${p.consents.care_team ? `<span class="status st-ok">Yes</span>` : `<span class="status">No</span>`}</td></tr>`).join("") + "</tbody>"
+    : `<tbody><tr><td class="empty">No patients yet.</td></tr></tbody>`;
   $("patients").querySelectorAll("select[data-p]").forEach((s) => s.onchange = async () => {
-    await api(`/v1/admin/patients/${encodeURIComponent(s.dataset.p)}/clinician`, {clinician_id: s.value ? +s.value : null});
-    loadOverview(); loadClinicians(); loadCards();
+    s.disabled = true;
+    try {
+      await api(`/v1/admin/patients/${encodeURIComponent(s.dataset.p)}/clinician`, {clinician_id: s.value ? +s.value : null});
+      const ok = s.parentElement.querySelector(".saved"); ok.hidden = false; setTimeout(() => { ok.hidden = true; }, 1500);
+      loadOverview(); loadClinicians(); loadCards();
+    } finally { s.disabled = false; }
   });
   return rows;
 }
@@ -131,10 +195,17 @@ async function loadCards() {
 }
 
 (async () => {
+  paintIcons();
   if (!token.get()) return toLogin();
   const me = (await api("/v1/auth/clinician/me")).clinician;
   if (me.role !== "superuser") { location.replace("/clinician"); return; }
-  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email} · superuser`;
+  const h = new Date().getHours();
+  $("today").textContent = new Date().toLocaleDateString([], {weekday: "long", day: "numeric", month: "long"});
+  $("greet").textContent = `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}${me.name ? `, ${me.name}` : ""}`;
+  $("who").textContent = me.name || me.email; $("who-chip").title = `${me.email} · superuser`;
+  $("initials").textContent = (me.name || me.email).replace(/^dr\.?\s+/i, "").split(/[\s@.]+/).filter(Boolean).slice(0, 2)
+    .map((w) => w[0].toUpperCase()).join("");
+  $("who-chip").hidden = false;
   await loadOverview();
   loadClinicians(); loadPatients(); loadCards();
   $("cards-refresh").onclick = loadCards;
