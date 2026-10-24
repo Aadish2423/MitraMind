@@ -1,9 +1,140 @@
-# MitraMind
+# MitraMind: a safety-first AI companion for patients between hospital visits
 
 **A calm AI companion for Indian patients between hospital visits.** Patients talk or type to Mitra, a friendly
 2D companion, in English, Hinglish or हिन्दी. A safety layer reads every message before any AI model does, and a
 dashboard keeps the patient's care team in the loop. Hackathon prototype: MitraMind is a wellness support tool,
 not a doctor and not an emergency service.
+
+| Submission item | Link |
+|---|---|
+| Architecture diagram (PDF) | [docs/architecture.pdf](docs/architecture.pdf) |
+| Demo video (unlisted YouTube, 15-20 min) | *to be added* |
+| Presentation (PDF / PPT) | *to be added* |
+| Open-source licence | [MIT](LICENSE) (data in `outputs/` keeps its source licence, see [Licence](#licence)) |
+
+## 1. Team details
+
+| | Name | Role | GitHub | LinkedIn |
+|---|---|---|---|---|
+| <img src="src/web/team/aadish.jpg" width="64" alt="Aadish Bane"> | **Aadish Bane** | Co-developer | [Aadish2423](https://github.com/Aadish2423) | [aadish-bane](https://www.linkedin.com/in/aadish-bane-292a221ba/) |
+| <img src="src/web/team/shishir.jpg" width="64" alt="Shishir Pusalkar"> | **Shishir Pusalkar** | Co-developer | [DEADPOOL-152006](https://github.com/DEADPOOL-152006) | [shishir-pusalkar](https://www.linkedin.com/in/shishir-pusalkar-515191285/) |
+
+## 2. College / incubator information
+
+| Name | College | Year |
+|---|---|---|
+| Aadish Bane | Sardar Vallabhbhai National Institute of Technology (SVNIT), Surat | Final year |
+| Shishir Pusalkar | Sardar Vallabhbhai National Institute of Technology (SVNIT), Surat | Final year |
+
+Incubator: none (student team).
+
+## 3. Project title
+
+**MitraMind** ("mitra" means friend in Hindi): a safety-first, multilingual AI companion that supports patients'
+mental wellbeing between hospital visits and keeps their care team informed.
+
+## 4. Problem statement
+
+Patients with long-term or serious illness often carry stress, worry and low mood between hospital visits.
+Appointments are short and can be weeks apart, so the doctor sees a snapshot, and it is hard for patients to recall
+or say how they have really been feeling. In India this is harder still:
+
+- **Language:** many patients think and speak in Hindi or Hinglish (Hindi written in Latin letters), which most
+  wellness apps and AI models handle poorly.
+- **Missed warning signs:** thoughts of self-harm or worsening depression between visits can go unnoticed until
+  the next appointment, or never be mentioned at all.
+- **No time for care teams:** clinicians cannot phone every patient, and long chat logs are not something they can
+  read before a visit.
+- **Trust and privacy:** a general chatbot can give unsafe advice, and patients need control over what their doctor
+  sees (India's DPDP Act 2023).
+
+**Goal:** give patients a friendly, always-available companion in their own language, catch risk early with checks
+that do not depend on an AI model, and turn the weeks between visits into a short, consented summary the clinician
+can act on.
+
+## 5. Healthcare use case
+
+**Who it is for:** outpatients under a hospital's care (for example oncology, chronic illness or mental health
+follow-up), their clinicians and care teams, and the hospital administrators who oversee them.
+
+**Patient journey**
+1. The patient signs up and links to their clinician with the clinician's care-team code.
+2. Between visits they chat or speak with Mitra in English, Hinglish or Hindi about how they feel, and can share a
+   photo. Mitra listens, reflects, and suggests a short **Mind Pause** (breathing, grounding or body scan).
+3. Every two weeks or so they take a **check-in**: PHQ-9 (depression) and GAD-7 (anxiety), the validated
+   questionnaires clinicians already use.
+4. They choose what to share: each message is private by default and can be marked "Shared with care team".
+
+**Safety pathway**
+- Every message passes a crisis check **before** any AI model sees it. If it signals high or urgent risk, Mitra
+  replies with a fixed, reviewed message giving the Tele-MANAS helpline (14416, free, 24x7) and 112, never an
+  AI-written reply, and an alert opens on the clinician's dashboard.
+- PHQ-9 answers about self-harm, or a sharp rise in score, also open alerts.
+
+**Clinician workflow**
+1. Open alerts appear in a queue, ranked watch / high / urgent, with the recommended action (for example "contact
+   within 24 hours and complete a structured risk assessment"). The clinician acknowledges, then resolves with a
+   note and whether the risk was real.
+2. Before a visit, the clinician opens a **pre-visit summary** (User State Card): score trends, main stressors,
+   sleep, what helped, risk flags and the reflections the patient chose to share.
+3. They rate the summary, which tells the team whether it saves time.
+
+**Hospital / superuser view:** every clinician's caseload, how quickly alerts were picked up, and how patients'
+scores changed, plus linking patients to clinicians.
+
+**Integrations:** a WhatsApp Business webhook for patients who prefer WhatsApp, and FHIR R4 export for hospital
+records.
+
+## 6. Technical stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.11, FastAPI, Uvicorn, Pydantic (validated JSON everywhere), NDJSON streaming for replies |
+| Database | SQLite (patients, accounts, consents, messages, check-ins, alerts, ratings, audit log); photos and voice clips stored as files |
+| Auth and security | scrypt password hashes, hashed bearer session tokens, login throttling, email codes over Gmail SMTP, consent checks on every clinician route |
+| AI runtime | [Ollama](https://ollama.com) for open-weight LLMs (runs locally, no patient data leaves the machine); PyTorch + Hugging Face Transformers for the cue models and Whisper |
+| ML tooling | scikit-learn (crisis classifier, outcome model), VADER, Empath, textstat, PyYAML lexicons, pandas |
+| Audio | Browser-side 16 kHz WAV recording (Web Audio API), soundfile + SciPy for loudness normalisation and filtering before speech-to-text |
+| Frontend | Plain HTML, CSS and JavaScript (no framework); Mitra is an animated inline-SVG character; browser speech synthesis for voice replies; marked.js for summaries |
+| Integrations | WhatsApp Business webhook, FHIR R4 export |
+| Testing | pytest (99 tests: safety, guardrails, streaming, auth, privacy between roles, voice robustness) |
+
+## 7. AI/ML model and framework details
+
+MitraMind uses several small, specialised models, each doing one job, and keeps the LLM away from safety
+decisions. Everything runs locally; all models are open-weight.
+
+| Component | Model / method | Job | Result |
+|---|---|---|---|
+| Crisis classifier | TF-IDF (1-2 grams) + logistic regression, scikit-learn | Flag crisis language in English posts | Test ROC-AUC 0.92 |
+| Crisis lexicons | Own English, Hinglish and Hindi phrase lists, C-SSRS-style tiers | Catch crisis phrasing the classifier misses, especially in Hinglish and Hindi | Rule-based, red-team tested |
+| m1 Hindi text | XLM-RoBERTa base, fine-tuned on HinEmo-9 | Emotion cues from Devanagari Hindi | Macro-F1 0.594 |
+| m2 Hinglish text | XLM-RoBERTa base, fine-tuned on HinEmo-9 | Emotion cues from Hinglish | Macro-F1 0.630 |
+| m3 voice emotion | WavLM-base-plus, fine-tuned on CREMA-D | Emotion cues from the voice itself | Macro-F1 0.737 (unseen speakers) |
+| m4 voice arousal | WavLM-large (MSP-Podcast baseline, MIT) | Arousal / calmness of the voice | Used for arousal only |
+| m5 clinical cues | VADER, Empath, textstat + own PHQ-9 / GAD-7, sleep, stressor and coping lexicons | 151 interpretable cues per message | Validated on Dreaddit and Reddit MH |
+| Speech-to-text | Whisper-small (OpenAI, via Transformers) | Transcribe voice messages on the device | |
+| Companion LLM | **Gemma 4 E4B** via Ollama | Warm, short replies and Mind Pause suggestions | Chosen after a red-team rerun ([docs/LLM_SELECTION.md](docs/LLM_SELECTION.md)) |
+| Summary LLM | **Qwen 3.5** via Ollama | Writes the narrative of the clinician's pre-visit summary from a cue digest | Rule-based fallback if it fails |
+| Outcome model | scikit-learn (logistic regression, gradient boosting), patient-grouped CV | Phase 2/3: predict deterioration from message cues | Trained on synthetic pilot data so far |
+
+**How the LLM is kept safe**
+- It never sees a high- or urgent-risk message; those get a fixed crisis reply.
+- Its output is forced into a JSON schema and checked by guardrails: no diagnosis, no medication or dosage
+  advice, no claims to be a therapist, no promises of secrecy. A failing reply is retried once with the problems
+  listed, then replaced by a safe rule-based reply.
+- Replies stream sentence by sentence, and each sentence is checked before it is shown or spoken.
+- Every AI reply is audit-logged with the model, prompt, output and guardrail results.
+
+Model training, datasets and full results are in [Research: the cue models behind MitraMind](#research-the-cue-models-behind-mitramind)
+below, the pipeline in [docs/PHASE1.md](docs/PHASE1.md), and the care product in [docs/CARE.md](docs/CARE.md).
+
+## 8. Architecture diagram
+
+[![MitraMind architecture](docs/architecture.png)](docs/architecture.pdf)
+
+PDF version: [docs/architecture.pdf](docs/architecture.pdf). The diagram is drawn by
+[docs/make_architecture.py](docs/make_architecture.py) (`python docs/make_architecture.py` redraws both files).
 
 ## The product: three sites, one server
 
@@ -110,13 +241,6 @@ links the patient to their clinician from the very first login:
 
 This needs a code pool that an admin manages from the superuser view (create, assign to a clinician, retire), a
 code field on the sign-up page, and a check that each code maps to one active clinician.
-
-## Team
-
-| | Name | GitHub | LinkedIn |
-|---|---|---|---|
-| <img src="src/web/team/aadish.jpg" width="64" alt="Aadish Bane"> | **Aadish Bane** | [Aadish2423](https://github.com/Aadish2423) | [aadish-bane](https://www.linkedin.com/in/aadish-bane-292a221ba/) |
-| <img src="src/web/team/shishir.jpg" width="64" alt="Shishir Pusalkar"> | **Shishir Pusalkar** | [DEADPOOL-152006](https://github.com/DEADPOOL-152006) | [shishir-pusalkar](https://www.linkedin.com/in/shishir-pusalkar-515191285/) |
 
 ---
 
