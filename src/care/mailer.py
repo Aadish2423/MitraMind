@@ -26,7 +26,8 @@ class MailNotConfigured(Exception):
 
 
 def configured() -> bool:
-    return bool(os.environ.get("MITRAMIND_SMTP_HOST") and os.environ.get("MITRAMIND_SMTP_USER"))
+    """Host, sender and password all set. Without the (app) password, codes stay in dev mode instead of failing."""
+    return all(os.environ.get(k) for k in ("MITRAMIND_SMTP_HOST", "MITRAMIND_SMTP_USER", "MITRAMIND_SMTP_PASSWORD"))
 
 
 def dev_mode() -> bool:
