@@ -29,9 +29,13 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
 
 ### Must be done before any real patient uses it
 
-1. **Login and roles (partly done).** Patients log in with email + password (branch `feature/patient-portal`).
-   Clinicians have separate accounts (branch `feature/clinician-login`): the sign-up page asks "I am a Patient /
-   Clinician"; clinicians must use a Gmail address, confirm it with a 6-digit code sent to that Gmail, and
+1. **Login and roles (partly done).** Separate pages: `/login` and `/signup` (patients), `/clinician/login` and
+   `/clinician/signup`, `/admin/login` (superusers are created with `src/create_superuser.py`, no sign-up page).
+   Each login only accepts its own kind of account. "Forgot password?" on every login page emails a 6-digit code
+   (`/v1/auth[/clinician|/admin]/forgot` and `/reset`); a reset logs out every session of that account. Patients
+   confirm their email with a code when `MITRAMIND_PATIENT_EMAIL_VERIFY=1`. Email goes through Gmail SMTP set
+   in a local `.env` (copy `.env.example`; never commit `.env`).
+   Clinicians must use a Gmail address, confirm it with a 6-digit code sent to that Gmail, and
    land on `/clinician`; every `/v1/clinician/...`, `/v1/audit` and `/v1/whatsapp/outbox` route needs a verified
    clinician's token. Still to do:
    - set `MITRAMIND_SMTP_*` (a Gmail sender with an app password) and `MITRAMIND_ENV=production` on the real
@@ -65,8 +69,13 @@ priority order). Tests: `python tests/test_phase1.py`, `python tests/test_care.p
 
 8. **Train m3** (CREMA-D voice emotion): `python -I src/prepare_cremad.py` then `python src/train_cremad.py`
    (README "How to run"). Until then voice emotion comes from m4 only.
-9. **Hindi / Hinglish speech-to-text quality.** Only an English clip was tested (Windows has no Hindi TTS
-   voice to make a test clip). Test Whisper-small on real Indian-accent Hindi and Hinglish voice notes;
+9. **Hindi / Hinglish speech-to-text quality.** Muffled / quiet / noisy / phone audio was tested in English only
+   (`src/eval_voice_robustness.py`, report in `outputs/voice_robustness/report.md`, 5 noise draws per clip):
+   no word errors and every crisis sentence caught when the audio is muffled, very quiet, phone-quality or in a
+   noisy room; only muffled + quiet + noisy together hurt (13.5% word errors, 16/20 crisis sentences still rated
+   high/urgent). The default clean-up `MITRAMIND_AUDIO_ENHANCE=normalise` raised that to 18/20, and all 20 at least
+   raised an alert with a helpline. The clips are synthetic voices; repeat with real recordings, Hindi and Hinglish.
+   Windows has no Hindi TTS voice to make a test clip. Test Whisper-small on real Indian-accent Hindi and Hinglish voice notes;
    compare whisper-medium / large-v3, an IndicWhisper checkpoint, and Sarvam saarika (`MITRAMIND_STT=sarvam`).
 10. **Latency.** The first voice message takes 60-90 s (Whisper and m4 load on first use). Load models at
     startup and serve the LLM with vLLM/SGLang on a server GPU.

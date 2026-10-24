@@ -50,9 +50,12 @@ In the patient app, replies are read aloud with the browser's speech synthesis.
 
 ## Clinician side
 
-Clinicians log in separately: on the sign-up page they pick **Clinician**, use a Gmail address and confirm
-it with a 6-digit code sent to it (`/v1/auth/clinician/signup`, `/verify`, `/resend`, `/login`, `/logout`,
-`/me`). Every clinician route needs that verified clinician's token, and after login the page opens `/clinician`.
+Login pages: `/login` and `/signup` (patients), `/clinician/login` and `/clinician/signup`, `/admin/login`.
+Clinicians use a Gmail address and confirm it with a 6-digit code sent to it (`/v1/auth/clinician/signup`,
+`/verify`, `/resend`, `/login`, `/logout`, `/me`); superusers log in with `/v1/auth/admin/login`. Each login
+accepts only its own kind of account. Every clinician route needs a verified clinician's token. Forgot password:
+`POST <prefix>/forgot` then `<prefix>/reset` with prefix `/v1/auth`, `/v1/auth/clinician` or `/v1/auth/admin`.
+Codes go by email through SMTP settings in `.env` (see `.env.example`; Gmail needs an app password).
 
 Three views of the User State Card:
 - **Patient** (`/#my-summary`, `GET /v1/patients/{id}/summary`): their own friendly card: PHQ-9 / GAD-7 over
@@ -101,4 +104,6 @@ before changing a prompt or model.
 | `MITRAMIND_ENV` | `dev` | anything else requires `WHATSAPP_APP_SECRET` |
 | `MITRAMIND_EXPORT_SALT` | | secret salt for pilot pseudonyms (16+ chars) |
 | `MITRAMIND_CLINICIAN_DOMAINS` | `gmail.com,googlemail.com` | email domains allowed for clinician sign-up |
+| `MITRAMIND_PATIENT_EMAIL_VERIFY` | `0` | `1`: new patients confirm their email with a code before logging in |
+| `MITRAMIND_AUDIO_ENHANCE` | `normalise` | audio clean-up before speech-to-text: any of `highpass`, `denoise`, `normalise`, or `none` |
 | `MITRAMIND_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_FROM` | | sends clinician codes (Gmail: `smtp.gmail.com`, `587`, an app password); without them codes show on screen in dev mode only |
