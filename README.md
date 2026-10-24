@@ -8,8 +8,6 @@ not a doctor and not an emergency service.
 | Submission item | Link |
 |---|---|
 | Architecture diagram (PDF) | [docs/architecture.pdf](docs/architecture.pdf) |
-| Demo video (unlisted YouTube, 15-20 min) | *to be added* |
-| Presentation (PDF / PPT) | *to be added* |
 | Open-source licence | [MIT](LICENSE) (data in `outputs/` keeps its source licence, see [Licence](#licence)) |
 
 ## 1. Team details
