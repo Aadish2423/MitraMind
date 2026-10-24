@@ -3,88 +3,170 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MitraMind Clinician Dashboard</title>
-<link rel="stylesheet" href="/static/common.css">
+<title>MitraMind Care Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/static/patient.css?v=8">
+<link rel="stylesheet" href="/static/clinician.css?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-<style>
-  main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; }
-  header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-  .scroll { overflow-x: auto; }
-  td .row { gap: 4px; } td button { padding: 3px 9px; font-size: 13px; }
-  tr.sel td { background: var(--code); }
-  .card-md { overflow-x: auto; } .card-md table { width: auto; margin: 8px 0; }
-  .card-md th, .card-md td { border: 1px solid var(--border); padding: 4px 8px; }
-  .card-md h1 { font-size: 19px; } .card-md h2 { font-size: 16px; margin-top: 16px; }
-  .quote { border-left: 3px solid var(--accent); padding: 4px 10px; margin: 6px 0; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-  .fb { display: grid; gap: 8px; }
-  .fb label { font-size: 14px; }
-</style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>MitraMind Care: clinician dashboard</h1>
-    <div class="row small"><span class="muted" id="who">Checking your login…</span>
-      <a id="admin-link" href="/admin" hidden>Superuser view</a>
-      <button id="logout" style="padding:4px 10px">Log out</button></div>
-  </header>
-  <p class="small muted" id="code-line" hidden style="margin:-6px 0 0">Give patients your code
-    <span class="code-pill" id="care-code"></span>. They enter it when they sign up (or under Privacy in the app),
-    and then they appear here.</p>
 
-  <section class="panel">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Alerts</h2>
-      <select id="astatus"><option value="open">Open</option><option value="acknowledged">Acknowledged</option>
-        <option value="resolved">Resolved</option><option value="all">All</option></select></div>
-    <div class="scroll"><table id="alerts"></table></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lotus" viewBox="0 0 48 48">
+    <path d="M24 7c4.3 5 6.4 10.2 6.4 15.4 0 5.1-2.4 9.4-6.4 12.6-4-3.2-6.4-7.5-6.4-12.6C17.6 17.2 19.7 12 24 7Z" fill="#8cbca0"/>
+    <path d="M7 17.5c6.3 0 11.5 3.1 14.6 8.2 1.9 3.1 2.4 6.6 2.4 9.3-5.3 0-10.3-2.1-13.4-6.1C8 25.4 7.2 21.3 7 17.5Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M41 17.5c-.2 3.8-1 7.9-3.6 11.4-3.1 4-8.1 6.1-13.4 6.1 0-2.7.5-6.2 2.4-9.3 3.1-5.1 8.3-8.2 14.6-8.2Z" fill="#b7a8d6" opacity=".92"/>
+    <path d="M9.5 39c4.4 1.9 9.3 2.8 14.5 2.8s10.1-.9 14.5-2.8" stroke="#457560" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  </symbol>
+</svg>
+
+<div class="app dash">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo"><use href="#lotus"/></svg>
+      <span class="name">MitraMind</span>
+      <span class="tag">Care team</span>
+    </div>
+    <div class="top-right">
+      <a class="btn-ghost btn-sm" id="admin-link" href="/admin" hidden>Superuser view</a>
+      <div class="who-chip" id="who-chip" hidden><span class="initials" id="initials"></span><span id="who"></span></div>
+      <button class="icon-btn" id="logout" title="Log out" aria-label="Log out" data-icon="logout"></button>
+    </div>
+  </header>
+
+  <section class="dash-hero">
+    <div>
+      <p class="eyebrow" id="today"></p>
+      <h1 id="greet">Welcome back</h1>
+      <p class="muted">Here's how your patients are doing between visits.</p>
+    </div>
+    <div class="code-card" id="code-card" hidden>
+      <span class="small muted">Your care-team code</span>
+      <div class="code-row"><span class="code" id="care-code"></span>
+        <button class="icon-btn sm" id="copy-code" title="Copy code" aria-label="Copy code" data-icon="copy" data-size="18"></button></div>
+      <span class="small muted">Patients enter it in the app (Privacy), then they appear here.</span>
+    </div>
   </section>
 
-  <section class="panel">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Patient cards</h2>
-      <button id="cards-refresh" style="padding:4px 10px">Refresh cards</button></div>
-    <p class="small muted">One User State Card per patient (rule-based, instant). Open a card for the full summary
-      and the LLM version.</p>
+  <section class="stats" aria-label="Overview">
+    <div class="stat"><span class="ico" style="background:#e6f0e9; color:#457560" data-icon="users" data-size="20"></span>
+      <div><b id="s-patients">–</b><span>Patients</span></div></div>
+    <div class="stat"><span class="ico" style="background:#fdeee9; color:#9c3b24" data-icon="bell" data-size="20"></span>
+      <div><b id="s-alerts">–</b><span>Open alerts</span></div></div>
+    <div class="stat"><span class="ico" style="background:#fbf3e2; color:#7a5a17" data-icon="heart" data-size="20"></span>
+      <div><b id="s-attention">–</b><span>Need attention</span></div></div>
+    <div class="stat"><span class="ico" style="background:#f0ebf8; color:#5b4a86" data-icon="chat" data-size="20"></span>
+      <div><b id="s-shared">–</b><span>Shared reflections</span></div></div>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-head">
+      <div><h3>Alerts</h3><p class="small muted">Raised automatically from messages and check-ins. Newest first.</p></div>
+      <div class="seg seg-sm" id="astatus">
+        <button type="button" data-s="open" class="on">Open</button><button type="button" data-s="acknowledged">Acknowledged</button>
+        <button type="button" data-s="resolved">Resolved</button><button type="button" data-s="all">All</button>
+      </div>
+    </div>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <section class="card sec">
+    <div class="sec-head">
+      <div><h3>Patient cards</h3><p class="small muted">One User State Card per patient, rule-based and instant. Open one for the
+        full pre-visit summary.</p></div>
+      <button class="btn-ghost btn-sm" id="cards-refresh"><span data-icon="refresh" data-size="15"></span> Refresh</button>
+    </div>
     <div class="cards-grid" id="cards"></div>
   </section>
 
-  <section class="panel">
-    <h2>Patients</h2>
-    <div class="scroll"><table id="patients"></table></div>
+  <section class="card sec">
+    <div class="sec-head"><div><h3>All patients</h3><p class="small muted">Check-in scores, companion use and last activity.</p></div></div>
+    <div class="scroll"><table class="tbl" id="patients"></table></div>
   </section>
 
-  <section class="panel" id="detail" style="display:none">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="margin:0" id="d-title"></h2>
-      <div class="row"><label class="small"><input type="checkbox" id="use-llm" checked> LLM summary (20-60 s)</label>
-        <button class="primary" id="build">Build pre-visit summary</button></div>
+  <section class="card sec" id="detail" hidden>
+    <div class="sec-head">
+      <div><p class="eyebrow">Patient</p><h3 id="d-title"></h3></div>
+      <button class="icon-btn" id="d-close" title="Close" aria-label="Close patient" data-icon="x"></button>
+    </div>
+    <div class="build-row">
+      <label class="switch"><input type="checkbox" id="use-llm" checked> AI-written summary (takes 20–60 s)</label>
+      <button class="btn-primary btn-md" id="build">Build pre-visit summary</button>
     </div>
     <div id="card" class="card-md"></div>
-    <div class="grid2" style="margin-top:12px">
-      <div><h3>Reflections the patient shared</h3><div id="shared" class="small"></div></div>
-      <div><h3>Rate this summary (helps the pilot)</h3>
+    <div class="detail-grid">
+      <div class="sub">
+        <h4>Reflections the patient shared</h4>
+        <div id="shared"></div>
+      </div>
+      <div class="sub">
+        <h4>Rate this summary <span class="muted small">(helps the pilot)</span></h4>
         <div class="fb">
-          <label>Usefulness <select id="fb-rating"><option value="">-</option><option>1</option><option>2</option>
-            <option>3</option><option>4</option><option>5</option></select></label>
-          <label><input type="checkbox" id="fb-accurate"> Matches what the patient told me in the visit</label>
-          <label>Minutes saved <input type="text" id="fb-min" size="4" inputmode="decimal"></label>
+          <span class="small muted">How useful was it?</span>
+          <div class="qopts" id="fb-rating"></div>
+          <label class="switch"><input type="checkbox" id="fb-accurate"> Matches what the patient told me in the visit</label>
+          <label class="inline">Minutes saved <input type="text" id="fb-min" inputmode="decimal" placeholder="0"></label>
           <textarea id="fb-comment" rows="2" placeholder="Anything wrong or missing?"></textarea>
-          <div class="row"><button id="fb-send">Save rating</button><span class="small muted" id="fb-out"></span></div>
-        </div></div>
+          <div class="row"><button class="btn-ghost" id="fb-send">Save rating</button><span class="small muted" id="fb-out"></span></div>
+        </div>
+      </div>
     </div>
   </section>
-</main>
+
+  <p class="foot-note">MitraMind supports care between visits; it does not diagnose. Alerts are a prompt to check in, not a verdict.</p>
+</div>
+
+<dialog id="resolve">
+  <form method="dialog" id="resolve-form">
+    <h3>Resolve alert</h3>
+    <p class="small muted" id="r-who"></p>
+    <label class="lbl" for="r-note">What happened?</label>
+    <textarea id="r-note" rows="3" placeholder="e.g. Called the patient, safety plan done"></textarea>
+    <span class="lbl">Was the risk real?</span>
+    <div class="qopts">
+      <label><input type="radio" name="r-out" value="confirmed_risk"><span>Yes, real risk</span></label>
+      <label><input type="radio" name="r-out" value="false_alarm"><span>False alarm</span></label>
+      <label><input type="radio" name="r-out" value="unclear"><span>Unclear</span></label>
+    </div>
+    <div class="err small" id="r-err"></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn-ghost" id="r-cancel">Cancel</button>
+      <button type="submit" class="btn-primary btn-md" id="r-save">Resolve</button>
+    </div>
+  </form>
+</dialog>
 
 <script src="/static/cards.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const when = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "-";
-let CURRENT = null, LAST_CARD = null;
+const when = (iso) => iso ? new Date(iso).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "–";
+let CURRENT = null, LAST_CARD = null, ASTATUS = "open", RESOLVING = null;
 const TOKEN_KEY = "mm_clinician_token";
 const token = { get() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
                 clear() { try { localStorage.removeItem(TOKEN_KEY); } catch {} } };
 const toLogin = () => location.replace("/clinician/login");
+
+// ------------------------------------------------------------------ icons (Lucide shapes, MIT), as in the patient app
+const ICONS = {
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+};
+const svg = (name, size = 20) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
+  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+function paintIcons(root = document) {
+  root.querySelectorAll("[data-icon]").forEach((el) => { el.innerHTML = svg(el.dataset.icon, +el.dataset.size || 20); });
+}
 
 async function api(path, body) {
   const headers = {Authorization: `Bearer ${token.get()}`};
@@ -101,46 +183,93 @@ $("logout").onclick = async () => {
   token.clear(); toLogin();
 };
 
+// ------------------------------------------------------------------ alerts
+document.querySelectorAll("#astatus button").forEach((b) => b.onclick = () => {
+  ASTATUS = b.dataset.s;
+  document.querySelectorAll("#astatus button").forEach((x) => x.classList.toggle("on", x === b));
+  loadAlerts();
+});
+
+const pidLink = (pid) => `<a href="#" class="pid" data-p="${esc(pid)}">${esc(pid)}</a>`;
+
 async function loadAlerts() {
-  const rows = await api(`/v1/clinician/alerts?status=${$("astatus").value}`);
-  $("alerts").innerHTML = rows.length ? `<tr><th>Level</th><th>Patient</th><th>Why</th><th>From</th><th>When</th>
-    <th>What to do</th><th></th></tr>` + rows.map((a) => `<tr>
-      <td><span class="badge lvl-${a.level}">${esc(a.level)}</span></td><td><a href="#" data-p="${esc(a.patient_id)}">${esc(a.patient_id)}</a></td>
-      <td>${esc(a.reasons.join("; "))}</td><td>${esc(a.source)}</td><td class="small">${when(a.created_at)}</td>
-      <td class="small">${esc(a.recommended_action)}</td>
-      <td>${a.status === "resolved" ? `<span class="small muted">${esc(a.handled_by || "")} ${esc(a.note || "")}</span>` : `<div class="row">
-        ${a.status === "open" ? `<button data-a="${a.id}" data-s="acknowledged">Acknowledge</button>` : ""}
-        <button data-a="${a.id}" data-s="resolved">Resolve</button></div>`}</td></tr>`).join("")
-    : `<tr><td class="muted">No ${$("astatus").value === "all" ? "" : $("astatus").value} alerts.</td></tr>`;
+  const rows = await api(`/v1/clinician/alerts?status=${ASTATUS}`);
+  $("alerts").innerHTML = rows.length ? rows.map((a) => `<div class="alert lvl-${esc(a.level)}">
+      <span class="badge lvl-${esc(a.level)}">${esc(a.level)}</span>
+      <div class="a-main">
+        <div class="a-top">${pidLink(a.patient_id)}<span class="dot-sep"></span><span>${esc(a.source)}</span>
+          <span class="dot-sep"></span><span>${when(a.created_at)}</span></div>
+        <div class="a-why">${esc(a.reasons.join("; "))}</div>
+        <div class="a-do">${esc(a.recommended_action)}</div>
+      </div>
+      <div class="a-act">${a.status === "resolved"
+        ? `<span class="done-chip">${svg("check", 14)} Resolved${a.handled_by ? ` by ${esc(a.handled_by)}` : ""}</span>
+           ${a.note ? `<span class="small muted">${esc(a.note)}</span>` : ""}`
+        : `${a.status === "open" ? `<button class="btn-ghost btn-sm" data-a="${a.id}" data-s="acknowledged">Acknowledge</button>`
+                                 : `<span class="small muted">Acknowledged</span>`}
+           <button class="btn-primary btn-sm" data-a="${a.id}" data-s="resolved" data-pid="${esc(a.patient_id)}">Resolve</button>`}</div>
+    </div>`).join("")
+    : `<div class="empty">${svg("check", 22)}<span>No ${ASTATUS === "all" ? "" : ASTATUS} alerts. All quiet.</span></div>`;
   $("alerts").querySelectorAll("button[data-a]").forEach((b) => b.onclick = async () => {
-    let note = null, outcome = null;
-    if (b.dataset.s === "resolved") {
-      note = prompt("Outcome note (e.g. 'called patient, safety plan done')");
-      if (note === null) return;
-      const ans = (prompt("Was the risk real? Type yes, no or unclear") || "").trim().toLowerCase();
-      outcome = {yes: "confirmed_risk", no: "false_alarm", unclear: "unclear"}[ans] || null;
-    }
-    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: b.dataset.s, note, outcome});
-    loadAlerts(); loadPatients();
+    if (b.dataset.s === "resolved") return openResolve(b.dataset.a, b.dataset.pid);
+    b.disabled = true;
+    await api(`/v1/clinician/alerts/${b.dataset.a}`, {status: "acknowledged", note: null, outcome: null});
+    refresh();
   });
-  $("alerts").querySelectorAll("a[data-p]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openPatient(a.dataset.p); });
+  bindPatientLinks($("alerts"));
 }
 
-function q(t) { return t ? `${t.latest} <span class="small muted">${esc(t.severity)}${t.direction !== "baseline_only" ?
-  `, ${t.change > 0 ? "+" : ""}${t.change}` : ""}</span>` : `<span class="muted">-</span>`; }
+function openResolve(aid, pid) {
+  RESOLVING = aid;
+  $("r-who").textContent = `Patient ${pid}`;
+  $("r-note").value = ""; $("r-err").textContent = "";
+  $("resolve").querySelectorAll("input[name=r-out]").forEach((i) => i.checked = false);
+  $("resolve").showModal(); $("r-note").focus();
+}
+$("r-cancel").onclick = () => $("resolve").close();
+$("resolve-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const outcome = $("resolve").querySelector("input[name=r-out]:checked")?.value || null;
+  $("r-save").disabled = true;
+  try {
+    await api(`/v1/clinician/alerts/${RESOLVING}`, {status: "resolved", note: $("r-note").value.trim() || null, outcome});
+    $("resolve").close(); refresh();
+  } catch (err) { $("r-err").textContent = err.message; }
+  finally { $("r-save").disabled = false; }
+};
+
+// ------------------------------------------------------------------ patients
+function q(t) {
+  if (!t) return `<span class="muted">–</span>`;
+  const ch = t.direction !== "baseline_only" && t.change
+    ? ` <span class="${t.change > 0 ? "up" : "down"}">${t.change > 0 ? "▲" : "▼"} ${Math.abs(t.change)}</span>` : "";
+  return `<b>${t.latest}</b>${ch}<div class="sev">${esc(t.severity)}</div>`;
+}
 
 async function loadPatients() {
   const rows = await api("/v1/clinician/dashboard");
-  $("patients").innerHTML = `<tr><th>Patient</th><th>Open alerts</th><th>PHQ-9</th><th>GAD-7</th><th>Companion use</th>
-    <th>Last message</th><th></th></tr>` + rows.map((p) => `<tr class="${p.id === CURRENT ? "sel" : ""}">
-      <td>${esc(p.id)}</td>
-      <td>${p.open_alerts ? `<span class="badge lvl-${p.highest_open_alert}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>` : "0"}</td>
+  $("s-patients").textContent = rows.length;
+  $("s-alerts").textContent = rows.reduce((n, p) => n + (p.open_alerts || 0), 0);
+  $("s-attention").textContent = rows.filter((p) => p.open_alerts && ["high", "urgent"].includes(p.highest_open_alert)).length;
+  $("s-shared").textContent = rows.reduce((n, p) => n + (p.usage?.shared_reflections || 0), 0);
+  $("patients").innerHTML = rows.length ? `<thead><tr><th>Patient</th><th>Alerts</th><th>PHQ-9</th><th>GAD-7</th><th>Companion use</th>
+    <th>Last message</th><th></th></tr></thead><tbody>` + rows.map((p) => `<tr class="${p.id === CURRENT ? "sel" : ""}">
+      <td>${pidLink(p.id)}</td>
+      <td>${p.open_alerts ? `<span class="badge lvl-${esc(p.highest_open_alert)}">${p.open_alerts} ${esc(p.highest_open_alert)}</span>`
+                          : `<span class="muted">None</span>`}</td>
       ${p.consents.care_team ? `<td>${q(p["PHQ-9"])}</td><td>${q(p["GAD-7"])}</td>
-        <td class="small">${p.usage.user_messages} messages (${p.usage.voice_messages} voice), ${p.usage.shared_reflections} shared,
-          ${p.usage.mind_pause_completed}/${p.usage.mind_pause_started} Mind Pauses</td><td class="small">${when(p.usage.last_message)}</td>
-        <td><button data-p="${esc(p.id)}">Open</button></td>`
-      : `<td colspan="5" class="small muted">Patient has not agreed to share with the care team</td>`}</tr>`).join("");
-  $("patients").querySelectorAll("button[data-p]").forEach((b) => b.onclick = () => openPatient(b.dataset.p));
+        <td class="small">${p.usage.user_messages} message${p.usage.user_messages === 1 ? "" : "s"}${p.usage.voice_messages ? ` (${p.usage.voice_messages} voice)` : ""}
+          <div class="muted">${p.usage.shared_reflections} shared · ${p.usage.mind_pause_completed}/${p.usage.mind_pause_started} Mind Pauses</div></td>
+        <td class="small muted">${when(p.usage.last_message)}</td>
+        <td><button class="btn-ghost btn-sm" data-open="${esc(p.id)}">Open</button></td>`
+      : `<td colspan="5" class="small muted">${svg("x", 13)} Not sharing with the care team (alerts only)</td>`}</tr>`).join("") + "</tbody>"
+    : `<tbody><tr><td class="empty">No patients yet. Share your care-team code to get started.</td></tr></tbody>`;
+  $("patients").querySelectorAll("button[data-open]").forEach((b) => b.onclick = () => openPatient(b.dataset.open));
+  bindPatientLinks($("patients"));
+}
+
+function bindPatientLinks(root) {
+  root.querySelectorAll("a[data-p]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openPatient(a.dataset.p); });
 }
 
 async function loadCards(showClinician) {
@@ -149,45 +278,63 @@ async function loadCards(showClinician) {
 
 async function openPatient(pid) {
   CURRENT = pid; LAST_CARD = null;
-  $("detail").style.display = "block"; $("d-title").textContent = pid; $("card").innerHTML = ""; $("fb-out").textContent = "";
+  $("detail").hidden = false; $("d-title").textContent = pid; $("card").innerHTML = ""; $("fb-out").textContent = "";
   loadPatients();
   try {
     const shared = await api(`/v1/clinician/patients/${encodeURIComponent(pid)}/shared`);
-    $("shared").innerHTML = shared.length ? shared.map((m) => `<div class="quote">${esc(m.text)}
-      <div class="muted">${when(m.created_at)} · ${esc(m.modality)}</div></div>`).join("") : `<span class="muted">Nothing shared yet.</span>`;
-  } catch (e) { $("shared").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+    $("shared").innerHTML = shared.length ? shared.map((m) => `<div class="quote"><div class="q-text">${esc(m.text)}</div><div class="small muted">${m.modality === "voice" ? `${svg("mic", 12)} ` : ""}${when(m.created_at)}</div></div>`).join("")
+      : `<p class="small muted">Nothing shared yet.</p>`;
+  } catch (e) { $("shared").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   $("detail").scrollIntoView({behavior: "smooth"});
 }
+$("d-close").onclick = () => { $("detail").hidden = true; CURRENT = null; loadPatients(); };
 
 $("build").onclick = async () => {
   const b = $("build"); b.disabled = true; b.textContent = "Building…";
+  $("card").innerHTML = `<p class="small muted building"><span class="spin"></span>Reading check-ins, alerts and shared reflections…</p>`;
   try {
     const res = await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/state-card?use_llm=${$("use-llm").checked}`);
     LAST_CARD = res.card;
     const md = window.marked ? marked.parse(esc(res.markdown).replace(/&gt;/g, ">")) : `<pre>${esc(res.markdown)}</pre>`;
-    $("card").innerHTML = `<p class="small muted">Summary by ${res.card.narrative_source === "llm" ? esc(res.card.llm_model) :
-      "rule-based fallback"}.</p>${md}`;
+    $("card").innerHTML = `<p class="src-chip">Summary by ${res.card.narrative_source === "llm" ? esc(res.card.llm_model) :
+      "rule-based fallback"}</p>${md}`;
   } catch (e) { $("card").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   finally { b.disabled = false; b.textContent = "Build pre-visit summary"; }
 };
 
+$("fb-rating").innerHTML = [1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="fb-rating" value="${n}"><span>${n}</span></label>`).join("");
 $("fb-send").onclick = async () => {
-  const min = parseFloat($("fb-min").value);
-  await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/feedback`, {
-    rating: $("fb-rating").value ? +$("fb-rating").value : null,
-    accurate: $("fb-accurate").checked, minutes_saved: isNaN(min) ? null : min, comment: $("fb-comment").value || null});
-  $("fb-out").textContent = "Saved. Thank you.";
+  const min = parseFloat($("fb-min").value), rating = document.querySelector("input[name=fb-rating]:checked")?.value;
+  try {
+    await api(`/v1/clinician/patients/${encodeURIComponent(CURRENT)}/feedback`, {
+      rating: rating ? +rating : null, accurate: $("fb-accurate").checked, minutes_saved: isNaN(min) ? null : min,
+      comment: $("fb-comment").value || null});
+    $("fb-out").textContent = "Saved. Thank you.";
+  } catch (e) { $("fb-out").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
 };
 
-$("astatus").onchange = loadAlerts;
+$("copy-code").onclick = async () => {
+  try { await navigator.clipboard.writeText($("care-code").textContent); } catch { return; }
+  $("copy-code").innerHTML = svg("check", 18);
+  setTimeout(() => { $("copy-code").innerHTML = svg("copy", 18); }, 1500);
+};
+
+function refresh() { loadAlerts(); loadPatients(); }
 
 (async () => {
+  paintIcons();
   if (!token.get()) return toLogin();
   const me = (await api("/v1/auth/clinician/me")).clinician;
-  $("who").textContent = `Logged in as ${me.name ? `${me.name} (${me.email})` : me.email}${me.role === "superuser" ? " · superuser" : ""}`;
+  const h = new Date().getHours();
+  $("today").textContent = new Date().toLocaleDateString([], {weekday: "long", day: "numeric", month: "long"});
+  $("greet").textContent = `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}${me.name ? `, ${me.name}` : ""}`;
+  $("who").textContent = me.name || me.email; $("who-chip").title = me.email;
+  $("initials").textContent = (me.name || me.email).replace(/^dr\.?\s+/i, "").split(/[\s@.]+/).filter(Boolean).slice(0, 2)
+    .map((w) => w[0].toUpperCase()).join("");
+  $("who-chip").hidden = false;
   $("admin-link").hidden = me.role !== "superuser";
-  if (me.care_code) { $("care-code").textContent = me.care_code; $("code-line").hidden = false; }
-  loadAlerts(); loadPatients(); loadCards(me.role === "superuser");
+  if (me.care_code) { $("care-code").textContent = me.care_code; $("code-card").hidden = false; }
+  refresh(); loadCards(me.role === "superuser");
   $("cards-refresh").onclick = () => loadCards(me.role === "superuser");
   if (location.hash.length > 1) openPatient(decodeURIComponent(location.hash.slice(1)));  // from the superuser view
   setInterval(loadAlerts, 30000);
