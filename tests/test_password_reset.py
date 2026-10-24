@@ -125,6 +125,7 @@ def test_reset_email_goes_by_smtp(monkeypatch):
     monkeypatch.setattr(mailer.smtplib, "SMTP", FakeSMTP)
     monkeypatch.setenv("MITRAMIND_SMTP_HOST", "smtp.gmail.com")
     monkeypatch.setenv("MITRAMIND_SMTP_USER", "mitramind.sender@gmail.com")
+    monkeypatch.setenv("MITRAMIND_SMTP_PASSWORD", "app-password")
     r = c.post("/v1/auth/forgot", json={"email": "pat@gmail.com"}).json()
     assert r["emailed"] and "dev_code" not in r
     assert sent[0]["to"] == "pat@gmail.com" and sent[0]["subject"].startswith("Reset your MitraMind password")
