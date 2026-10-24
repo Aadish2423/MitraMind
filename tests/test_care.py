@@ -115,6 +115,17 @@ def test_questionnaire_item9_opens_alert():
     assert svc.alerts()[0]["source"] == "questionnaire"
 
 
+def test_later_gad7_does_not_reraise_phq9_alert():
+    svc, _ = service([])
+    svc.submit_questionnaire("p1", "PHQ-9", [1, 1, 1, 1, 1, 1, 1, 0, 1])
+    out = svc.submit_questionnaire("p1", "GAD-7", [0] * 7)
+    assert out["alert_id"] is None and out["risk"]["level"] == "none" and out["helplines"] == []
+    assert len(svc.alerts()) == 1
+    # a new PHQ-9 is new evidence, so it is judged again
+    assert svc.submit_questionnaire("p1", "PHQ-9", [1, 1, 1, 1, 1, 1, 1, 0, 1])["alert_id"]
+    assert len(svc.alerts()) == 2
+
+
 def test_state_card_from_stored_chats():
     svc, _ = service([reply("That sounds hard."), reply("Glad it helped.")])
     svc.submit_questionnaire("p1", "PHQ-9", [2, 2, 2, 2, 1, 2, 1, 1, 0])

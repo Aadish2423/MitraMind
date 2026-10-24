@@ -516,7 +516,9 @@ class CareService:
         s = score(QuestionnaireResponse(instrument=instrument, date=on, items=items))  # validates items
         qid = self.store.add_questionnaire(patient_id, instrument, on.isoformat(), items, channel)
         tr = trends(self._responses(patient_id))
-        phq = tr.get("PHQ-9")
+        # Only a new PHQ-9 is new evidence for these PHQ-9 rules (item 9, worsening). Judging the stored PHQ-9 again on
+        # a GAD-7 would re-open the same alert on every later check-in.
+        phq = tr.get("PHQ-9") if instrument == "PHQ-9" else None
         risk = combine([], phq.history if phq else [], phq.change if phq and phq.n_administrations > 1 else None)
         alert_id = None
         if risk.level != "none":

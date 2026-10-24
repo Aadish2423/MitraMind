@@ -337,7 +337,7 @@ function refresh() { loadAlerts(); loadPatients(); }
   refresh(); loadCards(me.role === "superuser");
   $("cards-refresh").onclick = () => loadCards(me.role === "superuser");
   if (location.hash.length > 1) openPatient(decodeURIComponent(location.hash.slice(1)));  // from the superuser view
-  setInterval(loadAlerts, 30000);
+  setInterval(refresh, 30000);  // alerts, tiles and the patient table stay current while the page is open
 })().catch(() => {});
 </script>
 </body>
